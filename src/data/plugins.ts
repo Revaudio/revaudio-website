@@ -155,7 +155,7 @@ export const plugins: Plugin[] = [
     oneLiner:
       'The redline is your threshold. The needle is your gain reduction. Mastering loudness with the muscle of a tuned engine.',
     plainWhat:
-      'In plain terms: RevLimiter is the last plugin on your master bus. It makes your track as loud as a commercial release while keeping it clean and punchy, not squashed, flat, or distorted.',
+      'Easy to drive. Hard to crash. Goes last on your master bus and makes it commercial-release loud — punchy, not squashed.',
     longPitch:
       'A mastering limiter that makes loudness, depth, and punch feel like flooring it on an open road. Multi-band compression, analog-modelled saturation, and an adaptive limiter chained the way a top-tier mastering engineer would chain them. Sits last on your master bus, glues the mix, and holds a true-peak ceiling at oversampled rate.',
     status: 'live',
