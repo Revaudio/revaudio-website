@@ -166,6 +166,12 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
   .plate {
     position: relative;
     width: 100%;
+    /* Clip children to the paper: the "PLATES ISSUED" stamp's hidden pre-state
+       is scale(3) (invisible, but the transform still inflated scrollWidth →
+       43px of page-wide horizontal overflow on phones). The resting stamp is
+       scale(1), centered, well inside the plate, so clipping only kills the
+       off-screen phantom, not the slam-down landing. */
+    overflow: hidden;
     aspect-ratio: 2176 / 1373;
     background: var(--plate-url) center / 100% 100% no-repeat;
     filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.62));
