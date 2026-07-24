@@ -67,12 +67,12 @@ export const surveyMeta = {
   introPriceUsd: 93,
   // i18n for the shared form chrome (title, toggle, submit, statuses).
   ui: {
-    titleHe: 'משוב בטא — RevLimiter',
-    titleEn: 'RevLimiter — Beta Feedback',
+    titleHe: 'משוב בטא: RevLimiter',
+    titleEn: 'RevLimiter Beta Feedback',
     introHe:
-      'תודה שבדקת את RevLimiter. המשוב הזה הוא מה שיעצב את גרסת ה-Alpha לפני ההשקה — כל שאלה עוזרת. ~7 דקות.',
+      'תודה שבדקת את RevLimiter. המשוב הזה הוא מה שיעצב את גרסת ה-Alpha לפני ההשקה. כל שאלה עוזרת. ~7 דקות.',
     introEn:
-      'Thanks for testing RevLimiter. This feedback shapes the alpha build before launch — every answer helps. ~7 minutes.',
+      'Thanks for testing RevLimiter. This feedback shapes the alpha build before launch. Every answer helps. ~7 minutes.',
     requiredHe: 'חובה',
     requiredEn: 'required',
     optionalHe: 'רשות',
@@ -88,11 +88,11 @@ export const surveyMeta = {
     sendingHe: 'שולח…',
     sendingEn: 'Sending…',
     thanksHe: 'תודה! המשוב שלך נקלט. זה ממש עוזר לנו.',
-    thanksEn: "Thank you — your feedback came through. This genuinely helps.",
+    thanksEn: "Thank you. Your feedback came through. This genuinely helps.",
     errHe: 'משהו השתבש. נסה/י שוב, או כתוב/כתבי ל-info@revaudio.net.',
     errEn: 'Something went wrong. Try again, or email info@revaudio.net.',
-    softHe: 'טופס המשוב ייפתח בקרוב — התשובות שלך עדיין לא נשלחו.',
-    softEn: "The feedback form opens shortly — your answers weren't sent yet.",
+    softHe: 'טופס המשוב ייפתח בקרוב. התשובות שלך עדיין לא נשלחו.',
+    softEn: "The feedback form opens shortly. Your answers weren't sent yet.",
     badCodeHe: 'קוד הגישה שגוי. בדוק/בדקי את מייל ההזמנה.',
     badCodeEn: 'That beta access code is incorrect. Check your invite email.',
     requiredMissingHe: 'יש שאלות חובה שטרם נענו (מסומנות).',
@@ -286,8 +286,8 @@ export const questions: Question[] = [
     section: 'ui',
     type: 'single',
     required: true,
-    he: 'העיצוב בהשראת רכב (Cruise/Sport/NOS, Eng. Heat, מד-הסיבובים) — עזר או הפריע לך להבין את הפרמטרים?',
-    en: 'The car-inspired design (Cruise/Sport/NOS, Eng. Heat, rev gauge) — did it help or get in the way of understanding the parameters?',
+    he: 'העיצוב בהשראת רכב (Cruise/Sport/NOS, Eng. Heat, מד-הסיבובים): עזר או הפריע לך להבין את הפרמטרים?',
+    en: 'The car-inspired design (Cruise/Sport/NOS, Eng. Heat, rev gauge): did it help or get in the way of understanding the parameters?',
     helpHe: 'אלה השמות והאלמנטים בהשראת עולם הרכב שמופיעים בממשק.',
     helpEn: 'These are the car-world names and elements used across the interface.',
     choices: [
@@ -403,8 +403,8 @@ export const questions: Question[] = [
       field: {
         id: 'bug_detail',
         type: 'text',
-        he: 'תאר/י את הבאג/ים — כולל ה-DAW ומערכת ההפעלה.',
-        en: 'Describe the bug(s) — include your DAW + OS.',
+        he: 'תאר/י את הבאג/ים, כולל ה-DAW ומערכת ההפעלה.',
+        en: 'Describe the bug(s), including your DAW + OS.',
       },
     },
   },

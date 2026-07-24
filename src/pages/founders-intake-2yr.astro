@@ -12,9 +12,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 >
   <section class="plugin-detail intake">
     <div class="container" style="max-width: 880px;">
-      <h1>RevAudio — 2-Year Business Plan Intake</h1>
+      <h1>RevAudio: 2-Year Business Plan Intake</h1>
       <p class="muted" id="intro">
-        Fill what you know; leave blanks where you're unsure — I'll flag those as assumptions in the plan.
+        Fill what you know; leave blanks where you're unsure and I'll flag those as assumptions in the plan.
         Short bullets beat polished prose. <strong>Your answers auto-save in this browser</strong>, so you can
         stop and come back any time. To continue on a different device, use
         <em>Download progress</em> here and <em>Load progress</em> there.
@@ -24,7 +24,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
         <div class="status-line">
           <span id="progressTxt">0 / 0 answered</span>
-          <span id="savedTxt" class="saved">—</span>
+          <span id="savedTxt" class="saved">not saved yet</span>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <button type="button" id="clearBtn" class="btn-ghost danger">Clear all</button>
       </div>
       <p class="muted small" id="autosaveNote">
-        Nothing is uploaded — everything stays on this device until you export it.
+        Nothing is uploaded; everything stays on this device until you export it.
       </p>
     </div>
   </section>
@@ -109,10 +109,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       // ---- SCHEMA: every question the 2-year investor plan needs ----
       const SCHEMA = [
-        { n: '01', t: 'Company & Vision', why: 'Anchors the whole narrative — who you are and where this goes by end of 2028.', q: [
+        { n: '01', t: 'Company & Vision', why: 'Anchors the whole narrative: who you are and where this goes by end of 2028.', q: [
           ['pitch', 'One-line pitch (the elevator line)', 'text', 'e.g. Car-inspired pro audio plugins that sound expensive and play simple.'],
-          ['mission', 'Mission — what RevAudio exists to do', 'textarea', 'The "why we build" in 1–2 sentences.'],
-          ['vision_2yr', 'The 2-year vision — where is RevAudio at end of 2028?', 'textarea', '# plugins shipped, brand position, revenue scale, team size.'],
+          ['mission', 'Mission: what RevAudio exists to do', 'textarea', 'The "why we build" in 1–2 sentences.'],
+          ['vision_2yr', 'The 2-year vision: where is RevAudio at end of 2028?', 'textarea', '# plugins shipped, brand position, revenue scale, team size.'],
           ['values_proof', 'How do "high quality / simplicity / creativity" actually show in the products?', 'textarea', 'Concrete proof, not slogans.'],
           ['whynow', 'Why now? What makes this the right moment?', 'textarea', 'Market shift, your edge, AI-leveraged dev speed, gap competitors leave.'],
           ['legal_entity', 'Legal entity status', 'text', 'Registered company? Type (LLC/Ltd/sole)? Country?'],
@@ -123,19 +123,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         ]},
 
         { n: '02', t: 'Founders & Team', why: 'Investors bet on people first. Show who builds and who sells.', q: [
-          ['founders_overview', 'Founders — names, roles, equity split, one-line background each', 'textarea', 'Name — role — relevant experience — equity %.'],
-          ['founder1', 'Founder 1 — detail (skills, what they own, hours/week)', 'textarea', ''],
-          ['founder2', 'Founder 2 — detail (skills, what they own, hours/week)', 'textarea', ''],
+          ['founders_overview', 'Founders: names, roles, equity split, one-line background each', 'textarea', 'Name, role, relevant experience, equity %.'],
+          ['founder1', 'Founder 1: detail (skills, what they own, hours/week)', 'textarea', ''],
+          ['founder2', 'Founder 2: detail (skills, what they own, hours/week)', 'textarea', ''],
           ['commitment', 'Time commitment overall', 'text', 'Full-time / part-time / nights & weekends.'],
-          ['audio_cred', 'Audio-industry credibility of the team', 'textarea', 'Released music, mixing work, prior plugins, education — anything that earns trust.'],
+          ['audio_cred', 'Audio-industry credibility of the team', 'textarea', 'Released music, mixing work, prior plugins, education, anything that earns trust.'],
           ['skills_covered', 'Skills you cover well in-house', 'textarea', 'DSP, UI, brand, marketing, web, support…'],
-          ['skills_gaps', 'Skill gaps you need to fill', 'textarea', 'Honest list — investors expect gaps.'],
-          ['contractors_now', 'Contractors / freelancers used today', 'text', 'Design, video, DSP help — and rough cost.'],
+          ['skills_gaps', 'Skill gaps you need to fill', 'textarea', 'Honest list; investors expect gaps.'],
+          ['contractors_now', 'Contractors / freelancers used today', 'text', 'Design, video, DSP help, and rough cost.'],
           ['hires_plan', 'Key hires planned over 24 months', 'textarea', 'Role, rough timing, why critical.'],
           ['advisors', 'Advisors / mentors', 'text', 'Names or types of help you have or want.'],
         ]},
 
-        { n: '03', t: 'Products — RevLimiter (live)', why: 'Your proof product. Real numbers here carry the deck.', q: [
+        { n: '03', t: 'Products: RevLimiter (live)', why: 'Your proof product. Real numbers here carry the deck.', q: [
           ['rl_version', 'Current public version', 'text', 'e.g. 1.0.0'],
           ['rl_price', 'Current price', 'text', 'Regular + any sale price.'],
           ['rl_units', 'Units sold to date', 'text', 'Total since launch.'],
@@ -146,11 +146,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['rl_mac', 'Mac / other formats status for RevLimiter', 'text', 'Win-only now? Mac ETA? AU/AAX?'],
         ]},
 
-        { n: '04', t: 'Products — Pipeline (Cooker / The AC)', why: 'The portfolio thesis — what ships, in what order, why.', q: [
-          ['ck_status', 'The Cooker — stage, target ship quarter, price idea', 'textarea', 'Multiband panner + FX + Autopilot.'],
-          ['ck_diff', 'The Cooker — who it competes with & your angle', 'text', ''],
-          ['ac_status', 'The AC — stage, target ship quarter, price idea', 'textarea', 'Air-band exciter / tube saturator.'],
-          ['ac_diff', 'The AC — who it competes with & your angle', 'text', ''],
+        { n: '04', t: 'Products: Pipeline (Cooker / The AC)', why: 'The portfolio thesis: what ships, in what order, why.', q: [
+          ['ck_status', 'The Cooker: stage, target ship quarter, price idea', 'textarea', 'Multiband panner + FX + Autopilot.'],
+          ['ck_diff', 'The Cooker: who it competes with & your angle', 'text', ''],
+          ['ac_status', 'The AC: stage, target ship quarter, price idea', 'textarea', 'Air-band exciter / tube saturator.'],
+          ['ac_diff', 'The AC: who it competes with & your angle', 'text', ''],
           ['future_products', 'Any other plugins / products planned in the 2-yr window', 'textarea', 'Beyond the core 3.'],
           ['bundle_plan', 'Bundle strategy', 'textarea', 'Will plugins sell as a bundle? Suite name? Price?'],
           ['addons', 'Preset packs / expansions / add-on revenue', 'text', ''],
@@ -158,7 +158,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         { n: '05', t: 'Product Strategy & Moat', why: 'Why a competitor can\'t just copy this next month.', q: [
           ['moat', 'What is the durable advantage / moat?', 'textarea', 'Brand identity, sound quality, UX, ecosystem, shipping speed, AI-assisted pipeline.'],
-          ['dev_pipeline', 'Your development pipeline & speed', 'textarea', 'JUCE + AI-assisted workflow — how fast can you ship vs. typical shops?'],
+          ['dev_pipeline', 'Your development pipeline & speed', 'textarea', 'JUCE + AI-assisted workflow: how fast can you ship vs. typical shops?'],
           ['quality_proof', 'How do you prove pro-grade quality?', 'textarea', 'Null tests, pluginval, A/B vs FabFilter/Pro-L, measurements.'],
           ['platform_roadmap', 'Platform & format roadmap', 'textarea', 'Mac port timing, AU/AAX, Apple notarization, future mobile/standalone.'],
           ['brand_system', 'Brand / design system as an asset', 'textarea', 'The car metaphor, reusable UI kit, recognizable identity.'],
@@ -182,16 +182,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['subscription', 'Considering subscription / rent-to-own?', 'text', 'Stance + reasoning.'],
           ['upgrade_policy', 'Upgrade & version policy', 'text', 'Free within major version? Paid major upgrades?'],
           ['discounts', 'Discount strategy', 'textarea', 'Launch sales, education, loyalty, seasonal.'],
-          ['channels', 'Sales channels & revenue split each', 'textarea', 'Direct (Lemon Squeezy), Plugin Boutique, ADSR, Splice — and their cut.'],
+          ['channels', 'Sales channels & revenue split each', 'textarea', 'Direct (Lemon Squeezy), Plugin Boutique, ADSR, Splice, and their cut.'],
           ['seats', 'Licensing / seats policy', 'text', 'Seats per key, transfers, trial/demo.'],
           ['ltv', 'Estimated customer lifetime value', 'text', 'How much does one buyer spend over time?'],
           ['repeat', 'Repeat-purchase / cross-sell expectation', 'text', 'Do RevLimiter buyers buy the next plugin?'],
         ]},
 
-        { n: '08', t: 'Traction & Current Metrics', why: 'Proof. Even small numbers matter — show the slope.', q: [
+        { n: '08', t: 'Traction & Current Metrics', why: 'Proof. Even small numbers matter, so show the slope.', q: [
           ['total_rev', 'Total revenue to date (all products)', 'text', '$ since first sale.'],
           ['mrr', 'Current monthly revenue / run-rate', 'text', 'Last 1–3 months.'],
-          ['rev_trend', 'Monthly trend', 'text', 'Growing / flat / lumpy — give the shape.'],
+          ['rev_trend', 'Monthly trend', 'text', 'Growing / flat / lumpy: give the shape.'],
           ['units_total', 'Total customers / units', 'text', ''],
           ['email_list', 'Email list size', 'text', ''],
           ['social', 'Social following per platform', 'textarea', 'IG, YouTube, TikTok, etc. + counts.'],
@@ -211,7 +211,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['paid_ads', 'Paid advertising plan', 'text', 'Channels, budget, expected CAC.'],
           ['free_funnel', 'Free plugin / lead magnet as funnel?', 'text', 'AuxIn or a freebie to grow the list?'],
           ['launch_play', 'Launch playbook per new plugin', 'textarea', 'Pre-orders, beta squad, launch-week discount, cross-sell.'],
-          ['resellers', 'Reseller / marketplace strategy', 'text', 'Plugin Boutique, Splice — applied yet?'],
+          ['resellers', 'Reseller / marketplace strategy', 'text', 'Plugin Boutique, Splice: applied yet?'],
           ['partnerships', 'Partnerships / collaborations', 'text', 'Sample packs, schools, artists.'],
           ['mkt_budget_now', 'Current monthly marketing spend', 'text', ''],
           ['mkt_budget_funded', 'Where extra marketing money would go', 'textarea', 'If funded.'],
@@ -226,7 +226,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['infra_cost', 'Infrastructure / fixed monthly costs', 'text', 'Hosting, domains, subscriptions, APIs.'],
         ]},
 
-        { n: '11', t: 'Financials', why: 'The numbers underpinning the projections. Rough is fine — I\'ll model it.', q: [
+        { n: '11', t: 'Financials', why: 'The numbers underpinning the projections. Rough is fine, I\'ll model it.', q: [
           ['costs_breakdown', 'Current monthly costs (itemized)', 'textarea', 'Hosting, domains, processor fees, tools, AI/API, design, contractors, ads.'],
           ['per_sale_cost', 'Per-sale costs', 'text', 'Processor fee %, reseller cut, refund rate.'],
           ['gross_margin', 'Approx gross margin per sale', 'text', 'After payment + delivery costs.'],
@@ -239,8 +239,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['prior_financials', 'Any existing P&L / bookkeeping?', 'text', 'Can you share monthly numbers?'],
         ]},
 
-        { n: '12', t: 'The Ask (Funding)', why: 'The single most important section for an investor — be concrete.', q: [
-          ['raising', 'Are you actually raising?', 'select', '', ['', 'Yes — actively', 'Testing interest', 'Strategic investor only', 'Not raising / for planning only']],
+        { n: '12', t: 'The Ask (Funding)', why: 'The single most important section for an investor, so be concrete.', q: [
+          ['raising', 'Are you actually raising?', 'select', '', ['', 'Yes, actively', 'Testing interest', 'Strategic investor only', 'Not raising / for planning only']],
           ['raise_amount', 'How much are you raising?', 'text', '$ target.'],
           ['min_raise', 'Minimum viable raise', 'text', 'Smallest amount that still moves the plan.'],
           ['valuation', 'Valuation expectation', 'text', 'Pre-money idea, or "open".'],
@@ -253,7 +253,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         ]},
 
         { n: '13', t: '24-Month Milestones', why: 'The timeline investors hold you to.', q: [
-          ['m3', 'Next 3 months — top goals', 'textarea', ''],
+          ['m3', 'Next 3 months: top goals', 'textarea', ''],
           ['m6', '3–6 months', 'textarea', ''],
           ['m12', '6–12 months', 'textarea', ''],
           ['m18', '12–18 months', 'textarea', ''],
@@ -271,11 +271,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ['single_product', 'Single-product concentration risk', 'text', 'How much of revenue is RevLimiter today?'],
         ]},
 
-        { n: '15', t: 'Vision & Exit', why: 'The upside story — how an investor ultimately wins.', q: [
+        { n: '15', t: 'Vision & Exit', why: 'The upside story: how an investor ultimately wins.', q: [
           ['longterm', 'Long-term ambition (beyond 2 yrs)', 'textarea', 'Plugin empire, hardware, acquisition target, profitable lifestyle business?'],
           ['exit_paths', 'Realistic exit / liquidity paths', 'textarea', 'Acquisition (Waves / Plugin Alliance / Native Instruments / Soundwide), dividends, secondary.'],
           ['acquirers', 'Plausible acquirers / strategic buyers', 'text', ''],
-          ['growth_vs_div', 'Growth-to-exit vs profit-and-dividends — which?', 'text', ''],
+          ['growth_vs_div', 'Growth-to-exit vs profit-and-dividends: which?', 'text', ''],
           ['other', 'Anything else investors must know', 'textarea', 'Free space.'],
         ]},
 
@@ -306,7 +306,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             field = `<textarea data-k="${k}" placeholder="${esc(hint)}"></textarea>`;
           } else if (type === 'select') {
             field = `<select data-k="${k}">` + (opts||[]).map(o =>
-              `<option value="${esc(o)}">${o || '— pick —'}</option>`).join('') + `</select>`;
+              `<option value="${esc(o)}">${o || 'pick one'}</option>`).join('') + `</select>`;
           } else {
             field = `<input type="text" data-k="${k}" placeholder="${esc(hint)}">`;
           }
@@ -370,7 +370,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function load(){
         try {
           const raw = localStorage.getItem(KEY);
-          if (!raw) { updateProgress(); savedTxt.textContent = 'New form — nothing saved yet'; return; }
+          if (!raw) { updateProgress(); savedTxt.textContent = 'New form, nothing saved yet'; return; }
           const p = JSON.parse(raw);
           apply(p.data || p); // tolerate old flat format
           savedTxt.textContent = 'Restored from ' + (p.savedAt || 'a previous session');
@@ -383,7 +383,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // export to clipboard as markdown for Claude
       document.getElementById('exportBtn').addEventListener('click', () => {
         const data = collect();
-        let out = '# RevAudio — 2-Year Business Plan Intake\n_Exported ' + nowStr() + '_\n';
+        let out = '# RevAudio: 2-Year Business Plan Intake\n_Exported ' + nowStr() + '_\n';
         SCHEMA.forEach(sec => {
           out += `\n## ${sec.n === '★' ? '' : sec.n + '. '}${sec.t}\n`;
           sec.q.forEach(item => {

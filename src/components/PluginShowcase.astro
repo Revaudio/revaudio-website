@@ -42,7 +42,7 @@ const SLIDES = [
     name: 'Drift',
     titleHtml: 'DRIFT',
     titleClass: 'drift',
-    shot: comingSoonPlate, shotAlt: 'Drift — coming soon',
+    shot: comingSoonPlate, shotAlt: 'Drift, coming soon',
     catchphrase: 'Your sound, sliding. SKRRT!',
     oneliner: 'Send your selected freq. band to a trip across the stereo field.',
     priceHtml: 'Target 2026',
@@ -60,7 +60,7 @@ const SLIDES = [
     name: 'The AC',
     titleHtml: '<span class="acthe">THE</span> <span class="acac">AC</span>',
     titleClass: '',
-    shot: comingSoonPlate, shotAlt: 'The AC — coming soon',
+    shot: comingSoonPlate, shotAlt: 'The AC, coming soon',
     catchphrase: 'Cold air for the top end.',
     oneliner: 'Add clean air and shine to your top end.',
     priceHtml: 'Target 2026',
@@ -81,7 +81,7 @@ const SLIDES = [
     shot: gasShot, shotAlt: 'GAS plugin',
     shotFit: 'contain',
     catchphrase: 'One-knob saturation. Floor it.',
-    oneliner: 'One DRIVE knob, three voices — Tube, Tape, Fuzz.',
+    oneliner: 'One DRIVE knob, three voices: Tube, Tape, Fuzz.',
     priceHtml: 'Free',
     style: {
       title:    { left: 0, top: 20,  ff: "'Bebas Neue', sans-serif", fw: 400, fs: 86, ls: 0 },
@@ -157,7 +157,7 @@ const peekClass = (i: number) => {
             href={`/${s.slug}`}
             data-slide
             aria-roledescription="slide"
-            aria-label={`${s.name} — ${i + 1} of ${SLIDES.length}`}
+            aria-label={`${s.name}, ${i + 1} of ${SLIDES.length}`}
           >
             <div class="sec sc-titlewrap" style={`top:${s.style.title.top}px`}>
               <span class={`sc-title ${s.titleClass}`} style={font(s.style.title)} set:html={s.titleHtml} />

@@ -49,7 +49,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
     <b>Full version.</b> Every control live. Nothing locked.
   </p>
   <p class="sub" data-tp-after hidden>
-    Plates issued. <b>Check your inbox</b> — your download link is on its way.
+    Plates issued. <b>Check your inbox</b>, your download link is on its way.
   </p>
 
   <form class="plate-wrap" data-tp-wrap novalidate>
@@ -65,7 +65,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
           enterkeyhint="go"
           spellcheck="false"
           placeholder="your@email.com"
-          aria-label="Your email — we send the download link here"
+          aria-label="Your email, we send the download link here"
         >
         <div class="plate-fields" aria-hidden="true">Issued by: Revaudio garage &middot; Model: {plugin.name} &middot; Term: 14 days</div>
         <div class="plate-strip plate-strip--bot">Valid 14 days from first start &middot; full version</div>
@@ -76,7 +76,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
     </div>
     <span class="nail" style={`background-image:url(${screwImg.src});`} aria-hidden="true"></span>
     <p class="err" data-tp-err role="alert" aria-live="polite"></p>
-    <button class="get-btn" data-tp-submit type="submit" aria-label="Get it — send my download link">
+    <button class="get-btn" data-tp-submit type="submit" aria-label="Get it, send my download link">
       <span class="face" data-tp-face>Get it <span class="arr">&#9656;</span></span>
     </button>
     <p class="after-note" data-tp-after hidden>Plates on file &mdash; check your inbox</p>
@@ -477,7 +477,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
       window.setTimeout(() => {
         section.querySelectorAll<HTMLElement>('[data-tp-before]').forEach((el) => { el.hidden = true; });
         section.querySelectorAll<HTMLElement>('[data-tp-after]').forEach((el) => { el.hidden = false; });
-        status.textContent = 'Plates issued. Check your inbox — the download link is on its way to ' + email.value.trim() + '.';
+        status.textContent = 'Plates issued. Check your inbox, the download link is on its way to ' + email.value.trim() + '.';
       }, reduced ? 0 : 900);
       // The conversion = an email actually registered (verification sent).
       // Each guarded try/catch: the tags only exist after cookie consent.

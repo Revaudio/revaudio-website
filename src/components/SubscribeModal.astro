@@ -18,7 +18,7 @@ const endpoint = site.formspreeEndpoint;
 <dialog class="sub-modal" data-sub-modal aria-label="Subscribe to the newsletter">
   <button type="button" class="sm-x" data-sub-close aria-label="Close">&times;</button>
   <h2>Subscribe to the newsletter</h2>
-  <p class="sm-sub">New plugins, demo codes, and intro pricing — straight to your inbox. No spam.</p>
+  <p class="sm-sub">New plugins, demo codes, and intro pricing, straight to your inbox. No spam.</p>
   <form class="sm-form" action={endpoint} method="POST" data-sub-form>
     <label class="sm-field">
       <span>Name <em class="muted">(optional)</em></span>
@@ -76,7 +76,7 @@ const endpoint = site.formspreeEndpoint;
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!wired) {
-        show('Almost there — newsletter signup goes live shortly. Your details weren’t sent yet.', false);
+        show('Almost there. Newsletter signup goes live shortly. Your details weren’t sent yet.', false);
         return;
       }
       try {
@@ -87,12 +87,12 @@ const endpoint = site.formspreeEndpoint;
         });
         if (res.ok) {
           form.hidden = true;
-          show('You’re on the list — watch your inbox for the first build.', true);
+          show('You’re on the list. Watch your inbox for the first build.', true);
         } else {
           show('Something went wrong. Try again, or email info@revaudio.net.', false);
         }
       } catch {
-        show('Network hiccup — try again in a moment.', false);
+        show('Network hiccup. Try again in a moment.', false);
       }
     });
   }

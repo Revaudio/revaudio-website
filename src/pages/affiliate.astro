@@ -7,7 +7,7 @@ const endpoint = site.affiliateFormEndpoint;
 
 <BaseLayout
   title="Affiliate Program"
-  description="Promote RevAudio plugins to your audience and earn a commission on every sale. Apply below — applications are reviewed by hand."
+  description="Promote RevAudio plugins to your audience and earn a commission on every sale. Apply below; applications are reviewed by hand."
 >
   <section class="plugin-detail affiliate">
     <div class="container" style="max-width: 760px;" data-reveal>
@@ -20,8 +20,8 @@ const endpoint = site.affiliateFormEndpoint;
 
       <h2>How it works</h2>
       <p>
-        Fill in the form below. We review every application by hand — there's no
-        instant auto-approval — to make sure it's a good fit for both sides. If
+        Fill in the form below. We review every application by hand, with no
+        instant auto-approval, to make sure it's a good fit for both sides. If
         approved, you'll get a unique referral link and commission details by email.
       </p>
 
@@ -51,7 +51,7 @@ const endpoint = site.affiliateFormEndpoint;
         <div class="field">
           <label for="aff-platform">Primary platform</label>
           <select id="aff-platform" name="platform" required>
-            <option value="">— pick —</option>
+            <option value="">pick one</option>
             <option>YouTube</option>
             <option>Instagram</option>
             <option>TikTok</option>
@@ -116,7 +116,7 @@ const endpoint = site.affiliateFormEndpoint;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!wired) {
-        show('Applications open shortly — this form isn’t live yet, nothing was sent.', false);
+        show('Applications open shortly. This form isn’t live yet, nothing was sent.', false);
         return;
       }
       const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -129,13 +129,13 @@ const endpoint = site.affiliateFormEndpoint;
         });
         if (res.ok) {
           form.hidden = true;
-          show('Thanks — we review every application by hand and will email you either way.', true);
+          show('Thanks. We review every application by hand and will email you either way.', true);
         } else {
           show('Something went wrong. Try again, or email info@revaudio.net.', false);
           if (submitBtn) submitBtn.disabled = false;
         }
       } catch {
-        show('Network hiccup — try again in a moment.', false);
+        show('Network hiccup. Try again in a moment.', false);
         if (submitBtn) submitBtn.disabled = false;
       }
     });

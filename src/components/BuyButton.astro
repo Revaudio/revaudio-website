@@ -53,7 +53,7 @@ const pct = discountPct(plugin);
         data-price={plugin.regularPriceUsd ?? plugin.introPriceUsd}
         data-checkout-url={plugin.checkoutUrl}
       >
-        Add to cart — {fmtPrice(plugin.regularPriceUsd ?? plugin.introPriceUsd)}
+        Add to cart · {fmtPrice(plugin.regularPriceUsd ?? plugin.introPriceUsd)}
       </button>
       {plugin.demoUrl && (
         <a class="btn ghost" href={plugin.demoUrl}>

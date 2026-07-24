@@ -16,7 +16,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
      transition (instant under reduced motion), so there's no layout jump. -->
 <div class="hp-nudge" data-hp-nudge hidden>
   <div class="hp-nudge-inner">
-    <span class="hp-nudge-text">🎧 Best with headphones — before/after detail lives in the stereo field.</span>
+    <span class="hp-nudge-text">🎧 Best with headphones. Before/after detail lives in the stereo field.</span>
     <button type="button" class="hp-nudge-x" data-hp-dismiss aria-label="Dismiss headphones tip">
       <span aria-hidden="true">✕</span>
     </button>
@@ -73,7 +73,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
         data-name={plugin.name}
         data-price={cartPrice}
         data-checkout-url={plugin.checkoutUrl}
-        aria-label={`That's ${plugin.name} — add to cart`}
+        aria-label={`That's ${plugin.name}, add to cart`}
       >THAT'S {plugin.name.toUpperCase()} → GET IT</button>
     </div>
   </div>
@@ -87,7 +87,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
         data-arm
         role="switch"
         aria-checked="false"
-        aria-label="ARM — RevLimiter processing"
+        aria-label="ARM, RevLimiter processing"
       ><span class="arm-word" aria-hidden="true">ARM</span></button>
       <div class="nos-light"></div>
       <!-- label always reads ON (plugin behavior) — the .armed glow shows state -->
@@ -348,7 +348,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
       if (srcLabel) {
         const idle = !current || current.before.paused;
         srcLabel.textContent = armed
-          ? (idle ? 'SRC: MASTER BUS — PRESS PLAY' : 'SRC: MASTER BUS')
+          ? (idle ? 'SRC: MASTER BUS · PRESS PLAY' : 'SRC: MASTER BUS')
           : 'SRC: RAW BUS';
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
           srcLabel.classList.remove('blink');

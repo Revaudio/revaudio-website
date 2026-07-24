@@ -155,7 +155,7 @@ export const plugins: Plugin[] = [
     oneLiner:
       'The redline is your threshold. The needle is your gain reduction. Mastering loudness with the muscle of a tuned engine.',
     plainWhat:
-      'In plain terms: RevLimiter is the last plugin on your master bus. It makes your track as loud as a commercial release while keeping it clean and punchy — not squashed, flat, or distorted.',
+      'In plain terms: RevLimiter is the last plugin on your master bus. It makes your track as loud as a commercial release while keeping it clean and punchy, not squashed, flat, or distorted.',
     longPitch:
       'A mastering limiter that makes loudness, depth, and punch feel like flooring it on an open road. Multi-band compression, analog-modelled saturation, and an adaptive limiter chained the way a top-tier mastering engineer would chain them. Sits last on your master bus, glues the mix, and holds a true-peak ceiling at oversampled rate.',
     status: 'live',
@@ -170,18 +170,18 @@ export const plugins: Plugin[] = [
     heroImage: 'revlimiter-hero.png',
     galleryImages: [],
     features: [
-      { name: 'True-peak limiting', desc: 'Hit the ceiling, never cross it — inter-sample peak control at oversampled rate, with a base-rate hard-clip as the safety net.', part: 'ceiling' },
-      { name: 'Adaptive multi-band release', desc: 'Per-band envelope tracking. Bass holds, mids breathe, highs respond — no static release time fights your material.', part: 'bands' },
-      { name: 'Multiband glue — or EQ', desc: 'One switch flips the multiband stage between transparent glue compression and a live multiband EQ — shape each band’s tone, not just its level.', part: 'mb' },
+      { name: 'True-peak limiting', desc: 'Hit the ceiling, never cross it. Inter-sample peak control at oversampled rate, with a base-rate hard-clip as the safety net.', part: 'ceiling' },
+      { name: 'Adaptive multi-band release', desc: 'Per-band envelope tracking. Bass holds, mids breathe, highs respond. No static release time fights your material.', part: 'bands' },
+      { name: 'Multiband glue or EQ', desc: 'One switch flips the multiband stage between transparent glue compression and a live multiband EQ, so you shape each band’s tone, not just its level.', part: 'mb' },
       { name: 'Visual crossover', desc: 'Open the digital crossover: a live spectrum with two draggable split points that set exactly where Low, Mid and High divide.', part: 'crossover' },
       { name: 'Analog-modelled saturation', desc: 'Asymmetric soft-to-hard curve with DC-block. Adds density and weight before the brick wall.', part: 'saturation' },
       { name: 'Three engine modes', desc: 'One switch, three drive characters: Cruise for gentle, transparent glue; Sport for punchy, snappy grip; NOS for loud, aggressive hard-clip muscle.', part: 'modes' },
-      { name: 'Clipper ceiling', desc: 'The hard ceiling nothing gets past — set the absolute peak limit. Pull it down for safe true-peak headroom, push it up for raw loudness.', part: 'clipper' },
-      { name: 'Pro-tier metering', desc: 'Trust your eyes, not a guess — true peak, max peak, LUFS-M/S/I, LRA and per-band GR, RT-safe and audited against external mastering meters.', part: 'meters' },
-      { name: 'Live spectrum analyser', desc: 'An always-on spectrum across the bottom deck — watch your master’s balance in real time as it hits the wall.', part: 'spectrum' },
-      { name: 'Up to 32× oversampling', desc: 'Catch the peaks between samples — selectable up to 32×, for the dense mixes that fight the ceiling and need surgical inter-sample control.', part: 'oversampling' },
+      { name: 'Clipper ceiling', desc: 'The hard ceiling nothing gets past. Set the absolute peak limit: pull it down for safe true-peak headroom, push it up for raw loudness.', part: 'clipper' },
+      { name: 'Pro-tier metering', desc: 'Trust your eyes, not a guess: true peak, max peak, LUFS-M/S/I, LRA and per-band GR, RT-safe and audited against external mastering meters.', part: 'meters' },
+      { name: 'Live spectrum analyser', desc: 'An always-on spectrum across the bottom deck. Watch your master’s balance in real time as it hits the wall.', part: 'spectrum' },
+      { name: 'Up to 32× oversampling', desc: 'Catch the peaks between samples, selectable up to 32×, for the dense mixes that fight the ceiling and need surgical inter-sample control.', part: 'oversampling' },
       { name: 'Visual rev gauge', desc: 'Redline = threshold. Needle = gain reduction. You know what is happening at a glance.', part: 'gauge' },
-      { name: 'Output trim', desc: 'Final volume out the tailpipe — trim the master level after limiting. It does not change the squeeze, just how loud it leaves.', part: 'output' },
+      { name: 'Output trim', desc: 'Final volume out the tailpipe. Trim the master level after limiting: it does not change the squeeze, just how loud it leaves.', part: 'output' },
       { name: 'A/B compare', desc: 'Two state slots. Switch instantly. Compare without leaving the plugin.', part: 'ab' },
     ],
     audioDemos: [
@@ -196,7 +196,7 @@ export const plugins: Plugin[] = [
     tutorialVideo: {
       title: "Driver's Manual",
       youtubeId: 'Og4PRlBFco8',
-      blurb: 'Everything under the hood — the full RevLimiter tutorial, from first insert to redline.',
+      blurb: 'Everything under the hood: the full RevLimiter tutorial, from first insert to redline.',
     },
     // Part rects measured against src/assets/plugins/revlimiter-hero.png
     // (2542x1226 source). Percent of image, top-left origin.
@@ -234,7 +234,7 @@ export const plugins: Plugin[] = [
     plainWhat:
       'In plain terms: Drift moves chosen frequency ranges around the stereo image and adds per-band character, so your mix feels wide, alive, and in motion.',
     longPitch:
-      'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you — controlled slides that keep the mix wide and alive.',
+      'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you, controlled slides that keep the mix wide and alive.',
     status: 'in-development',
     statusLabel: 'In development',
     introPriceUsd: null,
@@ -247,8 +247,8 @@ export const plugins: Plugin[] = [
     galleryImages: [],
     features: [
       { name: 'Multiband panning', desc: 'Split the spectrum and send each band sliding across the stereo field independently.' },
-      { name: 'Per-band character', desc: 'Saturation, reverb and tremolo dialled in per band — movement with tone, not just position.' },
-      { name: 'Autopilot', desc: 'LFO-driven motion that steers the pan or a chosen band for you — hands-off, living stereo.' },
+      { name: 'Per-band character', desc: 'Saturation, reverb and tremolo dialled in per band. Movement with tone, not just position.' },
+      { name: 'Autopilot', desc: 'LFO-driven motion that steers the pan or a chosen band for you. Hands-off, living stereo.' },
     ],
     audioDemos: [],
     systemReq: baseSystemReq,
@@ -265,7 +265,7 @@ export const plugins: Plugin[] = [
     plainWhat:
       'In plain terms: The AC brightens and opens the top of your mix, adding air and sparkle without the harshness.',
     longPitch:
-      'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming — all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
+      'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming, all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
     status: 'in-development',
     statusLabel: 'In development',
     introPriceUsd: null,
@@ -277,10 +277,10 @@ export const plugins: Plugin[] = [
     heroImage: 'coming-soon-plate.png',
     galleryImages: [],
     features: [
-      { name: 'Air-band excitement', desc: 'Harmonic exciter focused on the top octaves — openness and shine without harshness.' },
+      { name: 'Air-band excitement', desc: 'Harmonic exciter focused on the top octaves. Openness and shine without harshness.' },
       { name: 'Tube saturation', desc: 'Warm valve-style saturation on the air band for density and sheen.' },
       { name: 'Smart resonance taming', desc: 'Dynamic EQ / resonance suppression keeps the boosted top smooth.' },
-      { name: 'Temperature dial', desc: 'One car-AC temperature control blends exciter (cold) to tube (hot) — mid is both.' },
+      { name: 'Temperature dial', desc: 'One car-AC temperature control blends exciter (cold) to tube (hot); mid is both.' },
     ],
     audioDemos: [],
     systemReq: baseSystemReq,
@@ -293,11 +293,11 @@ export const plugins: Plugin[] = [
     category: 'saturation',
     tagline: 'A one-knob saturator you drive like a gas pedal',
     oneLiner:
-      'One DRIVE knob, three voices — Tube, Tape, Fuzz. Floor it for character, not just loudness.',
+      'One DRIVE knob, three voices: Tube, Tape, Fuzz. Floor it for character, not just loudness.',
     plainWhat:
-      'In plain terms: GAS is a saturator — it adds harmonic drive and warmth to any track. Turn the knob for more grit, pick Tube, Tape or Fuzz for the flavor.',
+      'In plain terms: GAS is a saturator. It adds harmonic drive and warmth to any track. Turn the knob for more grit, pick Tube, Tape or Fuzz for the flavor.',
     longPitch:
-      'One knob does the work of five. GAS stages drive gain, tone shaping, and calibrated loudness compensation together, so turning DRIVE changes character — never just volume. Three voices: Tube for even-harmonic warmth, Tape for symmetric saturation with programme-dependent squash, Fuzz for a dying-battery snarl that cleans up under sustain. A check-engine lamp lights up when you’re really flooring it.',
+      'One knob does the work of five. GAS stages drive gain, tone shaping, and calibrated loudness compensation together, so turning DRIVE changes character, never just volume. Three voices: Tube for even-harmonic warmth, Tape for symmetric saturation with programme-dependent squash, Fuzz for a dying-battery snarl that cleans up under sustain. A check-engine lamp lights up when you’re really flooring it.',
     status: 'live',
     statusLabel: 'Available now',
     hideStatusPill: true,
@@ -314,10 +314,10 @@ export const plugins: Plugin[] = [
     heroImage: 'gas-hero.png',
     galleryImages: [],
     features: [
-      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together — turning the knob changes character, never volume.' },
+      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together, so turning the knob changes character, never volume.' },
       { name: 'Three voices: Tube, Tape, Fuzz', desc: 'Tube: even-harmonic asymmetric warmth. Tape: symmetric saturation with programme-dependent squash. Fuzz: biased arctan/hard-clip blend with battery-sag sputter.' },
-      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop — deterministic, null-test friendly, no pumping, no cheating the sweep.' },
-      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it — reads real DSP heat, not just knob position.' },
+      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop. Deterministic, null-test friendly, no pumping, no cheating the sweep.' },
+      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it, reading real DSP heat, not just knob position.' },
       { name: 'Up to 8× oversampling', desc: 'Antiderivative anti-aliasing on every shaper, oversampled per voice, for drive that stays clean instead of aliasing.' },
     ],
     audioDemos: [],
@@ -332,9 +332,9 @@ export const plugins: Plugin[] = [
     tagline: 'You’ll never know what’s next',
     oneLiner: 'The station that never plays the same song twice.',
     plainWhat:
-      'In plain terms: Radio Roulette is a glitch/chaos effect. Press one button and it reshapes your sound through up to ten effects at once — filter, EQ, fuzz, pitch, chorus, delay, reverb, gate, stereo width, and pan. The same seed always gives you back the same result.',
+      'In plain terms: Radio Roulette is a glitch/chaos effect. Press one button and it reshapes your sound through up to ten effects at once: filter, EQ, fuzz, pitch, chorus, delay, reverb, gate, stereo width, and pan. The same seed always gives you back the same result.',
     longPitch:
-      'A chaos/glitch multi-effect built around a single seed. RANDOMIZE rolls a new seed and instantly reconfigures a ten-stage chain — filter, EQ, fuzz, pitch-shift, chorus, delay, reverb, trance gate, stereo width, and pan — all deterministically, all level-matched and safety-limited so it never goes silent or blows up. Save a seed in your DAW to recall the exact sound later, or step through station presets like tuning an old dashboard radio.',
+      'A chaos/glitch multi-effect built around a single seed. RANDOMIZE rolls a new seed and instantly reconfigures a ten-stage chain (filter, EQ, fuzz, pitch-shift, chorus, delay, reverb, trance gate, stereo width, and pan), all deterministically, all level-matched and safety-limited so it never goes silent or blows up. Save a seed in your DAW to recall the exact sound later, or step through station presets like tuning an old dashboard radio.',
     status: 'live',
     statusLabel: 'Available now',
     hideStatusPill: true,
@@ -348,8 +348,8 @@ export const plugins: Plugin[] = [
     heroImage: 'radioroulette-hero.png',
     galleryImages: [],
     features: [
-      { name: 'One-seed chaos engine', desc: 'One seed (1–1,000,000) deterministically configures all ten effect stages at once — the same seed always reproduces the exact same sound.' },
-      { name: 'RANDOMIZE', desc: 'Rolls a new seed and re-randomizes everything instantly. Every result is level-matched and safety-limited — it can’t go silent or blow up.' },
+      { name: 'One-seed chaos engine', desc: 'One seed (1–1,000,000) deterministically configures all ten effect stages at once. The same seed always reproduces the exact same sound.' },
+      { name: 'RANDOMIZE', desc: 'Rolls a new seed and re-randomizes everything instantly. Every result is level-matched and safety-limited, so it can’t go silent or blow up.' },
       { name: '10-stage chain', desc: 'Filter → EQ → Fuzz → Pitch → Chorus → Delay → Reverb → Gate → Stereo → Pan, independently enabled per seed.' },
       { name: 'Filter', desc: 'State-variable low-pass, high-pass, or band-pass, with randomized cutoff and resonance.' },
       { name: 'Fuzz', desc: 'Drive into tanh, hard-clip, or foldback distortion.' },
@@ -357,8 +357,8 @@ export const plugins: Plugin[] = [
       { name: 'Chorus, delay & reverb', desc: 'Rate, depth, feedback, room size, damping, and width all randomized per seed.' },
       { name: 'Trance gate', desc: 'Square or sawtooth LFO gate, 1–12 Hz.' },
       { name: 'Stereo width & pan', desc: 'Mid/side width from narrow to wide, static pan or auto-pan LFO.' },
-      { name: 'Station presets', desc: 'Five save slots — press to recall, shift-click to store your favorite seeds.' },
-      { name: 'Seed recall', desc: 'Every seed is DAW-automatable and saved with your session — dial in chaos once, keep it forever.' },
+      { name: 'Station presets', desc: 'Five save slots: press to recall, shift-click to store your favorite seeds.' },
+      { name: 'Seed recall', desc: 'Every seed is DAW-automatable and saved with your session. Dial in chaos once, keep it forever.' },
     ],
     audioDemos: [],
     systemReq: baseSystemReq,

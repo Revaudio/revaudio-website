@@ -69,35 +69,11 @@ const altShots = hasStage
     })
   : [];
 
-// Mobile anchor sub-nav (≤900px) — jump links to the sections that actually
-// render on this page, in scroll order. #buy (the aside) and #install are
-// always present; Sound/Features appear only when the plugin has those.
-const anchorLinks = [
-  playableDemos.length > 0 && { href: '#hear-it', label: 'Sound' },
-  plugin.features.length > 0 && { href: '#features', label: 'Features' },
-  plugin.trialUrl && { href: '#trial', label: 'Free trial' },
-  { href: '#buy', label: 'Pricing' },
-  { href: '#install', label: 'Support' },
-].filter(Boolean) as { href: string; label: string }[];
 ---
 
 <BaseLayout title={plugin.name} description={plugin.oneLiner}>
   <section class="product-detail">
     <div class="container">
-      {/* Mobile-only sticky anchor sub-nav (≤900px). Fixed just under the site
-          header; hidden until the hero scrolls past (IntersectionObserver on the
-          sentinel below product-head, same pattern as MobileBuyBar). Lenis +
-          native both honour scroll-padding-top, bumped for this bar via the
-          html:has() rule in the stylesheet. */}
-      {anchorLinks.length >= 2 && (
-        <nav class="anchor-nav" data-anchor-nav aria-label="On this page">
-          <ul>
-            {anchorLinks.map((l) => (
-              <li><a href={l.href}>{l.label}</a></li>
-            ))}
-          </ul>
-        </nav>
-      )}
       <p class="breadcrumb"><a href="/store">&larr; Back to store</a></p>
 
       <div class:list={['product-head', crane && 'product-head--crane']}>
@@ -137,10 +113,6 @@ const anchorLinks = [
           {crane ? <BuyButtonCrane plugin={plugin} /> : <BuyButton plugin={plugin} />}
         </aside>
       </div>
-
-      {/* Reveal trigger for the anchor sub-nav: once this sentinel (right below
-          the hero/head) scrolls above the header, the bar slides in. */}
-      {anchorLinks.length >= 2 && <div data-anchor-sentinel aria-hidden="true"></div>}
 
       {/* No data-reveal on the walkthrough section or .walk-grid: an animated
           ancestor transform would break position:sticky on the stage. Same
@@ -267,8 +239,8 @@ const anchorLinks = [
               class="video-facade"
               data-yt-facade
               data-yt-id={plugin.tutorialVideo.youtubeId}
-              data-yt-title={`${plugin.name} — ${plugin.tutorialVideo.title}`}
-              aria-label={`Play video: ${plugin.name} — ${plugin.tutorialVideo.title}`}
+              data-yt-title={`${plugin.name}: ${plugin.tutorialVideo.title}`}
+              aria-label={`Play video: ${plugin.name}, ${plugin.tutorialVideo.title}`}
             >
               <img
                 class="video-poster"
@@ -404,105 +376,10 @@ const anchorLinks = [
     });
   </script>
 
-  {/* Mobile anchor sub-nav: slide the bar in once the hero scrolls past the
-      sentinel, and mirror the active section on its links. IO-only, same family
-      as MobileBuyBar; on desktop the bar is display:none so this is inert. */}
-  <script>
-    const anav = document.querySelector('[data-anchor-nav]');
-    const sentinel = document.querySelector('[data-anchor-sentinel]');
-    if (anav && sentinel) {
-      const reveal = new IntersectionObserver(
-        ([e]) => anav.classList.toggle('is-shown', !e.isIntersecting && e.boundingClientRect.top < 60),
-        { rootMargin: '-48px 0px 0px 0px', threshold: 0 },
-      );
-      reveal.observe(sentinel);
-
-      // Active-link scroll-spy. Position-based (not IntersectionObserver) so it
-      // stays accurate across un-anchored sections between the targets (e.g. the
-      // specs block) and regardless of nav order — #buy sits up in the hero head
-      // while it renders first in the bar. Sorted by document position; the last
-      // target whose top has passed the header+bar line wins.
-      const links = Array.from(anav.querySelectorAll<HTMLAnchorElement>('a'));
-      const targets = links
-        .map((a) => ({ a, el: document.getElementById(a.getAttribute('href')!.slice(1)) }))
-        .filter((t): t is { a: HTMLAnchorElement; el: HTMLElement } => !!t.el)
-        .sort((x, y) => x.el.getBoundingClientRect().top - y.el.getBoundingClientRect().top);
-      if (targets.length) {
-        const line = 110; // ~header (44) + bar (44) + margin
-        const updateActive = () => {
-          let current = targets[0];
-          for (const t of targets) {
-            if (t.el.getBoundingClientRect().top - line <= 0) current = t;
-          }
-          links.forEach((l) => l.classList.toggle('is-active', l === current.a));
-        };
-        updateActive();
-        window.addEventListener('scroll', () => requestAnimationFrame(updateActive), { passive: true });
-      }
-    }
-  </script>
 </BaseLayout>
 
 <style>
   .product-detail { padding: 3rem 0 5rem; }
-
-  /* ── Mobile anchor sub-nav (≤900px only) — thin VT323 strip on brown-black,
-     fixed directly under the sticky site header. Desktop never renders it. ── */
-  .anchor-nav {
-    display: none;
-    position: fixed;
-    top: calc(var(--nav-h) + env(safe-area-inset-top, 0px));
-    left: 0;
-    right: 0;
-    z-index: 45; /* below the header (z50), above page content */
-    background: #120804;
-    border-bottom: 1px solid var(--brass-dark);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-    transform: translateY(-100%);
-    opacity: 0;
-    transition: transform 0.28s var(--ease-settle), opacity 0.28s var(--ease-settle);
-  }
-  .anchor-nav ul {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .anchor-nav ul::-webkit-scrollbar { display: none; }
-  .anchor-nav a {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 1.1rem;
-    font-family: 'VT323', var(--font-mono);
-    font-size: 1.05rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    color: var(--fg-dim);
-  }
-  .anchor-nav a.is-active {
-    color: #e83a3a;
-    box-shadow: inset 0 -2px 0 #e83a3a;
-  }
-  @media (hover: hover) {
-    .anchor-nav a:hover { color: var(--brass-bright); }
-  }
-  @media (max-width: 900px) {
-    .anchor-nav { display: block; }
-    .anchor-nav.is-shown { transform: translateY(0); opacity: 1; }
-    /* Clear the header + this bar (each ~44px) so anchored sections land below
-       both — Lenis and native scrolling both read scroll-padding-top. */
-    :global(html:has([data-anchor-nav])) {
-      scroll-padding-top: calc(var(--nav-h) + 44px + 0.75rem);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .anchor-nav { transition: none; }
-  }
 
   .breadcrumb {
     font-size: 0.85rem;

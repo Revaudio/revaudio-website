@@ -95,7 +95,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
             data-name={plugin.name}
             data-price={cartPrice}
             data-checkout-url={plugin.checkoutUrl}
-            aria-label={`Add ${plugin.name} to cart — ${fmtPrice(cartPrice)}`}
+            aria-label={`Add ${plugin.name} to cart, ${fmtPrice(cartPrice)}`}
           >
             <span class="rc-buysq-paint"></span>
             <span class="rc-buysq-label">BUY NOW</span>
