@@ -31,14 +31,14 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       idle. Scroll revs toward the redline; pointer micro-deflects (lerp).
       Reduced motion: static needle at idle. */}
   <section class="hero hero-feat" data-hero>
-    <div class="sign-mount" data-hero-in>
+    <div class="sign-mount" data-hero-in data-edit="hero.sign">
       <Image class="sign-beam" src={signBeam} alt="" width={872} format="webp" loading="eager" />
       <a class="hanger" data-sign href="/store" aria-label="Visit the store">
         <Image src={signHanger} alt="" width={560} format="webp" loading="eager" />
       </a>
     </div>
     <div class="hero-grid">
-      <div class="hero-head">
+      <div class="hero-head" data-edit="hero.text">
         <div class="hh-tag" data-hero-in>Boutique VST plugins</div>
         <h1 class="hh-h1" data-split>
           <span class="hh-h1-line">Engineered,</span>
@@ -64,7 +64,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       </div>
 
       {/* Desktop-only: original full-size gauge, to the right of the text. */}
-      <div class="hero-dial hero-dial-desktop" data-dial role="img" aria-label="RevLimiter rev gauge — needle at idle">
+      <div class="hero-dial hero-dial-desktop" data-dial data-edit="hero.gauge" role="img" aria-label="RevLimiter rev gauge — needle at idle">
         <Image class="g-face" src={faceImg} alt="" width={1100} widths={[360, 640, 1100]} sizes="(max-width: 860px) 300px, 30vw" format="webp" loading="eager" />
         <div class="g-needle" data-needle style={`left:${N.left}; top:${N.top}; width:${N.w}; transform-origin:${N.ox} ${N.oy};`}>
           <Image src={needleImg} alt="" width={500} format="webp" loading="eager" />
