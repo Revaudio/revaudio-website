@@ -2,12 +2,17 @@
 /**
  * MobileBuyBar — sticky bottom buy bar for product pages (≤900px only).
  *
- * Gives the phone a BUY NOW control in the first viewport (the crane door is
- * ~2 screens down). Live text (not the image-plate pattern), token-styled so it
+ * Gives the phone a sticky CTA in the first viewport (the crane door is ~2
+ * screens down). Live text (not the image-plate pattern), token-styled so it
  * inherits high-contrast mode. Hides only while the real buy card (the aside)
- * is on screen, so the two never compete. Cart dedupes by slug and the LS
- * checkout applies VROOM, so data-price is the REGULAR price ($93) to match the
- * crane + PluginCard buttons; $56 is display-only until VROOM is typed.
+ * is on screen, so the two never compete.
+ *
+ * CTA is trial-first (Dan 2026-07-24): plugins WITH a trialUrl show a single
+ * full-width "Start your 14-day free trial" anchor (no price — it scrolls to
+ * the on-page #trial capture); plugins without one keep the price column +
+ * add-to-cart BUY NOW. Cart dedupes by slug and the LS checkout applies VROOM,
+ * so data-price is the REGULAR price ($93) to match the crane + PluginCard
+ * buttons; $56 is display-only until VROOM is typed.
  */
 import type { Plugin } from '../data/plugins';
 import { fmtPrice, discountPct } from '../data/plugins';
@@ -21,19 +26,36 @@ const pct = discountPct(plugin);
 const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
 ---
 
-<div class="mbb" data-mobile-buybar>
-  <div class="mbb-price">
-    <span class="mbb-row1">
-      <span class="mbb-now">{fmtPrice(plugin.introPriceUsd)}</span>
-      {plugin.regularPriceUsd != null && <s class="mbb-was">{fmtPrice(plugin.regularPriceUsd)}</s>}
-      {pct != null && <span class="mbb-pct">&minus;{pct}%</span>}
-    </span>
-    {plugin.promoCode && <span class="mbb-code">code {plugin.promoCode} at checkout</span>}
-  </div>
-  <button type="button" class="mbb-buy" data-add-to-cart
-    data-slug={plugin.slug} data-name={plugin.name} data-price={cartPrice}
-    data-checkout-url={plugin.checkoutUrl}
-    aria-label={`Add ${plugin.name} to cart — ${fmtPrice(cartPrice)}`}>BUY NOW</button>
+<div class:list={['mbb', plugin.trialUrl && 'mbb--trial']} data-mobile-buybar>
+  {plugin.trialUrl ? (
+    /* Trial-first funnel (Dan 2026-07-24): a single full-width CTA that starts
+       the free trial (scroll to the on-page #trial email capture). No price
+       shown — the crane door + #trial section carry it, and a "free" button
+       beside a discounted price read as mixed. Plain anchor: no-JS + keyboard
+       get native #trial nav, same as the header's "Free trial" link. */
+    <Fragment>
+      <a class="mbb-buy mbb-buy--trial" href="#trial"
+        aria-label={`Start the free 14-day trial of ${plugin.name}, full version, no credit card`}>
+        Start your 14-day free trial
+      </a>
+      <span class="mbb-micro">Full version &middot; no credit card</span>
+    </Fragment>
+  ) : (
+    <Fragment>
+      <div class="mbb-price">
+        <span class="mbb-row1">
+          <span class="mbb-now">{fmtPrice(plugin.introPriceUsd)}</span>
+          {plugin.regularPriceUsd != null && <s class="mbb-was">{fmtPrice(plugin.regularPriceUsd)}</s>}
+          {pct != null && <span class="mbb-pct">&minus;{pct}%</span>}
+        </span>
+        {plugin.promoCode && <span class="mbb-code">code {plugin.promoCode} at checkout</span>}
+      </div>
+      <button type="button" class="mbb-buy" data-add-to-cart
+        data-slug={plugin.slug} data-name={plugin.name} data-price={cartPrice}
+        data-checkout-url={plugin.checkoutUrl}
+        aria-label={`Add ${plugin.name} to cart, ${fmtPrice(cartPrice)}`}>BUY NOW</button>
+    </Fragment>
+  )}
 </div>
 
 <style>
@@ -76,11 +98,34 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
     color: #0a0908; background: var(--brass); border: 1px solid var(--brass-bright);
     border-radius: 6px; cursor: pointer; }
   .mbb-buy:active { transform: scale(0.97); }
+
+  /* Trial CTA (Option 2): the bar stacks a full-width control over a microcopy
+     line, no price column. */
+  .mbb--trial { flex-direction: column; align-items: stretch; gap: 0.35rem; }
+  .mbb-buy--trial {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    min-height: 52px; padding: 0 1rem; line-height: 1.05; text-decoration: none;
+    text-align: center; text-transform: uppercase; letter-spacing: 0.05em;
+    font-size: 1.12rem; border-radius: 8px;
+  }
+  .mbb-micro {
+    font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.13em;
+    text-transform: uppercase; text-align: center; color: var(--fg-faint);
+  }
 </style>
 
 <script>
   const bar = document.querySelector('[data-mobile-buybar]');
   const target = document.querySelector('[data-buy-aside]');
+  if (bar) {
+    // The trial layout stacks two rows, so the bar runs taller than the 64px
+    // default — publish the real height so the FAB/footer/scroll offsets that
+    // read --mbb-h stay exact. (display:none above 900px → 0, which is inert
+    // since every consumer rule lives inside the ≤900px media query.)
+    const syncH = () => document.documentElement.style.setProperty('--mbb-h', bar.offsetHeight + 'px');
+    syncH();
+    window.addEventListener('resize', syncH);
+  }
   if (bar && target) {
     const set = (away: boolean) => bar.classList.toggle('is-away', away);
     const io = new IntersectionObserver(
