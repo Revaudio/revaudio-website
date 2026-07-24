@@ -55,9 +55,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
   <form class="plate-wrap" data-tp-wrap novalidate>
     <div class="sway">
       <div class="plate" data-tp-plate>
-        <div class="plate-strip plate-strip--top">
-          <span class="s-full">Temporary &nbsp;&middot;&nbsp; {plugin.name} &nbsp;&middot;&nbsp; trial</span><span class="s-short">Temporary &middot; trial</span>
-        </div>
+        <div class="plate-strip plate-strip--top">Temporary &nbsp;&middot;&nbsp; {plugin.name} &nbsp;&middot;&nbsp; trial</div>
         <input
           class="plate-email"
           data-tp-email
@@ -70,9 +68,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
           aria-label="Your email — we send the download link here"
         >
         <div class="plate-fields" aria-hidden="true">Issued by: Revaudio garage &middot; Model: {plugin.name} &middot; Term: 14 days</div>
-        <div class="plate-strip plate-strip--bot">
-          <span class="s-full">Valid 14 days from first start &middot; full version</span><span class="s-short">14 days &middot; full version</span>
-        </div>
+        <div class="plate-strip plate-strip--bot">Valid 14 days from first start &middot; full version</div>
         <span class="screw screw--l" style={`background-image:url(${screwImg.src});`}></span>
         <span class="screw screw--r" style={`background-image:url(${screwImg.src});`}></span>
         <div class="stamp-issued">Plates issued</div>
@@ -211,7 +207,6 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
   }
   .plate-strip--top { top: 9.8%; }
   .plate-strip--bot { bottom: 11.6%; opacity: 0.6; letter-spacing: 0.14em; }
-  .s-short { display: none; }
 
   /* faux document fields — print the dead paper below the registration line
      so the tag reads as a real record (and the ISSUED stamp lands on
@@ -416,10 +411,19 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
 
   @media (max-width: 480px) {
     .trial-plates { padding-inline: 0.75rem; }   /* paper nearly in the hand */
-    .plate-strip { font-size: 0.5rem; }          /* legibility floor... */
-    .s-full { display: none; }
-    .s-short { display: inline; }                /* ...paired with shorter copy */
-    .plate-fields { display: none; }
+    /* same document as desktop, floored at legible sizes: strips keep their
+       full copy at 0.5rem; the record line tightens tracking and widens its
+       box instead of disappearing. */
+    .plate-strip { font-size: 0.5rem; }
+    /* the top strip must clear the baked eyelet holes — tighter tracking and
+       a step down in size instead of shorter copy */
+    .plate-strip--top { font-size: 0.42rem; letter-spacing: 0.09em; }
+    .plate-fields {
+      font-size: 0.42rem;
+      letter-spacing: 0.05em;
+      left: 6%; right: 6%;
+      top: 67%;   /* the email glyphs run relatively taller at phone widths */
+    }
     .get-btn { width: 88%; }
   }
 
