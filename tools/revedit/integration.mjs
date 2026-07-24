@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const CLIENT = fileURLToPath(new URL('./revedit.client.js', import.meta.url));
+const MANIFEST = fileURLToPath(new URL('./revedit.manifest.json', import.meta.url));
 
 export default function revedit() {
   let overridesPath = '';
@@ -29,6 +30,11 @@ export default function revedit() {
                       if (url === '/__revedit/client.js') {
                         res.setHeader('Content-Type', 'text/javascript');
                         res.end(await readFile(CLIENT, 'utf8'));
+                      } else if (url === '/__revedit/manifest') {
+                        let body = '{}';
+                        try { body = await readFile(MANIFEST, 'utf8'); } catch { /* optional */ }
+                        res.setHeader('Content-Type', 'application/json');
+                        res.end(body);
                       } else if (url === '/__revedit/load') {
                         let body = '{}';
                         try { body = await readFile(overridesPath, 'utf8'); } catch { /* no file yet */ }

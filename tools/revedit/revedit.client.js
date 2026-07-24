@@ -27,8 +27,22 @@
   let selected = null; // element id ("hero.text" or "hero.text/line1")
   let drill = null;    // id of the drilled-into group
   let pop = null;
-  const state = { order: [], els: {} };
+  let MF = {};         // manifest: id -> { props: [{key,label,min,max,step,unit,css|filter}] }
+  const newEl = () => ({ ...DEF, props: {} });
+  const deep = (x) => JSON.parse(JSON.stringify(x));
+
+  // Overrides are kept per breakpoint (mirrors the hero's mobile/desktop split)
+  const BP = matchMedia('(max-width: 860px)');
+  const bpName = () => (BP.matches ? 'mobile' : 'desktop');
+  const emptyBucket = () => ({ order: [], els: {} });
+  let doc = { v: 2, desktop: emptyBucket(), mobile: emptyBucket(), snapshots: {} };
+  let state = doc[bpName()];
   const targets = {}; // id -> DOM element
+  BP.addEventListener('change', () => {
+    state = doc[bpName()];
+    discover(); applyAll(); deselect();
+    toast('Now editing ' + bpName() + ' overrides');
+  });
 
   /* ---------- styles ---------- */
   const css = `
@@ -146,6 +160,18 @@
     if (id === 'hero.gauge' && s.needle != null && window.__reveditHero) {
       window.__reveditHero.dials.forEach((d) => { d.base = s.needle; });
     }
+    applyManifest(el, id, s);
+  }
+  function applyManifest(el, id, s) {
+    const m = MF[id];
+    if (!m || !m.props) return;
+    const filters = [];
+    m.props.forEach((p) => {
+      const v = s.props ? s.props[p.key] : null;
+      if (p.filter) { if (v != null) filters.push(`${p.filter}(${v}${p.unit || ''})`); }
+      else el.style[p.css] = v != null ? v + (p.unit || '') : '';
+    });
+    el.style.filter = filters.length ? filters.join(' ') : '';
   }
   function applyOrder() {
     state.order.forEach((id, i) => {
@@ -160,7 +186,7 @@
   function save() {
     clearTimeout(saveT);
     saveT = setTimeout(() => {
-      fetch('/__revedit/save', { method: 'POST', body: JSON.stringify(state) }).catch(() => {});
+      fetch('/__revedit/save', { method: 'POST', body: JSON.stringify(doc) }).catch(() => {});
     }, 300);
   }
 
@@ -169,24 +195,29 @@
     $$('[data-edit]').forEach((el) => {
       const id = el.dataset.edit;
       targets[id] = el;
-      if (!state.els[id]) state.els[id] = { ...DEF };
+      if (!state.els[id]) state.els[id] = newEl();
       if (!state.order.includes(id)) state.order.push(id);
       $$('[data-edit-sub]', el).forEach((sub) => {
         const sid = id + '/' + sub.dataset.editSub;
         targets[sid] = sub;
-        if (!state.els[sid]) state.els[sid] = { ...DEF };
+        if (!state.els[sid]) state.els[sid] = newEl();
       });
     });
     state.order = state.order.filter((id) => targets[id]);
   }
   async function load() {
+    try { MF = await (await fetch('/__revedit/manifest')).json(); } catch { MF = {}; }
     try {
-      const r = await fetch('/__revedit/load');
-      const j = await r.json();
-      if (j && j.els) {
-        Object.entries(j.els).forEach(([id, s]) => { state.els[id] = { ...DEF, ...s }; });
-        if (Array.isArray(j.order)) state.order = j.order;
+      const j = await (await fetch('/__revedit/load')).json();
+      if (j && j.v === 2) {
+        doc = { v: 2, desktop: j.desktop || emptyBucket(), mobile: j.mobile || emptyBucket(), snapshots: j.snapshots || {} };
+      } else if (j && j.els) {
+        doc.desktop = { order: j.order || [], els: j.els }; // migrate v1 (was desktop-only)
       }
+      ['desktop', 'mobile'].forEach((b) => {
+        Object.entries(doc[b].els).forEach(([id, s]) => { doc[b].els[id] = { ...newEl(), ...s }; });
+      });
+      state = doc[bpName()];
     } catch { /* fresh session */ }
     discover();
     applyAll();
@@ -201,6 +232,7 @@
   fab.className = 're-fab re-ui';
   fab.innerHTML = `<button class="re-btn" data-re-toggle aria-pressed="false">✎ EDIT</button>
     <button class="re-btn" data-re-transport>⏱ ENTRANCE</button>
+    <button class="re-btn" data-re-snaps>⧉ SNAPS</button>
     <button class="re-btn bake" data-re-bake>BAKE ▸</button>`;
   document.body.appendChild(fab);
   const tag = document.createElement('div'); tag.className = 're-tag'; tag.hidden = true;
@@ -276,6 +308,15 @@
     body.appendChild(row('X', -600, 600, 1, s.x, (v) => v + 'px', (v) => { s.x = v; apply(id); positionChrome(); }));
     body.appendChild(row('Y', -600, 600, 1, s.y, (v) => v + 'px', (v) => { s.y = v; apply(id); positionChrome(); }));
     body.appendChild(row('Scale', 0.3, 2, 0.01, s.scale, (v) => v.toFixed(2) + '×', (v) => { s.scale = v; apply(id); positionChrome(); }));
+    const cb = document.createElement('div'); cb.className = 're-btnrow';
+    cb.innerHTML = `<button class="re-sbtn">⇔ Center H</button><button class="re-sbtn">⇕ Center V</button><button class="re-sbtn">👻 Ghost</button>`;
+    const [ch, cv, gh] = cb.querySelectorAll('button');
+    ch.onclick = () => { const pr = el.parentElement.getBoundingClientRect(), r2 = el.getBoundingClientRect();
+      s.x = Math.round(s.x + (pr.left + pr.width / 2) - (r2.left + r2.width / 2)); apply(id); positionChrome(); save(); };
+    cv.onclick = () => { const pr = el.parentElement.getBoundingClientRect(), r2 = el.getBoundingClientRect();
+      s.y = Math.round(s.y + (pr.top + pr.height / 2) - (r2.top + r2.height / 2)); apply(id); positionChrome(); save(); };
+    gh.onclick = () => toggleGhost(id);
+    body.appendChild(cb);
 
     sect(body, 'Fade');
     body.appendChild(row('Opacity', 0, 1, 0.01, s.opacity, (v) => Math.round(v * 100) + '%', (v) => { s.opacity = v; apply(id); }));
@@ -310,6 +351,17 @@
         requestAnimationFrame(step);
       };
       body.appendChild(rb);
+    }
+
+    /* Specific: extra per-element controls declared in revedit.manifest.json. */
+    if (MF[id] && MF[id].props) {
+      sect(body, 'Specific');
+      MF[id].props.forEach((p) => {
+        const init = (s.props && s.props[p.key] != null) ? s.props[p.key] : (p.filter ? 1 : (p.css === 'lineHeight' ? 1.2 : 0));
+        body.appendChild(row(p.label, p.min, p.max, p.step, init,
+          (v) => v + (p.unit || (p.filter ? '×' : '')),
+          (v) => { if (!s.props) s.props = {}; s.props[p.key] = v; apply(id); }));
+      });
     }
 
     /* Type: sub-elements with text get the full kit; the group gets font only. */
@@ -361,7 +413,7 @@
     const [rst, hide] = br.querySelectorAll('button');
     rst.onclick = () => {
       const keepTxt = state.els[id].txt; // text edits survive a layout reset
-      state.els[id] = { ...DEF, txt: keepTxt };
+      state.els[id] = { ...newEl(), txt: keepTxt };
       apply(id); positionChrome(); save(); openPopup(id); toast('Reset to source values');
     };
     hide.onclick = () => { s.hidden = !s.hidden; apply(id); positionChrome(); save(); openPopup(id); };
@@ -386,7 +438,30 @@
   }
   function deselect() {
     $$('.re-sel,.re-sel-sub').forEach((e) => e.classList.remove('re-sel', 're-sel-sub'));
-    selected = null; positionChrome(); closePopup();
+    selected = null; positionChrome(); closePopup(); killGhost();
+  }
+
+  /* ---------- before/after ghost ---------- */
+  let ghost = null;
+  function killGhost() { if (ghost) { ghost.remove(); ghost = null; } }
+  function toggleGhost(id) {
+    if (ghost) { killGhost(); return; }
+    const el = targets[id];
+    const t = el.style.transform;
+    el.style.transform = 'none';
+    const r = el.getBoundingClientRect();
+    el.style.transform = t;
+    ghost = el.cloneNode(true);
+    ghost.removeAttribute('data-edit');
+    ghost.classList.remove('re-sel', 're-sel-sub');
+    Object.assign(ghost.style, {
+      position: 'fixed', left: r.left + 'px', top: r.top + 'px',
+      width: r.width + 'px', height: r.height + 'px', margin: '0',
+      opacity: '0.3', pointerEvents: 'none', zIndex: '2147482999',
+      transform: 'none', filter: 'grayscale(1)',
+    });
+    document.body.appendChild(ghost);
+    toast('Ghost = original position/size · click 👻 again to hide');
   }
   function exitDrill() {
     if (!drill) return;
@@ -498,6 +573,61 @@
   }
   tbtn.onclick = toggle;
 
+  /* ---------- snapshots (save looks, flip between them) ---------- */
+  let snapPanel = null;
+  const snapOf = () => deep({ desktop: doc.desktop, mobile: doc.mobile });
+  function snapApply(name) {
+    doc.snapshots['~flipback'] = snapOf(); // one-step undo for A/B flips
+    const s = doc.snapshots[name];
+    doc.desktop = deep(s.desktop); doc.mobile = deep(s.mobile);
+    state = doc[bpName()];
+    discover(); applyAll(); deselect(); save();
+    toast(`Applied “${name}” — “~flipback” restores the previous look`);
+    renderSnaps();
+  }
+  function renderSnaps() {
+    if (!snapPanel) return;
+    const list = snapPanel.querySelector('[data-snap-list]');
+    list.innerHTML = '';
+    const names = Object.keys(doc.snapshots);
+    if (!names.length) {
+      const d = document.createElement('div'); d.className = 're-hint';
+      d.textContent = 'No snapshots yet — name this look and SAVE.';
+      list.appendChild(d);
+    }
+    names.forEach((name) => {
+      const lr = document.createElement('div'); lr.className = 're-lrow';
+      lr.innerHTML = `<span class="re-lname" style="cursor:pointer"></span><button class="re-arr" aria-label="delete snapshot">✕</button>`;
+      const nm = lr.querySelector('.re-lname');
+      nm.textContent = name;
+      nm.onclick = () => snapApply(name);
+      lr.querySelector('.re-arr').onclick = () => { delete doc.snapshots[name]; save(); renderSnaps(); };
+      list.appendChild(lr);
+    });
+  }
+  fab.querySelector('[data-re-snaps]').onclick = () => {
+    if (snapPanel) { snapPanel.remove(); snapPanel = null; return; }
+    snapPanel = document.createElement('div');
+    snapPanel.className = 're-pop re-ui';
+    snapPanel.style.right = '16px'; snapPanel.style.bottom = '64px';
+    snapPanel.style.left = 'auto'; snapPanel.style.top = 'auto';
+    snapPanel.innerHTML = `<header><span class="re-crumb">Snapshots</span><button class="re-x" aria-label="Close">✕</button></header>
+      <div class="re-body"><div class="re-layers" data-snap-list></div>
+      <div class="re-ask"><input type="text" placeholder="Name this look…"><button>SAVE</button></div></div>`;
+    document.body.appendChild(snapPanel);
+    snapPanel.querySelector('.re-x').onclick = () => { snapPanel.remove(); snapPanel = null; };
+    const inp = snapPanel.querySelector('.re-ask input');
+    const saveSnap = () => {
+      const name = inp.value.trim();
+      if (!name) return;
+      doc.snapshots[name] = snapOf();
+      inp.value = ''; save(); renderSnaps(); toast(`Snapshot “${name}” saved`);
+    };
+    snapPanel.querySelector('.re-ask button').onclick = saveSnap;
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveSnap(); });
+    renderSnaps();
+  };
+
   /* ---------- entrance transport (scrub the hero GSAP timeline) ---------- */
   let transport = null, transportRaf = 0;
   fab.querySelector('[data-re-transport]').onclick = () => {
@@ -547,16 +677,22 @@
   }
 
   fab.querySelector('[data-re-bake]').onclick = () => {
-    const diff = { page: location.pathname, order: state.order, overrides: {}, askClaude: [] };
-    for (const [id, s] of Object.entries(state.els)) {
-      const d = {};
-      for (const k of Object.keys(DEF)) {
-        if (k === 'note') continue;
-        if (s[k] !== DEF[k]) d[k] = typeof s[k] === 'number' ? Math.round(s[k] * 100) / 100 : s[k];
+    const diff = { page: location.pathname, breakpoints: {}, askClaude: [] };
+    const seenNotes = new Set();
+    ['desktop', 'mobile'].forEach((b) => {
+      const bucket = doc[b], out = {};
+      for (const [id, s] of Object.entries(bucket.els)) {
+        const d = {};
+        for (const k of Object.keys(DEF)) {
+          if (k === 'note') continue;
+          if (s[k] !== DEF[k]) d[k] = typeof s[k] === 'number' ? Math.round(s[k] * 100) / 100 : s[k];
+        }
+        if (s.props && Object.keys(s.props).length) d.props = s.props;
+        if (Object.keys(d).length) out[id] = d;
+        if (s.note && !seenNotes.has(id + '·' + s.note)) { seenNotes.add(id + '·' + s.note); diff.askClaude.push({ el: id, note: s.note }); }
       }
-      if (Object.keys(d).length) diff.overrides[id] = d;
-      if (s.note) diff.askClaude.push({ el: id, note: s.note });
-    }
+      if (Object.keys(out).length || bucket.order.length) diff.breakpoints[b] = { order: bucket.order, overrides: out };
+    });
     const json = JSON.stringify(diff, null, 2);
     const m = document.createElement('div'); m.className = 're-modal re-ui';
     m.innerHTML = `<div class="re-mbox"><h2>revedit.overrides.json → bake to source</h2><pre></pre>
