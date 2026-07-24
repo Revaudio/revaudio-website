@@ -39,13 +39,13 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     </div>
     <div class="hero-grid">
       <div class="hero-head" data-edit="hero.text">
-        <div class="hh-tag" data-hero-in>Boutique VST plugins</div>
+        <div class="hh-tag" data-hero-in data-edit-sub="tag">Boutique VST plugins</div>
         <h1 class="hh-h1" data-split>
-          <span class="hh-h1-line">Engineered,</span>
-          <span class="hh-h1-line">Then Tuned.</span>
+          <span class="hh-h1-line" data-edit-sub="line1">Engineered,</span>
+          <span class="hh-h1-line" data-edit-sub="line2">Then Tuned.</span>
         </h1>
 
-        <span class="hh-redline" data-hero-sweep aria-hidden="true"></span>
+        <span class="hh-redline" data-hero-sweep data-edit-sub="redline" aria-hidden="true"></span>
 
         {/* Mobile-only: small gauge under the headline (desktop uses the
             original full-size gauge, to the right of this text column). */}
@@ -57,7 +57,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
           <Image class="g-hub" src={hubImg} alt="" width={60} format="webp" loading="eager" style={`left:${H.left}; top:${H.top}; width:${H.w};`} />
         </div>
 
-        <p class="hh-lede" data-hero-in>
+        <p class="hh-lede" data-hero-in data-edit-sub="lede">
           Measured to spec, then voiced by ear.<br />The precision of a machine, the feel of an instrument.
         </p>
 

@@ -1,7 +1,10 @@
-/* RevEdit client — Phase 1 (dev-only overlay, served at /__revedit/client.js).
-   Selection + per-element popup (General tab): move / resize / opacity /
-   fade-in / layer order, persisted to revedit.overrides.json via the dev
-   server. BAKE shows the overrides for folding into source. */
+/* RevEdit client — Phase 2 (dev-only overlay, served at /__revedit/client.js).
+   Phase 1: selection + per-element popup (move / resize / opacity / fade-in /
+   layer order), persisted to revedit.overrides.json via the dev server.
+   Phase 2: double-click drill-in from a group to its sub-elements, inline
+   text editing, font family / size, delete text. Overrides re-apply after
+   the GSAP hero entrance finishes, since its timeline ends by writing inline
+   transform/opacity on the same elements. */
 (() => {
   'use strict';
   if (window.__revedit) return;
@@ -9,10 +12,20 @@
 
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const DEF = { x: 0, y: 0, scale: 1, opacity: 1, hidden: false, fade: 0.6, note: '' };
+  const DEF = { x: 0, y: 0, scale: 1, opacity: 1, hidden: false, fade: 0.6, note: '', ff: '', fz: 0, txt: '' };
+  const FONTS = [
+    ['', 'Site default'],
+    ['"Arial Narrow", "Helvetica Neue", sans-serif', 'Arial Narrow'],
+    ['Georgia, "Times New Roman", serif', 'Georgia serif'],
+    ['Futura, "Century Gothic", sans-serif', 'Futura geometric'],
+    ['Impact, "Arial Black", sans-serif', 'Impact display'],
+    ['"Helvetica Neue", Helvetica, sans-serif', 'Helvetica'],
+    ['ui-monospace, Menlo, monospace', 'Mono utility'],
+  ];
 
   let editing = false;
-  let selected = null; // element id
+  let selected = null; // element id ("hero.text" or "hero.text/line1")
+  let drill = null;    // id of the drilled-into group
   let pop = null;
   const state = { order: [], els: {} };
   const targets = {}; // id -> DOM element
@@ -25,9 +38,13 @@
   body.re-on [data-edit]{cursor:grab;}
   body.re-on [data-edit]:hover{outline:1px dashed rgba(201,163,92,.55);outline-offset:4px;}
   [data-edit].re-sel{outline:1.5px solid var(--re-brass)!important;outline-offset:4px;}
+  body.re-on .re-drill [data-edit-sub]:hover{outline:1px dotted rgba(224,68,43,.75);outline-offset:3px;cursor:pointer;}
+  .re-sel-sub{outline:1.5px solid var(--re-red)!important;outline-offset:3px;}
+  [contenteditable].re-editing-text{outline:1.5px solid var(--re-red)!important;outline-offset:3px;cursor:text;}
   .re-tag{position:absolute;z-index:2147483000;background:var(--re-brass);color:#140d05;
     font:700 10px/1 -apple-system,sans-serif;letter-spacing:.12em;text-transform:uppercase;
     padding:3px 8px;border-radius:2px;pointer-events:none;white-space:nowrap;}
+  .re-tag.sub{background:var(--re-red);color:#fff;}
   .re-handle{position:absolute;z-index:2147483000;width:13px;height:13px;background:var(--re-brass);
     border:2px solid #140d05;border-radius:2px;cursor:nwse-resize;}
   .re-fab{position:fixed;right:16px;bottom:16px;z-index:2147483001;display:flex;gap:8px;}
@@ -35,7 +52,7 @@
     font:600 12px/1 -apple-system,sans-serif;letter-spacing:.08em;padding:9px 14px;
     border-radius:5px;cursor:pointer;}
   .re-btn:hover{border-color:var(--re-brass);}
-  .re-btn:focus-visible,.re-pop button:focus-visible,.re-pop input:focus-visible{outline:2px solid var(--re-brass);outline-offset:2px;}
+  .re-btn:focus-visible,.re-pop button:focus-visible,.re-pop input:focus-visible,.re-pop select:focus-visible{outline:2px solid var(--re-brass);outline-offset:2px;}
   .re-btn.on{background:var(--re-brass);color:#140d05;border-color:var(--re-brass);}
   .re-btn.bake{color:var(--re-red);border-color:rgba(224,68,43,.5);}
   .re-btn.bake:hover{background:var(--re-red);color:#fff;}
@@ -44,16 +61,21 @@
   .re-pop header{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:grab;
     background:var(--re-panel2);border-bottom:1px solid var(--re-line);border-radius:8px 8px 0 0;}
   .re-crumb{font:700 11px/1 -apple-system,sans-serif;letter-spacing:.1em;color:var(--re-brass);text-transform:uppercase;}
+  .re-crumb .re-up{color:var(--re-dim);cursor:pointer;font-weight:400;}
+  .re-crumb .re-up:hover{color:var(--re-cream);}
   .re-x{margin-left:auto;background:none;border:0;color:var(--re-dim);font-size:15px;cursor:pointer;padding:0 2px;}
   .re-x:hover{color:var(--re-cream);}
   .re-body{padding:12px 14px 14px;max-height:60vh;overflow-y:auto;}
   .re-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
   .re-row label{width:64px;flex:none;font-size:11px;letter-spacing:.06em;color:var(--re-dim);text-transform:uppercase;}
   .re-row input[type=range]{flex:1;accent-color:var(--re-brass);min-width:0;}
+  .re-row select{flex:1;background:var(--re-pit);border:1px solid var(--re-line);color:var(--re-cream);
+    border-radius:4px;padding:6px 8px;font-size:12px;min-width:0;}
   .re-val{width:48px;flex:none;text-align:right;font:11px/1.3 ui-monospace,Menlo,monospace;color:var(--re-cream);}
   .re-sect{font-size:10px;letter-spacing:.2em;color:var(--re-brass);text-transform:uppercase;
     margin:14px 0 9px;padding-top:12px;border-top:1px solid var(--re-line);}
   .re-sect:first-child{margin-top:2px;padding-top:0;border-top:0;}
+  .re-hint{font-size:11.5px;color:var(--re-dim);margin:-2px 0 10px;}
   .re-layers{display:flex;flex-direction:column;gap:5px;}
   .re-lrow{display:flex;align-items:center;gap:7px;background:var(--re-pit);border:1px solid var(--re-line);
     border-radius:4px;padding:6px 8px;}
@@ -92,6 +114,14 @@
   styleEl.textContent = css;
   document.head.appendChild(styleEl);
 
+  /* ---------- text sanitizing (keep only text + <br>) ---------- */
+  function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+  function sanitizeTxt(html) {
+    return html.split(/<br\s*\/?>/i).map((part) => {
+      const d = document.createElement('div'); d.innerHTML = part; return escapeHtml(d.textContent);
+    }).join('<br>');
+  }
+
   /* ---------- state apply / persist ---------- */
   function apply(id) {
     const el = targets[id], s = state.els[id];
@@ -99,6 +129,9 @@
     el.style.transform = (s.x || s.y || s.scale !== 1) ? `translate(${s.x}px,${s.y}px) scale(${s.scale})` : '';
     el.style.opacity = s.opacity === 1 ? '' : String(s.opacity);
     el.style.display = s.hidden ? 'none' : '';
+    el.style.fontFamily = s.ff || '';
+    el.style.fontSize = s.fz ? s.fz + 'px' : '';
+    if (s.txt && el.innerHTML !== s.txt && !el.isContentEditable) el.innerHTML = s.txt; // sanitized at capture
   }
   function applyOrder() {
     state.order.forEach((id, i) => {
@@ -108,6 +141,7 @@
       el.style.zIndex = String(10 + i);
     });
   }
+  function applyAll() { Object.keys(targets).forEach(apply); applyOrder(); }
   let saveT = null;
   function save() {
     clearTimeout(saveT);
@@ -123,6 +157,11 @@
       targets[id] = el;
       if (!state.els[id]) state.els[id] = { ...DEF };
       if (!state.order.includes(id)) state.order.push(id);
+      $$('[data-edit-sub]', el).forEach((sub) => {
+        const sid = id + '/' + sub.dataset.editSub;
+        targets[sid] = sub;
+        if (!state.els[sid]) state.els[sid] = { ...DEF };
+      });
     });
     state.order = state.order.filter((id) => targets[id]);
   }
@@ -136,8 +175,11 @@
       }
     } catch { /* fresh session */ }
     discover();
-    Object.keys(targets).forEach(apply);
-    applyOrder();
+    applyAll();
+    // The hero entrance timeline ends by writing inline transform/opacity on
+    // these same elements (gsap leaves final values inline) — re-apply after
+    // it has finished so saved overrides win on reload.
+    [3200, 5400].forEach((t) => setTimeout(applyAll, t));
   }
 
   /* ---------- chrome: fab / tag / handle ---------- */
@@ -154,7 +196,9 @@
     if (!selected || !targets[selected] || state.els[selected].hidden) { tag.hidden = true; handle.hidden = true; return; }
     const r = targets[selected].getBoundingClientRect();
     tag.style.left = r.left + 'px'; tag.style.top = (r.top - 26) + 'px';
-    tag.textContent = selected; tag.hidden = false;
+    tag.textContent = selected;
+    tag.classList.toggle('sub', selected.includes('/'));
+    tag.hidden = false;
     handle.style.left = (r.right - 6) + 'px'; handle.style.top = (r.bottom - 6) + 'px';
     handle.hidden = false;
   }
@@ -165,7 +209,7 @@
     let t = document.querySelector('.re-toast');
     if (!t) { t = document.createElement('div'); t.className = 're-toast re-ui'; document.body.appendChild(t); }
     t.textContent = msg; t.classList.add('show');
-    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400);
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2600);
   }
 
   /* ---------- popup ---------- */
@@ -180,22 +224,32 @@
   function sect(body, t) {
     const d = document.createElement('div'); d.className = 're-sect'; d.textContent = t; body.appendChild(d);
   }
+  function hint(body, t) {
+    const d = document.createElement('div'); d.className = 're-hint'; d.innerHTML = t; body.appendChild(d);
+  }
 
   function openPopup(id) {
     closePopup();
     const s = state.els[id];
+    const el = targets[id];
+    const isSub = id.includes('/');
+    const parentId = isSub ? id.split('/')[0] : null;
     pop = document.createElement('div'); pop.className = 're-pop re-ui';
-    pop.innerHTML = `<header><span class="re-crumb">${id}</span><button class="re-x" aria-label="Close">✕</button></header><div class="re-body"></div>`;
+    const crumbHtml = isSub
+      ? `<span class="re-up" data-re-up>${parentId}</span>&nbsp;› ${id.split('/')[1]}`
+      : id;
+    pop.innerHTML = `<header><span class="re-crumb">${crumbHtml}</span><button class="re-x" aria-label="Close">✕</button></header><div class="re-body"></div>`;
     document.body.appendChild(pop);
-    const r = targets[id].getBoundingClientRect();
+    const r = el.getBoundingClientRect();
     let px = r.right + 18, py = r.top;
     if (px + 300 > innerWidth) px = r.left - 306;
     if (px < 8) { px = clamp(r.left, 8, innerWidth - 300); py = r.bottom + 14; }
     pop.style.left = clamp(px, 8, innerWidth - 300) + 'px';
     pop.style.top = clamp(py, 8, innerHeight - 420) + 'px';
     pop.querySelector('.re-x').onclick = closePopup;
+    pop.querySelector('[data-re-up]')?.addEventListener('click', () => select(parentId));
     pop.querySelector('header').addEventListener('pointerdown', (e) => {
-      if (e.target.closest('button')) return;
+      if (e.target.closest('button') || e.target.closest('[data-re-up]')) return;
       const sx = e.clientX - pop.offsetLeft, sy = e.clientY - pop.offsetTop;
       const mv = (ev) => { pop.style.left = (ev.clientX - sx) + 'px'; pop.style.top = (ev.clientY - sy) + 'px'; };
       const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
@@ -207,13 +261,13 @@
     body.appendChild(row('X', -600, 600, 1, s.x, (v) => v + 'px', (v) => { s.x = v; apply(id); positionChrome(); }));
     body.appendChild(row('Y', -600, 600, 1, s.y, (v) => v + 'px', (v) => { s.y = v; apply(id); positionChrome(); }));
     body.appendChild(row('Scale', 0.3, 2, 0.01, s.scale, (v) => v.toFixed(2) + '×', (v) => { s.scale = v; apply(id); positionChrome(); }));
+
     sect(body, 'Fade');
     body.appendChild(row('Opacity', 0, 1, 0.01, s.opacity, (v) => Math.round(v * 100) + '%', (v) => { s.opacity = v; apply(id); }));
     body.appendChild(row('Fade-in', 0, 3, 0.05, s.fade, (v) => v.toFixed(2) + 's', (v) => { s.fade = v; }));
     const fr = document.createElement('div'); fr.className = 're-btnrow';
     fr.innerHTML = `<button class="re-sbtn">▶ Preview fade-in</button>`;
     fr.querySelector('button').onclick = () => {
-      const el = targets[id];
       el.animate(
         [{ opacity: 0, transform: (el.style.transform || 'none') + ' translateY(24px)' },
          { opacity: s.opacity, transform: el.style.transform || 'none' }],
@@ -221,29 +275,58 @@
     };
     body.appendChild(fr);
 
-    sect(body, 'Layers · back → front');
-    const ly = document.createElement('div'); ly.className = 're-layers'; body.appendChild(ly);
-    const redraw = () => {
-      ly.innerHTML = '';
-      state.order.forEach((lid, i) => {
-        const lr = document.createElement('div'); lr.className = 're-lrow' + (lid === id ? ' me' : '');
-        lr.innerHTML = `<button class="re-arr" aria-label="send back">▼</button><button class="re-arr" aria-label="bring forward">▲</button>
-          <span class="re-lname">${lid}</span>
-          <input type="range" min="0" max="1" step=".01" value="${state.els[lid].opacity}" aria-label="${lid} opacity">`;
-        const [down, up] = lr.querySelectorAll('.re-arr');
-        down.onclick = () => { if (i > 0) { [state.order[i - 1], state.order[i]] = [state.order[i], state.order[i - 1]]; applyOrder(); redraw(); save(); } };
-        up.onclick = () => { if (i < state.order.length - 1) { [state.order[i + 1], state.order[i]] = [state.order[i], state.order[i + 1]]; applyOrder(); redraw(); save(); } };
-        lr.querySelector('input').addEventListener('input', (e) => { state.els[lid].opacity = parseFloat(e.target.value); apply(lid); save(); });
-        ly.appendChild(lr);
-      });
-    };
-    redraw();
+    /* Type: sub-elements with text get the full kit; the group gets font only. */
+    const hasText = el.textContent.trim().length > 0;
+    const hasSubs = !isSub && $$('[data-edit-sub]', el).length > 0;
+    if ((isSub && hasText) || hasSubs) {
+      sect(body, isSub ? 'Type' : 'Type · whole group');
+      const fsel = document.createElement('div'); fsel.className = 're-row';
+      fsel.innerHTML = `<label>Font</label><select>${FONTS.map(([v, l]) =>
+        `<option value='${v.replace(/'/g, '&#39;')}'${v === s.ff ? ' selected' : ''}>${l}</option>`).join('')}</select>`;
+      fsel.querySelector('select').onchange = (e) => { s.ff = e.target.value; apply(id); save(); };
+      body.appendChild(fsel);
+      if (isSub) {
+        const cur = s.fz || Math.round(parseFloat(getComputedStyle(el).fontSize));
+        body.appendChild(row('Size', 9, 140, 1, cur, (v) => v + 'px', (v) => { s.fz = v; apply(id); positionChrome(); }));
+        hint(body, 'Double-click the text on the page to edit it inline.');
+        const dt = document.createElement('div'); dt.className = 're-btnrow';
+        dt.innerHTML = `<button class="re-sbtn danger">DELETE THIS TEXT</button>`;
+        dt.querySelector('button').onclick = () => { s.hidden = true; apply(id); positionChrome(); save(); openPopup(id); toast('Deleted — SHOW brings it back'); };
+        body.appendChild(dt);
+      } else {
+        hint(body, 'Double-click the block to <b>drill in</b> — each line gets its own popup.');
+      }
+    }
+
+    if (!isSub) {
+      sect(body, 'Layers · back → front');
+      const ly = document.createElement('div'); ly.className = 're-layers'; body.appendChild(ly);
+      const redraw = () => {
+        ly.innerHTML = '';
+        state.order.forEach((lid, i) => {
+          const lr = document.createElement('div'); lr.className = 're-lrow' + (lid === id ? ' me' : '');
+          lr.innerHTML = `<button class="re-arr" aria-label="send back">▼</button><button class="re-arr" aria-label="bring forward">▲</button>
+            <span class="re-lname">${lid}</span>
+            <input type="range" min="0" max="1" step=".01" value="${state.els[lid].opacity}" aria-label="${lid} opacity">`;
+          const [down, up] = lr.querySelectorAll('.re-arr');
+          down.onclick = () => { if (i > 0) { [state.order[i - 1], state.order[i]] = [state.order[i], state.order[i - 1]]; applyOrder(); redraw(); save(); } };
+          up.onclick = () => { if (i < state.order.length - 1) { [state.order[i], state.order[i + 1]] = [state.order[i + 1], state.order[i]]; applyOrder(); redraw(); save(); } };
+          lr.querySelector('input').addEventListener('input', (e) => { state.els[lid].opacity = parseFloat(e.target.value); apply(lid); save(); });
+          ly.appendChild(lr);
+        });
+      };
+      redraw();
+    }
 
     sect(body, '');
     const br = document.createElement('div'); br.className = 're-btnrow';
     br.innerHTML = `<button class="re-sbtn">RESET</button><button class="re-sbtn danger">${s.hidden ? 'SHOW' : 'HIDE'}</button>`;
     const [rst, hide] = br.querySelectorAll('button');
-    rst.onclick = () => { state.els[id] = { ...DEF }; apply(id); positionChrome(); save(); openPopup(id); toast('Reset to source values'); };
+    rst.onclick = () => {
+      const keepTxt = state.els[id].txt; // text edits survive a layout reset
+      state.els[id] = { ...DEF, txt: keepTxt };
+      apply(id); positionChrome(); save(); openPopup(id); toast('Reset to source values');
+    };
     hide.onclick = () => { s.hidden = !s.hidden; apply(id); positionChrome(); save(); openPopup(id); };
     body.appendChild(br);
 
@@ -258,20 +341,48 @@
   function closePopup() { if (pop) { pop.remove(); pop = null; } }
 
   function select(id) {
-    $$('[data-edit].re-sel').forEach((e) => e.classList.remove('re-sel'));
+    $$('.re-sel,.re-sel-sub').forEach((e) => e.classList.remove('re-sel', 're-sel-sub'));
     selected = id;
-    targets[id].classList.add('re-sel');
+    targets[id].classList.add(id.includes('/') ? 're-sel-sub' : 're-sel');
     positionChrome();
     openPopup(id);
   }
   function deselect() {
-    $$('[data-edit].re-sel').forEach((e) => e.classList.remove('re-sel'));
+    $$('.re-sel,.re-sel-sub').forEach((e) => e.classList.remove('re-sel', 're-sel-sub'));
     selected = null; positionChrome(); closePopup();
   }
+  function exitDrill() {
+    if (!drill) return;
+    targets[drill]?.classList.remove('re-drill');
+    drill = null;
+  }
 
-  /* ---------- element drag / resize ---------- */
+  /* ---------- inline text editing ---------- */
+  let editingText = null;
+  function startTextEdit(subEl, id) {
+    editingText = subEl;
+    try { subEl.contentEditable = 'plaintext-only'; } catch { subEl.contentEditable = 'true'; }
+    subEl.classList.add('re-editing-text');
+    subEl.focus();
+    subEl.addEventListener('blur', () => {
+      subEl.classList.remove('re-editing-text');
+      subEl.contentEditable = 'false';
+      editingText = null;
+      state.els[id].txt = sanitizeTxt(subEl.innerHTML);
+      apply(id); save(); toast('Text saved');
+    }, { once: true });
+  }
+
+  /* ---------- element drag / resize / select ---------- */
+  function idAt(target) {
+    const parentEl = target.closest && target.closest('[data-edit]');
+    if (!parentEl) return null;
+    const subEl = target.closest('[data-edit-sub]');
+    if (drill && parentEl.dataset.edit === drill && subEl) return parentEl.dataset.edit + '/' + subEl.dataset.editSub;
+    return parentEl.dataset.edit;
+  }
   document.addEventListener('pointerdown', (e) => {
-    if (!editing) return;
+    if (!editing || editingText) return;
     if (e.target === handle && selected) {
       const s = state.els[selected], el = targets[selected];
       const r = el.getBoundingClientRect();
@@ -282,9 +393,9 @@
       addEventListener('pointermove', mv); addEventListener('pointerup', up);
       e.preventDefault(); return;
     }
-    const el = e.target.closest && e.target.closest('[data-edit]');
-    if (!el) return;
-    const id = el.dataset.edit, s = state.els[id];
+    const id = idAt(e.target);
+    if (!id) return;
+    const s = state.els[id];
     const sx = e.clientX - s.x, sy = e.clientY - s.y;
     let moved = false;
     const mv = (ev) => {
@@ -298,6 +409,25 @@
     addEventListener('pointermove', mv); addEventListener('pointerup', up);
     e.preventDefault();
   }, true);
+
+  document.addEventListener('dblclick', (e) => {
+    if (!editing) return;
+    const parentEl = e.target.closest && e.target.closest('[data-edit]');
+    if (!parentEl) return;
+    const pid = parentEl.dataset.edit;
+    const subEl = e.target.closest('[data-edit-sub]');
+    if (drill === pid && subEl) {
+      const sid = pid + '/' + subEl.dataset.editSub;
+      if (subEl.textContent.trim()) { select(sid); startTextEdit(subEl, sid); }
+    } else if ($$('[data-edit-sub]', parentEl).length) {
+      exitDrill();
+      drill = pid;
+      parentEl.classList.add('re-drill');
+      toast('Drilled into ' + pid + ' — click a line for its own popup, double-click a line to edit text, Esc exits');
+    }
+    e.preventDefault();
+  }, true);
+
   // block link navigation while editing (the sign is an <a>)
   document.addEventListener('click', (e) => {
     if (editing && e.target.closest && e.target.closest('[data-edit]')) { e.preventDefault(); e.stopPropagation(); }
@@ -306,13 +436,15 @@
   /* ---------- keyboard ---------- */
   addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); toggle(); return; }
-    if (!editing || !selected) return;
+    if (!editing) return;
+    if (editingText) { if (e.key === 'Escape') editingText.blur(); return; }
     if (e.target.matches && e.target.matches('input,select,textarea')) return;
+    if (e.key === 'Escape') { if (selected) deselect(); else exitDrill(); return; }
+    if (!selected) return;
     const step = e.shiftKey ? 10 : 1, s = state.els[selected];
     let hit = true;
     if (e.key === 'ArrowLeft') s.x -= step; else if (e.key === 'ArrowRight') s.x += step;
     else if (e.key === 'ArrowUp') s.y -= step; else if (e.key === 'ArrowDown') s.y += step;
-    else if (e.key === 'Escape') { deselect(); hit = false; }
     else hit = false;
     if (hit) { apply(selected); positionChrome(); save(); e.preventDefault(); }
   });
@@ -325,7 +457,7 @@
     tbtn.classList.toggle('on', editing);
     tbtn.setAttribute('aria-pressed', String(editing));
     tbtn.textContent = editing ? '✎ EDITING' : '✎ EDIT';
-    if (!editing) deselect();
+    if (!editing) { deselect(); exitDrill(); }
   }
   tbtn.onclick = toggle;
 
