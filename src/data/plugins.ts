@@ -160,7 +160,7 @@ export const plugins: Plugin[] = [
       'The redline is your threshold. The needle is your gain reduction. Mastering loudness with the muscle of a tuned engine.',
     plainHook: 'Easy to drive. Hard to crash.',
     plainWhat:
-      'It goes last on your master bus and makes your track commercial-release loud — punchy, not squashed.',
+      'It goes last on your master bus and makes your track commercial-release loud. Punchy, not squashed.',
     longPitch:
       'Multi-band compression, analog-modelled saturation, and an adaptive limiter, chained the way a top-tier mastering engineer would chain them, under a true-peak ceiling at oversampled rate.',
     status: 'live',
@@ -238,7 +238,7 @@ export const plugins: Plugin[] = [
       'Send your selected freq. band to a trip across the stereo field.',
     plainHook: 'Controlled slides. No spinouts.',
     plainWhat:
-      'It moves chosen frequency bands across the stereo image, with saturation, reverb and tremolo per band — wide and alive, never seasick.',
+      'It moves chosen frequency bands across the stereo image, with saturation, reverb and tremolo per band. Wide and alive, never seasick.',
     longPitch:
       'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you, controlled slides that keep the mix wide and alive.',
     status: 'in-development',
@@ -270,7 +270,7 @@ export const plugins: Plugin[] = [
       'Add clean air and shine to your top end.',
     plainHook: 'Cold for air. Hot for warmth.',
     plainWhat:
-      'It opens the top of your mix with sparkle instead of harshness — all from one temperature dial.',
+      'It opens the top of your mix with sparkle instead of harshness, all from one temperature dial.',
     longPitch:
       'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming, all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
     status: 'in-development',
@@ -341,7 +341,7 @@ export const plugins: Plugin[] = [
     oneLiner: 'The station that never plays the same song twice.',
     plainHook: 'Spin the dial. Keep what lands.',
     plainWhat:
-      'One button reshapes your sound through up to ten effects at once — and the same seed always plays back the same result.',
+      'One button reshapes your sound through up to ten effects at once, and the same seed always plays back the same result.',
     longPitch:
       'A chaos/glitch multi-effect built around a single seed. RANDOMIZE rolls a new seed and instantly reconfigures a ten-stage chain (filter, EQ, fuzz, pitch-shift, chorus, delay, reverb, trance gate, stereo width, and pan), all deterministically, all level-matched and safety-limited so it never goes silent or blows up. Save a seed in your DAW to recall the exact sound later, or step through station presets like tuning an old dashboard radio.',
     status: 'live',
