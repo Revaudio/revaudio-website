@@ -77,11 +77,18 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
   :global(body:has(#cookie-banner.cb--visible)) .mbb { transform: translateY(105%); visibility: hidden; }
   @media (max-width: 900px) {
     .mbb { display: flex; }
-    /* Doubled class + descendant out-specifies A11yToggle's own scoped
-       `.a11y-fab[data-astro-cid]` (0,2,0) rule, which otherwise pins bottom:16px. */
-    :global(body .a11y-fab.a11y-fab) { bottom: calc(16px + var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
-    /* Same lift for the mobile cart FAB (CartFab.astro pins it bottom:16px). */
+    /* Bar UP: the FABs ride just above it. Doubled class + descendant
+       out-specifies each FAB's own scoped `bottom:16px` rule. */
+    :global(body .a11y-fab.a11y-fab),
     :global(body .cart-fab.cart-fab) { bottom: calc(16px + var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
+    /* Bar AWAY (buy card in view → .is-away, or cookie banner owns the edge):
+       the FABs drop back to their native dock. :has() adds a class of
+       specificity over the lift rule above, so the drop wins. They glide via
+       the `bottom` transition in A11yToggle.astro / CartFab.astro. */
+    :global(body:has(.mbb.is-away) .a11y-fab.a11y-fab),
+    :global(body:has(.mbb.is-away) .cart-fab.cart-fab),
+    :global(body:has(#cookie-banner.cb--visible) .a11y-fab.a11y-fab),
+    :global(body:has(#cookie-banner.cb--visible) .cart-fab.cart-fab) { bottom: 16px; }
     :global(.site-footer) { margin-bottom: calc(var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
     :global(html) { scroll-padding-bottom: calc(var(--mbb-h) + 16px); }
   }
