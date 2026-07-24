@@ -162,7 +162,7 @@ export const plugins: Plugin[] = [
     plainWhat:
       'It goes last on your master bus and makes your track commercial-release loud — punchy, not squashed.',
     longPitch:
-      'A mastering limiter that makes loudness, depth, and punch feel like flooring it on an open road. Multi-band compression, analog-modelled saturation, and an adaptive limiter chained the way a top-tier mastering engineer would chain them. Sits last on your master bus, glues the mix, and holds a true-peak ceiling at oversampled rate.',
+      'Multi-band compression, analog-modelled saturation, and an adaptive limiter — chained the way a top-tier mastering engineer would chain them, under a true-peak ceiling at oversampled rate.',
     status: 'live',
     statusLabel: REVLIMITER_CHECKOUT_URL ? 'Available now' : 'Checkout reopening soon',
     introPriceUsd: 56,
