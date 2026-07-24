@@ -236,8 +236,9 @@ export const plugins: Plugin[] = [
     tagline: 'A multiband panner you steer like a drift car',
     oneLiner:
       'Send your selected freq. band to a trip across the stereo field.',
+    plainHook: 'Controlled slides. No spinouts.',
     plainWhat:
-      'In plain terms: Drift moves chosen frequency ranges around the stereo image and adds per-band character, so your mix feels wide, alive, and in motion.',
+      'It moves chosen frequency bands across the stereo image, with saturation, reverb and tremolo per band — wide and alive, never seasick.',
     longPitch:
       'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you, controlled slides that keep the mix wide and alive.',
     status: 'in-development',
@@ -267,8 +268,9 @@ export const plugins: Plugin[] = [
     tagline: 'An air-band exciter that brings the breeze',
     oneLiner:
       'Add clean air and shine to your top end.',
+    plainHook: 'Cold for air. Hot for warmth.',
     plainWhat:
-      'In plain terms: The AC brightens and opens the top of your mix, adding air and sparkle without the harshness.',
+      'It opens the top of your mix with sparkle instead of harshness — all from one temperature dial.',
     longPitch:
       'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming, all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
     status: 'in-development',
@@ -299,8 +301,9 @@ export const plugins: Plugin[] = [
     tagline: 'A one-knob saturator you drive like a gas pedal',
     oneLiner:
       'One DRIVE knob, three voices: Tube, Tape, Fuzz. Floor it for character, not just loudness.',
+    plainHook: 'Step on it.',
     plainWhat:
-      'In plain terms: GAS is a saturator. It adds harmonic drive and warmth to any track. Turn the knob for more grit, pick Tube, Tape or Fuzz for the flavor.',
+      'A free saturator: one DRIVE knob adds grit and warmth, and Tube, Tape or Fuzz picks the flavor.',
     longPitch:
       'One knob does the work of five. GAS stages drive gain, tone shaping, and calibrated loudness compensation together, so turning DRIVE changes character, never just volume. Three voices: Tube for even-harmonic warmth, Tape for symmetric saturation with programme-dependent squash, Fuzz for a dying-battery snarl that cleans up under sustain. A check-engine lamp lights up when you’re really flooring it.',
     status: 'live',
@@ -336,8 +339,9 @@ export const plugins: Plugin[] = [
     category: 'multi-fx',
     tagline: 'You’ll never know what’s next',
     oneLiner: 'The station that never plays the same song twice.',
+    plainHook: 'Spin the dial. Keep what lands.',
     plainWhat:
-      'In plain terms: Radio Roulette is a glitch/chaos effect. Press one button and it reshapes your sound through up to ten effects at once: filter, EQ, fuzz, pitch, chorus, delay, reverb, gate, stereo width, and pan. The same seed always gives you back the same result.',
+      'One button reshapes your sound through up to ten effects at once — and the same seed always plays back the same result.',
     longPitch:
       'A chaos/glitch multi-effect built around a single seed. RANDOMIZE rolls a new seed and instantly reconfigures a ten-stage chain (filter, EQ, fuzz, pitch-shift, chorus, delay, reverb, trance gate, stereo width, and pan), all deterministically, all level-matched and safety-limited so it never goes silent or blows up. Save a seed in your DAW to recall the exact sound later, or step through station presets like tuning an old dashboard radio.',
     status: 'live',
