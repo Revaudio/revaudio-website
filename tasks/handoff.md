@@ -1,6 +1,21 @@
 # Website handoff
 
-Updated: 2026-07-20 (hero STORE sign live + carousel polish + checkout review)
+Updated: 2026-07-24 (TEMP PLATES on-page trial live; CSP blocks its fetch — Cloudflare rule edit pending)
+
+## 2026-07-24 — BLOCKER: edge CSP blocks the on-page trial capture (and the Google Ads tag)
+TEMP PLATES (#trial on product pages, `5c14c14` + `ba183a3`) POSTs the license worker's
+`/download/register` cross-origin. Worker-side CORS is deployed & verified (DLREG_CORS,
+version 64e6b84b), BUT the edge Cloudflare CSP (Rules → Transform Rules → Modify Response
+Header, "Security Headers" — same rule as the 2026-07-19 Formspree fix) blocks the browser
+fetch first: `connect-src` lacks the worker origin. Live behavior today: every submit shows
+the graceful fallback ("open the download page instead") — nothing broken, but the plate
+never stamps. Console also shows `script-src` blocking `googletagmanager.com/gtag/js`, so
+the AW-18334323184 Ads conversion tag has never loaded on this page.
+**Fix (dashboard, zone write needed — wrangler OAuth here is zone:read only):**
+- `connect-src` add: `https://revlimiter-license.revaudio.workers.dev https://www.google-analytics.com https://googleads.g.doubleclick.net https://www.googleadservices.com`
+- `script-src` add: `https://www.googletagmanager.com`
+Then cache-bust re-test a real submit on https://revaudio.net/revlimiter#trial (expect
+screws + PLATES ISSUED stamp, verification email via Resend).
 
 ## 2026-07-20 (evening) — Hero: hanging STORE sign SHIPPED & LIVE (4e281b8 + 78196fc)
 - Gauge removed from hero. Replaced by a hanging wooden STORE sign off the LEFT edge:
