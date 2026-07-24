@@ -58,6 +58,8 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
     /* Doubled class + descendant out-specifies A11yToggle's own scoped
        `.a11y-fab[data-astro-cid]` (0,2,0) rule, which otherwise pins bottom:16px. */
     :global(body .a11y-fab.a11y-fab) { bottom: calc(16px + var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
+    /* Same lift for the mobile cart FAB (CartFab.astro pins it bottom:16px). */
+    :global(body .cart-fab.cart-fab) { bottom: calc(16px + var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
     :global(.site-footer) { margin-bottom: calc(var(--mbb-h) + env(safe-area-inset-bottom, 0px)); }
     :global(html) { scroll-padding-bottom: calc(var(--mbb-h) + 16px); }
   }
