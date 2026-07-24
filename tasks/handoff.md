@@ -1,8 +1,20 @@
 # Website handoff
 
-Updated: 2026-07-24 (TEMP PLATES on-page trial live; CSP blocks its fetch — Cloudflare rule edit pending)
+Updated: 2026-07-24 (TEMP PLATES trial funnel LIVE + verified end-to-end; CSP fixed; Ads-conversion hosts pending)
 
-## 2026-07-24 — BLOCKER: edge CSP blocks the on-page trial capture (and the Google Ads tag)
+## 2026-07-24 (later) — RESOLVED: CSP fixed via dashboard; trial funnel human-verified end-to-end
+The Transform Rule was updated in the Cloudflare dashboard (Claude drove Dan's Chrome; Dan
+approved): `connect-src` += license worker + www.google-analytics.com + googleads.g.doubleclick.net
++ www.googleadservices.com; `script-src` += www.googletagmanager.com. Verified: edge serves the
+new header, live submit on /revlimiter#trial stamps PLATES ISSUED, verification email delivered,
+**Dan clicked the verify link twice — portal unlocks, funnel works end-to-end.**
+Remaining (optional "round 2", Dan aware): Google Ads conversion pings still blocked — needs
+`https://www.google.com https://ad.doubleclick.net` in connect-src and
+`https://googleads.g.doubleclick.net` in script-src. Until then gtag loads + fires but the
+conversion never reaches Google. Meta's *.on.aws / *.run.app beacons also blocked (cosmetic).
+Memory: revaudio-shared `reference_revaudio_edge_csp_transform_rule.md` (the recurring trap).
+
+## 2026-07-24 — BLOCKER (resolved above): edge CSP blocks the on-page trial capture (and the Google Ads tag)
 TEMP PLATES (#trial on product pages, `5c14c14` + `ba183a3`) POSTs the license worker's
 `/download/register` cross-origin. Worker-side CORS is deployed & verified (DLREG_CORS,
 version 64e6b84b), BUT the edge Cloudflare CSP (Rules → Transform Rules → Modify Response
