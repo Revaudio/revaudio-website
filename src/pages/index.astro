@@ -121,6 +121,9 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     } else {
       // ── Entrance: text cascade + redline sweep + dial settle ──
       const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+      // Dev-only handle for the RevEdit overlay (entrance scrubber + needle
+      // controls). Tree-shaken out of prod builds.
+      if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
       tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.12 }, 0.05)
         .fromTo('[data-hero-sweep]', { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
 
@@ -133,6 +136,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
         if (!needle) return;
 
         const state = { base: A_MIN, scroll: 0, pointer: 0, pointerTarget: 0 };
+        if (import.meta.env.DEV) (window as any).__reveditHero?.dials.push(state);
         gsap.ticker.add(() => {
           state.pointer += (state.pointerTarget - state.pointer) * 0.08;
           gsap.set(needle, { rotation: Math.min(state.base + state.scroll + state.pointer, A_MAX) });

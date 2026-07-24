@@ -12,7 +12,7 @@
 
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const DEF = { x: 0, y: 0, scale: 1, opacity: 1, hidden: false, fade: 0.6, note: '', ff: '', fz: 0, txt: '' };
+  const DEF = { x: 0, y: 0, scale: 1, opacity: 1, hidden: false, fade: 0.6, note: '', ff: '', fz: 0, txt: '', needle: null };
   const FONTS = [
     ['', 'Site default'],
     ['"Arial Narrow", "Helvetica Neue", sans-serif', 'Arial Narrow'],
@@ -109,6 +109,13 @@
     max-height:52vh;overflow:auto;}
   .re-mbox footer{display:flex;gap:10px;padding:12px 20px;border-top:1px solid var(--re-line);align-items:center;}
   .re-mbox footer p{margin:0;flex:1;color:var(--re-dim);font-size:12px;}
+  .re-transport{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:2147483001;
+    display:flex;align-items:center;gap:12px;background:var(--re-panel);border:1px solid var(--re-line);
+    border-radius:8px;padding:10px 14px;box-shadow:0 12px 40px rgba(0,0,0,.6);width:min(560px,84vw);}
+  .re-transport input[type=range]{flex:1;accent-color:var(--re-brass);min-width:0;}
+  .re-transport select{background:var(--re-pit);border:1px solid var(--re-line);color:var(--re-cream);
+    border-radius:4px;padding:5px 6px;font-size:11px;}
+  .re-transport .re-tt{font:11px/1 ui-monospace,Menlo,monospace;color:var(--re-dim);width:70px;text-align:right;}
   .re-toast{position:fixed;bottom:64px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--re-panel2);border:1px solid var(--re-brass);color:var(--re-cream);border-radius:6px;
     padding:9px 16px;font-size:12.5px;z-index:2147483004;opacity:0;transition:.25s;}
@@ -136,6 +143,9 @@
     el.style.fontFamily = s.ff || '';
     el.style.fontSize = s.fz ? s.fz + 'px' : '';
     if (s.txt && el.innerHTML !== s.txt && !el.isContentEditable) el.innerHTML = s.txt; // sanitized at capture
+    if (id === 'hero.gauge' && s.needle != null && window.__reveditHero) {
+      window.__reveditHero.dials.forEach((d) => { d.base = s.needle; });
+    }
   }
   function applyOrder() {
     state.order.forEach((id, i) => {
@@ -190,6 +200,7 @@
   const fab = document.createElement('div');
   fab.className = 're-fab re-ui';
   fab.innerHTML = `<button class="re-btn" data-re-toggle aria-pressed="false">✎ EDIT</button>
+    <button class="re-btn" data-re-transport>⏱ ENTRANCE</button>
     <button class="re-btn bake" data-re-bake>BAKE ▸</button>`;
   document.body.appendChild(fab);
   const tag = document.createElement('div'); tag.className = 're-tag'; tag.hidden = true;
@@ -278,6 +289,28 @@
         { duration: s.fade * 1000, easing: 'cubic-bezier(.2,.7,.2,1)' });
     };
     body.appendChild(fr);
+
+    /* Gauge: needle idle angle + rev blip (drives the live dial states). */
+    if (id === 'hero.gauge' && window.__reveditHero) {
+      sect(body, 'Gauge');
+      const dials = window.__reveditHero.dials;
+      body.appendChild(row('Needle', -135, 135, 1, s.needle != null ? s.needle : -90, (v) => v + '°', (v) => { s.needle = v; apply(id); }));
+      const rb = document.createElement('div'); rb.className = 're-btnrow';
+      rb.innerHTML = `<button class="re-sbtn">▶ Rev blip</button>`;
+      rb.querySelector('button').onclick = () => {
+        const idle = s.needle != null ? s.needle : -90;
+        const t0 = performance.now();
+        const step = (t) => {
+          const p = (t - t0) / 900;
+          if (p >= 1) { dials.forEach((d) => { d.base = idle; }); return; }
+          const k = p < 0.35 ? p / 0.35 : 1 - (p - 0.35) / 0.65;
+          dials.forEach((d) => { d.base = idle + k * (135 - idle); });
+          requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+      body.appendChild(rb);
+    }
 
     /* Type: sub-elements with text get the full kit; the group gets font only. */
     const hasText = el.textContent.trim().length > 0;
@@ -464,6 +497,54 @@
     if (!editing) { deselect(); exitDrill(); }
   }
   tbtn.onclick = toggle;
+
+  /* ---------- entrance transport (scrub the hero GSAP timeline) ---------- */
+  let transport = null, transportRaf = 0;
+  fab.querySelector('[data-re-transport]').onclick = () => {
+    if (transport) { closeTransport(); return; }
+    const hero = window.__reveditHero;
+    if (!hero || !hero.tl) { toast('No entrance timeline on this page (or reduced motion is on)'); return; }
+    const tl = hero.tl;
+    transport = document.createElement('div');
+    transport.className = 're-transport re-ui';
+    transport.innerHTML = `
+      <button class="re-sbtn" style="flex:none;padding:8px 14px" data-t-play>▶</button>
+      <input type="range" min="0" max="1" step="0.001" value="${tl.progress()}" aria-label="Entrance progress">
+      <span class="re-tt"></span>
+      <select aria-label="Playback speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option></select>
+      <button class="re-x" aria-label="Close transport">✕</button>`;
+    document.body.appendChild(transport);
+    const play = transport.querySelector('[data-t-play]');
+    const range = transport.querySelector('input');
+    const time = transport.querySelector('.re-tt');
+    const speed = transport.querySelector('select');
+    const fmt = () => { time.textContent = tl.time().toFixed(2) + 's / ' + tl.duration().toFixed(2) + 's'; };
+    const tick = () => {
+      if (!transport) return;
+      if (!tl.paused()) { range.value = String(tl.progress()); fmt(); play.textContent = tl.progress() >= 1 ? '↺' : '⏸'; }
+      transportRaf = requestAnimationFrame(tick);
+    };
+    tl.pause(); play.textContent = '▶'; fmt();
+    range.addEventListener('input', () => { tl.pause(); tl.progress(parseFloat(range.value)); fmt(); play.textContent = '▶'; });
+    play.onclick = () => {
+      tl.timeScale(parseFloat(speed.value));
+      if (tl.progress() >= 1 || play.textContent === '↺') tl.restart();
+      else if (tl.paused()) tl.play();
+      else { tl.pause(); play.textContent = '▶'; return; }
+      play.textContent = '⏸';
+    };
+    speed.onchange = () => tl.timeScale(parseFloat(speed.value));
+    transport.querySelector('.re-x').onclick = closeTransport;
+    tick();
+  };
+  function closeTransport() {
+    if (!transport) return;
+    cancelAnimationFrame(transportRaf);
+    const tl = window.__reveditHero?.tl;
+    if (tl) { tl.timeScale(1); tl.progress(1); } // leave the page settled
+    transport.remove(); transport = null;
+    applyAll(); // the timeline just rewrote inline styles — restore overrides
+  }
 
   fab.querySelector('[data-re-bake]').onclick = () => {
     const diff = { page: location.pathname, order: state.order, overrides: {}, askClaude: [] };
