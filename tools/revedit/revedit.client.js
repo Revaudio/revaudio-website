@@ -65,7 +65,11 @@
   .re-crumb .re-up:hover{color:var(--re-cream);}
   .re-x{margin-left:auto;background:none;border:0;color:var(--re-dim);font-size:15px;cursor:pointer;padding:0 2px;}
   .re-x:hover{color:var(--re-cream);}
-  .re-body{padding:12px 14px 14px;max-height:60vh;overflow-y:auto;}
+  .re-body{padding:12px 14px 14px;max-height:60vh;overflow-y:scroll;scrollbar-gutter:stable;}
+  .re-body::-webkit-scrollbar{width:10px;}
+  .re-body::-webkit-scrollbar-track{background:var(--re-pit);border-radius:5px;}
+  .re-body::-webkit-scrollbar-thumb{background:var(--re-line);border-radius:5px;border:2px solid var(--re-pit);}
+  .re-body::-webkit-scrollbar-thumb:hover{background:var(--re-brass);}
   .re-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
   .re-row label{width:64px;flex:none;font-size:11px;letter-spacing:.06em;color:var(--re-dim);text-transform:uppercase;}
   .re-row input[type=range]{flex:1;accent-color:var(--re-brass);min-width:0;}
