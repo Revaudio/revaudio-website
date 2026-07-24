@@ -64,7 +64,11 @@ export interface Plugin {
   category: PluginCategory;
   tagline: string;
   oneLiner: string;
-  /** Jargon-free outcome line — what it does, before the metaphor. Shown first on the product page. */
+  /** Optional bold hook — one line, in the plugin's character. Rendered on its own
+   *  line above plainWhat inside the same paragraph. Omit for no hook. */
+  plainHook?: string;
+  /** Jargon-free plain tail — what it does, no metaphor needed to parse it. Shown
+   *  first on the product page (after plainHook when present). */
   plainWhat: string;
   longPitch: string;
   status: PluginStatus;
@@ -154,8 +158,9 @@ export const plugins: Plugin[] = [
     tagline: 'A mastering limiter you read like a tachometer',
     oneLiner:
       'The redline is your threshold. The needle is your gain reduction. Mastering loudness with the muscle of a tuned engine.',
+    plainHook: 'Easy to drive. Hard to crash.',
     plainWhat:
-      'Easy to drive. Hard to crash. Goes last on your master bus and makes it commercial-release loud — punchy, not squashed.',
+      'It goes last on your master bus and makes your track commercial-release loud — punchy, not squashed.',
     longPitch:
       'A mastering limiter that makes loudness, depth, and punch feel like flooring it on an open road. Multi-band compression, analog-modelled saturation, and an adaptive limiter chained the way a top-tier mastering engineer would chain them. Sits last on your master bus, glues the mix, and holds a true-peak ceiling at oversampled rate.',
     status: 'live',

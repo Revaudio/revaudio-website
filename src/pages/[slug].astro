@@ -94,7 +94,10 @@ const altShots = hasStage
             )}
           </div>
           <p class="tagline">{plugin.tagline}</p>
-          <p class="plain-what">{plugin.plainWhat}</p>
+          <p class="plain-what">
+            {plugin.plainHook && <strong class="plain-hook">{plugin.plainHook}</strong>}
+            {plugin.plainWhat}
+          </p>
           <div class="stars-wrap">
             <StarRating rating={plugin.reviewsAvg} count={plugin.reviewsCount} scale={1.05} />
           </div>
@@ -438,6 +441,12 @@ const altShots = hasStage
     margin: 0 0 1.5rem;
     padding-left: 0.9rem;
     border-left: 3px solid var(--brass);
+  }
+
+  .plain-hook {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
   }
 
   .long { font-size: 1.05rem; color: var(--fg-dim); max-width: 60ch; margin-bottom: 2rem; }
