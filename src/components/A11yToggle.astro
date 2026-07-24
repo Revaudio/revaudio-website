@@ -53,8 +53,11 @@
     border: 2px solid var(--brass);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     cursor: pointer;
-    transition: transform 0.15s var(--ease), background 0.15s var(--ease);
+    /* `bottom` glides when the mobile buy bar rises/falls (MobileBuyBar lift). */
+    transition: transform 0.15s var(--ease), background 0.15s var(--ease),
+                bottom 0.28s var(--ease-settle);
   }
+  @media (prefers-reduced-motion: reduce) { .a11y-fab { transition: none; } }
   .a11y-fab:hover { transform: translateY(-2px); background: var(--bg-3); }
   .a11y-fab:focus-visible { outline: 3px solid var(--brass-bright); outline-offset: 3px; }
   /* pressed = high-contrast active: fill the chip so state is obvious */

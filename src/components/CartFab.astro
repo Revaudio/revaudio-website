@@ -38,7 +38,10 @@
       border: 2px solid var(--brass);
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
       cursor: pointer;
+      /* `bottom` glides when the mobile buy bar rises/falls (MobileBuyBar lift). */
+      transition: bottom 0.28s var(--ease-settle);
     }
+    @media (prefers-reduced-motion: reduce) { .cart-fab { transition: none; } }
     .cart-fab svg { width: 28px; height: 28px; display: block; }
     .cart-fab:focus-visible { outline: 3px solid var(--brass-bright); outline-offset: 3px; }
 
