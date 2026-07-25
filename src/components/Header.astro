@@ -35,13 +35,14 @@ const onProductPage = plugins.some((pl) => isActive(`/${pl.slug}`));
     </a>
     <div class="nav-right">
       <ul id="nav-menu" class="nav-links">
-        <li><a href="/" aria-current={isActive('/') ? 'page' : undefined}>Home</a></li>
+        {/* Task nav only — the logo is the home link, and legal lives in the
+            footer's Legal column. Keep this list at ~6; past that, Store
+            becomes a dropdown rather than the bar growing. */}
         <li><a href="/store" aria-current={isActive('/store') || onProductPage ? 'page' : undefined}>Store</a></li>
         <li><a href="https://revlimiter-license.revaudio.workers.dev/download" target="_blank" rel="noopener noreferrer">Downloads</a></li>
         <li><a href="/about" aria-current={isActive('/about') ? 'page' : undefined}>About</a></li>
         <li><a href="/support" aria-current={isActive('/support') ? 'page' : undefined}>Support</a></li>
         <li><a href="/affiliate" aria-current={isActive('/affiliate') ? 'page' : undefined}>Affiliates</a></li>
-        <li><a href="/terms" aria-current={isActive('/terms') ? 'page' : undefined}>T&amp;C</a></li>
       </ul>
       <button type="button" class="cart-toggle" data-cart-toggle aria-label="Open cart">
         <Image src={cartIcon} alt="" width={88} height={88} format="webp" class="cart-ico" />
