@@ -19,10 +19,37 @@
  *                        (the license worker's CORS-open email gate). A
  *                        trigger without it still gets the honest "not live
  *                        yet" message (SubscribeModal's `wired` pattern).
+ *
+ * Three states, one dialog:
+ *   1. form  — email capture (the trigger path above).
+ *   2. sent  — "check your inbox".
+ *   3. ready — Mac + Windows buttons. Reached WITHOUT a trigger: the emailed
+ *              verify link bounces back to this page as ?dl=<gate token>&p=<gate
+ *              id> (license worker handleDownloadVerify), and the params are
+ *              stripped from the URL as soon as they're read. The buttons hit
+ *              the SAME license worker that already serves every build out of
+ *              R2 — POST /download {plugin, os, gate} mints a 15-min /dl token,
+ *              we navigate to it, the worker streams the object. No second
+ *              worker, and no copy of the R2 key map on the site: `os` is
+ *              "win"/"mac" and the worker's own registry resolves it, so a
+ *              release that renames a build never needs a site deploy.
  */
+import { plugins, dlGateId } from '../data/plugins';
+import { site } from '../data/site';
+
+const workerUrl = site.downloadGate.workerUrl;
+// Gate id -> display name. The ready state has no trigger element to read the
+// name off, so it comes from the same source the triggers use.
+const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
 ---
 
-<dialog class="tg-modal" data-tg-modal aria-label="Get the free trial">
+<dialog
+  class="tg-modal"
+  data-tg-modal
+  aria-label="Get the free trial"
+  data-tg-worker={workerUrl}
+  data-tg-names={JSON.stringify(gateNames)}
+>
   <button type="button" class="tg-x" data-tg-close aria-label="Close">&times;</button>
   <p class="tg-kicker" data-tg-kicker>Checkout&rsquo;s under construction</p>
   <h2 data-tg-title>Grab the free trial instead</h2>
@@ -40,6 +67,19 @@
     <p class="tg-err" data-tg-err role="alert" aria-live="polite"></p>
   </form>
   <p class="tg-status" data-tg-status role="status" aria-live="polite" hidden></p>
+  <div class="tg-ready" data-tg-ready hidden>
+    <div class="tg-dl-row">
+      <button type="button" class="tg-dl" data-tg-dl="mac">
+        <span class="tg-dl-os">macOS</span>
+        <span class="tg-dl-fmt">.pkg installer</span>
+      </button>
+      <button type="button" class="tg-dl" data-tg-dl="win">
+        <span class="tg-dl-os">Windows</span>
+        <span class="tg-dl-fmt">.exe installer</span>
+      </button>
+    </div>
+    <p class="tg-err" data-tg-dl-err role="alert" aria-live="polite"></p>
+  </div>
 </dialog>
 
 <script>
@@ -56,10 +96,23 @@
     var submit = modal.querySelector('[data-tg-submit]');
     var err = modal.querySelector('[data-tg-err]');
     var status = modal.querySelector('[data-tg-status]');
+    var ready = modal.querySelector('[data-tg-ready]');
+    var dlErr = modal.querySelector('[data-tg-dl-err]');
+
+    var worker = modal.getAttribute('data-tg-worker') || '';
+    var names = {};
+    try { names = JSON.parse(modal.getAttribute('data-tg-names') || '{}'); } catch (e) {}
 
     var registerUrl = '';
     var pluginSlug = '';
+    var gateToken = '';
     var inFlight = false;
+    var dlInFlight = false;
+
+    function show() {
+      if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', '');
+      html.style.overflow = 'hidden';
+    }
 
     function open(trigger) {
       var name = trigger.getAttribute('data-plugin-name') || 'RevAudio';
@@ -67,6 +120,7 @@
       registerUrl = trigger.getAttribute('data-register-url') || '';
       var free = trigger.hasAttribute('data-gate-free');
       kicker.hidden = free;
+      kicker.textContent = 'Checkout’s under construction';
       title.textContent = free
         ? name + ' is free — grab it'
         : 'Grab the free ' + name + ' trial instead';
@@ -75,13 +129,35 @@
         : 'Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.';
       form.hidden = false;
       status.hidden = true;
+      ready.hidden = true;
       err.textContent = '';
       email.value = '';
       email.disabled = false;
       submit.disabled = false;
-      if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', '');
-      html.style.overflow = 'hidden';
+      show();
       email.focus();
+    }
+
+    // State 3 — arrived back from the verify email. No trigger element here, so
+    // the plugin identity comes from the URL and the copy from the name map.
+    function openReady(pluginId, gate) {
+      pluginSlug = pluginId;
+      gateToken = gate;
+      registerUrl = worker + '/download/register'; // so an expired token can re-register
+      var name = names[pluginId] || 'your plugin';
+      kicker.hidden = false;
+      kicker.textContent = 'Email verified';
+      title.textContent = 'Download ' + name;
+      sub.textContent = 'Full version, no key needed. Pick your platform — grab both if you work on two machines.';
+      form.hidden = true;
+      status.hidden = true;
+      ready.hidden = false;
+      dlErr.textContent = '';
+      show();
+      // Otherwise the dialog autofocuses the close button — a focus ring on the
+      // ✕ is the first thing a verified visitor sees.
+      var first = ready.querySelector('[data-tg-dl]');
+      if (first) first.focus();
     }
     function close() {
       if (typeof modal.close === 'function') modal.close(); else modal.removeAttribute('open');
@@ -139,6 +215,65 @@
           submit.disabled = false;
         });
     });
+
+    // ---- state 3: the download buttons -------------------------------------
+    // Both hit the license worker that already fronts the R2 bucket. It answers
+    // {ok, url:"/dl?t=..."} — a 15-minute token — and that URL responds with
+    // Content-Disposition: attachment, so navigating to it starts the download
+    // and leaves this page (and this dialog) exactly where it is.
+    ready.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-tg-dl]');
+      if (!btn || dlInFlight) return;
+      dlInFlight = true;
+      btn.disabled = true;
+      dlErr.textContent = '';
+      fetch(worker + '/download', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ plugin: pluginSlug, os: btn.getAttribute('data-tg-dl'), gate: gateToken }),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.ok && data.url) {
+            window.location.href = worker + data.url;
+          } else if (data && data.locked) {
+            // 24h gate token aged out — fall back to the email form so they can
+            // mint a fresh link instead of hitting a dead end.
+            ready.hidden = true;
+            form.hidden = false;
+            kicker.hidden = true;
+            title.textContent = 'That link expired';
+            sub.textContent = 'Verify links are good for 24 hours. Enter your email and we’ll send a fresh one.';
+            email.value = '';
+            email.disabled = false;
+            submit.disabled = false;
+            email.focus();
+          } else {
+            dlErr.textContent = (data && data.error) || 'Something went wrong. Try again.';
+          }
+        })
+        .catch(function () {
+          dlErr.textContent = 'Network hiccup. Try again in a moment.';
+        })
+        .finally(function () {
+          dlInFlight = false;
+          btn.disabled = false;
+        });
+    });
+
+    // Return leg: /revlimiter?dl=<token>&p=<gate id>. Read once, then scrub both
+    // params out of the address bar so the token isn't sitting there to be
+    // copied, shared, or handed to the next page in the Referer.
+    var q = new URLSearchParams(window.location.search);
+    var dlToken = q.get('dl');
+    var dlPlugin = q.get('p');
+    if (dlToken && dlPlugin) {
+      q.delete('dl');
+      q.delete('p');
+      var rest = q.toString();
+      history.replaceState(null, '', window.location.pathname + (rest ? '?' + rest : '') + window.location.hash);
+      openReady(dlPlugin, dlToken);
+    }
   })();
 </script>
 
@@ -200,6 +335,10 @@
   .tg-sub { color: var(--fg-dim); font-size: 0.92rem; margin: 0 0 1.5rem; }
 
   .tg-form { display: flex; flex-direction: column; gap: 1rem; }
+  /* An author `display` beats the UA's [hidden] rule, so form.hidden alone left
+     the email field on screen underneath the "check your inbox" line (and the
+     download buttons). Restate it at class+attribute specificity. */
+  .tg-form[hidden] { display: none; }
 
   .tg-field { display: flex; flex-direction: column; gap: 0.35rem; }
   .tg-field span {
@@ -243,4 +382,40 @@
   .tg-err { min-height: 1.1em; margin: 0; font-size: 0.8rem; color: var(--oxide-text); }
 
   .tg-status { margin: 0; font-size: 0.95rem; text-align: center; color: var(--brass-bright); }
+
+  /* state 3 — platform buttons. Equal weight on purpose: we don't sniff the OS,
+     and a producer on two machines wants both. */
+  .tg-dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 380px) { .tg-dl-row { grid-template-columns: 1fr; } }
+
+  .tg-dl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.9rem 0.75rem;
+    background: var(--bg-0);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    color: var(--fg);
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+  .tg-dl:hover { border-color: var(--brass); background: var(--bg-1); }
+  .tg-dl:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+  .tg-dl:disabled { opacity: 0.6; cursor: default; }
+
+  .tg-dl-os {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass-bright);
+  }
+  .tg-dl-fmt {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+  }
 </style>
