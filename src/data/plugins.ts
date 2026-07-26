@@ -7,7 +7,9 @@
  *   status: 'live'           → Buy CTA active, set checkoutUrl to the Lemon Squeezy buy link
  *
  * Prices are intent — flip when commerce launches.
- * Checkout: Lemon Squeezy (merchant of record). Set checkoutUrl per product below.
+ * Checkout: Lemon Squeezy (merchant of record) on `main`. On this branch
+ * (`feature/fastspring-checkout`) Cart.astro reads `fastspringPath` instead —
+ * checkoutUrl (LS) is left populated so the branch stays revertible.
  */
 
 export type PluginStatus = 'in-development' | 'beta' | 'live';
@@ -99,6 +101,11 @@ export interface Plugin {
   regularPriceUsd: number | null;
   /** Lemon Squeezy hosted checkout URL. Null until wired → product shows the "checkout reopening" state. */
   checkoutUrl: string | null;
+  /** FastSpring product path (Store Builder Library) — the catalog SKU/path
+   *  configured in the FastSpring storefront admin, NOT a URL. Wired on
+   *  `feature/fastspring-checkout` alongside checkoutUrl so the branch can be
+   *  rolled back onto Lemon Squeezy by just not merging it. */
+  fastspringPath?: string | null;
   /** True while a live product has no working checkout yet (checkoutUrl not set). */
   checkoutPaused: boolean;
   /** Discount code the buyer must enter at checkout to get the intro price. */
@@ -169,6 +176,7 @@ export const plugins: Plugin[] = [
     regularPriceUsd: 93,
     promoCode: 'VROOM',
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
+    fastspringPath: 'revlimiter',
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
     demoUrl: null,
     releaseTarget: 'Q3 2026',
@@ -351,6 +359,7 @@ export const plugins: Plugin[] = [
     introPriceUsd: 20,
     regularPriceUsd: null,
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
+    fastspringPath: 'radio-roulette',
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
     demoUrl: null,
     releaseTarget: '2026',
