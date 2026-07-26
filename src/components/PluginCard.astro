@@ -123,7 +123,8 @@ const thumbStyle = [
     data-plugin-name={plugin.name}
     data-plugin-slug={dlGateId(plugin)}
     data-register-url={registerUrl}
-  >Free trial</button>
+    {...(plugin.isFree ? { 'data-gate-free': true } : {})}
+  >{plugin.isFree ? 'Download' : 'Free trial'}</button>
 )}
 {showCart && !gated && buyable && (
   <button

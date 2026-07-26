@@ -6,6 +6,10 @@
  * [data-trial-gate-open] opens it (event delegation — same pattern as
  * SubscribeModal), reading off the trigger:
  *   data-plugin-name  — plugin display name, drops into the copy
+ *   data-gate-free    — present on FREE-forever plugins (GAS): the copy drops
+ *                        every "trial" / "checkout's under construction"
+ *                        mention — it's not a trial, there's no checkout to
+ *                        miss. Same form, same register flow.
  *   data-plugin-slug  — sent to the register endpoint as {plugin}. Must be
  *                        the license worker's flat id (dlGateId in
  *                        plugins.ts), NOT the site slug — the worker treats
@@ -20,7 +24,7 @@
 
 <dialog class="tg-modal" data-tg-modal aria-label="Get the free trial">
   <button type="button" class="tg-x" data-tg-close aria-label="Close">&times;</button>
-  <p class="tg-kicker">Checkout&rsquo;s under construction</p>
+  <p class="tg-kicker" data-tg-kicker>Checkout&rsquo;s under construction</p>
   <h2 data-tg-title>Grab the free trial instead</h2>
   <p class="tg-sub" data-tg-sub>
     Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.
@@ -32,7 +36,7 @@
     </label>
     <!-- honeypot: real users never fill this; bots do -->
     <input type="text" name="_gotcha" class="tg-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-    <button type="submit" class="tg-submit" data-tg-submit>Send my trial link</button>
+    <button type="submit" class="tg-submit" data-tg-submit>Send my link</button>
     <p class="tg-err" data-tg-err role="alert" aria-live="polite"></p>
   </form>
   <p class="tg-status" data-tg-status role="status" aria-live="polite" hidden></p>
@@ -44,6 +48,8 @@
     var modal = document.querySelector('[data-tg-modal]');
     if (!modal) return;
     var html = document.documentElement;
+    var kicker = modal.querySelector('[data-tg-kicker]');
+    var sub = modal.querySelector('[data-tg-sub]');
     var title = modal.querySelector('[data-tg-title]');
     var form = modal.querySelector('[data-tg-form]');
     var email = modal.querySelector('[data-tg-email]');
@@ -59,7 +65,14 @@
       var name = trigger.getAttribute('data-plugin-name') || 'RevAudio';
       pluginSlug = trigger.getAttribute('data-plugin-slug') || '';
       registerUrl = trigger.getAttribute('data-register-url') || '';
-      title.textContent = 'Grab the free ' + name + ' trial instead';
+      var free = trigger.hasAttribute('data-gate-free');
+      kicker.hidden = free;
+      title.textContent = free
+        ? name + ' is free — grab it'
+        : 'Grab the free ' + name + ' trial instead';
+      sub.textContent = free
+        ? 'Free forever. Full version, no trial clock, no credit card. Verify your email and the download link lands in your inbox.'
+        : 'Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.';
       form.hidden = false;
       status.hidden = true;
       err.textContent = '';

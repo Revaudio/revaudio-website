@@ -32,10 +32,15 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
         data-plugin-name={plugin.name}
         data-plugin-slug={dlGateId(plugin)}
         data-register-url={registerUrl}
+        {...(plugin.isFree ? { 'data-gate-free': true } : {})}
       >
-        Get the 14-day free trial
+        {plugin.isFree ? 'Download free' : 'Get the 14-day free trial'}
       </button>
-      <p class="micro muted">Checkout&rsquo;s under construction &mdash; grab the trial while we finish the fix.</p>
+      {plugin.isFree ? (
+        <p class="micro muted">Free forever &mdash; we email you the download link.</p>
+      ) : (
+        <p class="micro muted">Checkout&rsquo;s under construction &mdash; grab the trial while we finish the fix.</p>
+      )}
     </>
   ) : plugin.isFree ? (
     <>
