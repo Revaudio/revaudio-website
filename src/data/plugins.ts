@@ -397,6 +397,11 @@ export const plugins: Plugin[] = [
 
 export const bySlug = (slug: string) => plugins.find((p) => p.slug === slug);
 
+/** License-worker plugin id for the download gate — the worker's DL_PLUGINS
+ *  key. Site slugs are kebab-case, worker ids are flat ('radio-roulette' →
+ *  'radioroulette'); the flatten covers all current and conventional names. */
+export const dlGateId = (p: Plugin) => p.slug.replace(/-/g, '');
+
 export const isBuyable = (p: Plugin) => p.status === 'live' && !!p.checkoutUrl;
 
 export const fmtPrice = (usd: number | null) => (usd == null ? '—' : `$${usd}`);

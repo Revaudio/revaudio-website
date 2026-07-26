@@ -6,14 +6,15 @@
  * [data-trial-gate-open] opens it (event delegation — same pattern as
  * SubscribeModal), reading off the trigger:
  *   data-plugin-name  — plugin display name, drops into the copy
- *   data-plugin-slug  — sent to the register endpoint as {plugin}
- *   data-register-url — POST target. UI-only for now (Dan, 2026-07-26): no
- *                        trigger sets this yet, so the form always shows the
- *                        honest "not live yet" message instead of silently
- *                        no-opping (SubscribeModal's `wired` pattern). Yoni
- *                        wires the real verification worker and points a
- *                        trigger's data-register-url at it when it exists —
- *                        no other code change needed.
+ *   data-plugin-slug  — sent to the register endpoint as {plugin}. Must be
+ *                        the license worker's flat id (dlGateId in
+ *                        plugins.ts), NOT the site slug — the worker treats
+ *                        unknown ids as revlimiter.
+ *   data-register-url — POST target. LIVE (2026-07-26): every trigger passes
+ *                        site.downloadGate.workerUrl + '/download/register'
+ *                        (the license worker's CORS-open email gate). A
+ *                        trigger without it still gets the honest "not live
+ *                        yet" message (SubscribeModal's `wired` pattern).
  */
 ---
 

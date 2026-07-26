@@ -55,4 +55,18 @@ export const site = {
    * capture.
    */
   affiliateFormEndpoint: 'https://formspree.io/f/mykrwolg',
+
+  /**
+   * Download email gate — the license worker behind every download popup on
+   * the site (TrialGateModal triggers in BuyButton / BuyButtonCrane /
+   * CraneDropZone / MobileBuyBar / PluginCard / ExitIntentPopup; TrialPlates
+   * derives the same endpoint from plugin.trialUrl). Popups POST
+   * {email, plugin} to `workerUrl`/download/register (CORS-allowed for
+   * revaudio.net + localhost); the worker emails a verify link that unlocks
+   * the download. `portalUrl` is the no-JS/new-tab fallback target.
+   */
+  downloadGate: {
+    workerUrl: 'https://revlimiter-license.revaudio.workers.dev',
+    portalUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
+  },
 };

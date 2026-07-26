@@ -1,7 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import type { Plugin } from '../data/plugins';
-import { isBuyable, fmtPrice, discountPct } from '../data/plugins';
+import { isBuyable, fmtPrice, discountPct, dlGateId } from '../data/plugins';
+import { site } from '../data/site';
 
 interface Props {
   plugin: Plugin;
@@ -10,6 +11,7 @@ interface Props {
 const { plugin } = Astro.props;
 const buyable = isBuyable(plugin);
 const pct = discountPct(plugin);
+const registerUrl = site.downloadGate.workerUrl + '/download/register';
 ---
 
 <div class="buy-block">
@@ -28,7 +30,8 @@ const pct = discountPct(plugin);
         class="btn primary"
         data-trial-gate-open
         data-plugin-name={plugin.name}
-        data-plugin-slug={plugin.slug}
+        data-plugin-slug={dlGateId(plugin)}
+        data-register-url={registerUrl}
       >
         Get the 14-day free trial
       </button>
@@ -45,7 +48,7 @@ const pct = discountPct(plugin);
       ) : (
         <a class="btn primary" href={`/${plugin.slug}#waitlist`}>Email me when the download is ready</a>
       )}
-      <p class="micro muted">No account, no licence key &mdash; just download and go.</p>
+      <p class="micro muted">No account, no licence key &mdash; we email you the download link.</p>
     </>
   ) : buyable ? (
     <>

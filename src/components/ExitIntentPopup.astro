@@ -22,9 +22,14 @@
  * while open (SubscribeModal pattern). Entrance is motion-ok-gated CSS —
  * reduced-motion users get an instant dialog.
  */
-// Ungated direct-from-R2 GAS routes on the license worker (serveGas) — no
-// email gate, no portal detour. GAS only; paid builds stay token-gated.
-const GAS_DIRECT_BASE = 'https://revlimiter-license.revaudio.workers.dev/gas';
+// GAS is email-gated like everything else now (2026-07-26, Dan's call — the
+// old ungated /gas/win|mac worker routes are gone, they 302 to the portal).
+// The CTA opens TrialGateModal, which POSTs {email, plugin:'gas'} to the
+// license worker's register route; the emailed verify link unlocks the
+// download. href stays the portal page so no-JS / new-tab never dead-ends.
+import { site } from '../data/site';
+const registerUrl = site.downloadGate.workerUrl + '/download/register';
+const portalUrl = site.downloadGate.portalUrl;
 const path = Astro.url.pathname.replace(/\/$/, '');
 const excluded = path === '/gas' || path === '/thank-you';
 ---
@@ -35,16 +40,20 @@ const excluded = path === '/gas' || path === '/thank-you';
   <p class="eg-kicker">Before you pull out of the lot&hellip;</p>
   <h2>We got some <span class="eg-red">free gas</span></h2>
   <p class="eg-sub">
-    GAS &mdash; our one-knob saturator. Actually free. No email, no trial clock, no catch.
+    GAS &mdash; our one-knob saturator. Actually free. No trial clock, no catch &mdash; drop your email and the download link lands in your inbox.
   </p>
   <div class="eg-dl">
-    <a class="eg-cta" href={`${GAS_DIRECT_BASE}/mac`} data-eg-cta download>
-      Download for Mac
-      <span class="eg-spec">AU / VST3 &middot; .pkg</span>
-    </a>
-    <a class="eg-cta" href={`${GAS_DIRECT_BASE}/win`} data-eg-cta download>
-      Download for Windows
-      <span class="eg-spec">VST3 &middot; .exe</span>
+    <a
+      class="eg-cta"
+      href={portalUrl}
+      data-eg-cta
+      data-trial-gate-open
+      data-plugin-name="GAS"
+      data-plugin-slug="gas"
+      data-register-url={registerUrl}
+    >
+      Get GAS free
+      <span class="eg-spec">Mac &amp; Windows &middot; AU / VST3</span>
     </a>
   </div>
   <button type="button" class="eg-walk" data-eg-close>I&rsquo;ll walk, thanks</button>

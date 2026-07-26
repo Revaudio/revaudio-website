@@ -1,8 +1,9 @@
 ---
 import { Image } from 'astro:assets';
 import type { Plugin } from '../data/plugins';
-import { fmtPrice, discountPct, isBuyable } from '../data/plugins';
+import { fmtPrice, discountPct, isBuyable, dlGateId } from '../data/plugins';
 import { pluginImage } from '../lib/images';
+import { site } from '../data/site';
 import StarRating from './StarRating.astro';
 
 interface Props {
@@ -36,6 +37,10 @@ const TITLE_FX: Record<string, { html: string; cls: string }> = {
 };
 const titleFx = TITLE_FX[plugin.slug];
 const gated = !!plugin.trialGateActive;
+// Live email gate: TrialGateModal POSTs {email, plugin} here (plugin = the
+// worker's flat id, hence dlGateId — 'radio-roulette' would silently register
+// as revlimiter otherwise, the worker defaults unknown ids).
+const registerUrl = site.downloadGate.workerUrl + '/download/register';
 const thumbStyle = [
   plugin.cardThumbAspect ? `aspect-ratio:${plugin.cardThumbAspect};` : '',
   plugin.cardThumbMaxWidthPct ? `max-width:${plugin.cardThumbMaxWidthPct}%; margin-inline:auto;` : '',
@@ -116,7 +121,8 @@ const thumbStyle = [
     class="card-add"
     data-trial-gate-open
     data-plugin-name={plugin.name}
-    data-plugin-slug={plugin.slug}
+    data-plugin-slug={dlGateId(plugin)}
+    data-register-url={registerUrl}
   >Free trial</button>
 )}
 {showCart && !gated && buyable && (
