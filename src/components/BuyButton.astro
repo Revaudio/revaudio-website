@@ -34,7 +34,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
         data-register-url={registerUrl}
         {...(plugin.isFree ? { 'data-gate-free': true } : {})}
       >
-        {plugin.isFree ? 'Download free' : 'Get the 14-day free trial'}
+        {plugin.isFree ? 'Download' : `Add to cart · ${fmtPrice(plugin.regularPriceUsd ?? plugin.introPriceUsd)}`}
       </button>
       {plugin.isFree ? (
         <p class="micro muted">Free forever &mdash; we email you the download link.</p>
