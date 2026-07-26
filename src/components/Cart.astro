@@ -28,9 +28,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
 
 <script is:inline type="application/json" data-checkout-map set:html={JSON.stringify(checkoutMap)}></script>
 
-<!-- Cart deactivated: a small tooltip shown wherever the cart would open. -->
-<div class="cart-tip" data-cart-tip role="status" aria-live="polite" hidden>no cart yet — try again when we fix our cart</div>
-
 <!-- Cart drawer -->
 <dialog class="cart-drawer" data-cart-drawer aria-label="Your cart">
   <div class="cd-head">
@@ -245,35 +242,20 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       else if (lModal) { lModal.removeAttribute('open'); lock(); }
     }
 
-    // ---- Cart deactivated ----
-    // The cart is temporarily off. Every entry point (add-to-cart buttons + the
-    // cart icons) shows a tooltip anchored to what was clicked instead of adding
-    // items or opening the drawer. Remove this block + the [data-cart-tip] node
-    // to bring the cart back.
-    var tipEl = document.querySelector('[data-cart-tip]');
-    var tipTimer;
-    function showCartTip(anchor) {
-      if (!tipEl) return;
-      tipEl.hidden = false;
-      var r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : null;
-      if (r) {
-        var cx = Math.min(Math.max(r.left + r.width / 2, 100), window.innerWidth - 100);
-        var below = r.top < 96;
-        tipEl.classList.toggle('is-below', below);
-        tipEl.style.left = cx + 'px';
-        tipEl.style.top = (below ? r.bottom + 12 : r.top - 12) + 'px';
-      }
-      // reflow so re-triggering restarts the fade
-      tipEl.classList.remove('is-on'); void tipEl.offsetWidth; tipEl.classList.add('is-on');
-      clearTimeout(tipTimer);
-      tipTimer = setTimeout(function () { tipEl.classList.remove('is-on'); }, 2800);
-    }
-
     document.addEventListener('click', function (e) {
       var t = e.target;
       var addBtn = t.closest('[data-add-to-cart]');
-      if (addBtn) { e.preventDefault(); showCartTip(addBtn); return; }
-      if (t.closest('[data-cart-toggle]')) { e.preventDefault(); showCartTip(t.closest('[data-cart-toggle]')); return; }
+      if (addBtn) {
+        e.preventDefault();
+        add({
+          slug: addBtn.getAttribute('data-slug'),
+          name: addBtn.getAttribute('data-name'),
+          price: addBtn.getAttribute('data-price'),
+          img: addBtn.getAttribute('data-img') || ''
+        });
+        return;
+      }
+      if (t.closest('[data-cart-toggle]')) { e.preventDefault(); openDrawer(); return; }
       var rm = t.closest('[data-remove]');
       if (rm) { remove(rm.getAttribute('data-remove')); return; }
       if (t.closest('[data-checkout]')) { e.preventDefault(); openCheckout(); return; }
@@ -315,30 +297,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
 </script>
 
 <style>
-  /* ---- Cart-deactivated tooltip ---- */
-  .cart-tip {
-    position: fixed;
-    z-index: 200;
-    transform: translate(-50%, -100%);
-    max-width: min(280px, 80vw);
-    padding: 0.6rem 0.85rem;
-    border: 1px solid var(--brass);
-    border-radius: 8px;
-    background: var(--bg-0);
-    color: var(--brass-bright);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    line-height: 1.35;
-    text-align: center;
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.18s var(--ease), transform 0.18s var(--ease);
-  }
-  .cart-tip.is-below { transform: translate(-50%, 0); }
-  .cart-tip.is-on { opacity: 1; }
-  .cart-tip[hidden] { display: none; }
-
   /* ---- Cart drawer (slides from the right) ---- */
   .cart-drawer {
     margin: 0 0 0 auto;
