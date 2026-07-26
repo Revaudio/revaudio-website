@@ -1,20 +1,20 @@
 ---
-/* TrialStamp — "GET YOUR FREE 14 DAYS TRIAL" stamp on the product head.
-   Language cloned from the crane door's BUY NOW square (BuyButtonCrane.astro):
-   the same textless worn patch PNG carries live ink, here in the B3 "night
-   plate" take (bench: bench/trial-stamp-test.html, picked 2026-07-14) — patch
-   multiplied down to the site's dark metal, cream Impact ink, brass FREE.
-   A whisper-strength worn filter keeps glyph edges crisp at page size.
+/* TrialStamp — on-page free-trial email capture, desktop only.
+   Was a patch/sticker link beside the h1 that scrolled to #trial (TrialPlates);
+   relocated by Dan (2026-07-26) into the gap under the product screenshot,
+   next to the crane door's checkout box, as a real inline capture row —
+   input + button, simple flat-then-3D button (same language as the GAS
+   exit-popup CTA / .btn.primary), no torn-patch art, no worn-ink filter.
 
-   Interaction: hover = the door's L2 warm-lamp treatment; click = press-in
-   sink (140ms) then scroll to the on-page #trial section (TrialPlates),
-   where the email goes down and the conversion events fire. It's a real
-   <a href="#trial"> — no-JS and keyboard get plain anchor navigation.
+   NOT wired to a backend yet — Yoni owns the worker integration
+   (POST {origin of plugin.trialUrl}/download/register, same contract as
+   TrialPlates.astro). Submit is a no-op that shows an honest "coming soon"
+   status line, same convention as EmailCapture.astro's unwired state.
 
-   Placement is the CALLER's job ([slug].astro positions it between the title
-   and the door); this component only owns the stamp box + its tilt. */
+   Mobile: hidden — the door's own "or try it free for 14 days" link
+   (BuyButtonCrane's .rc-trial) and MobileBuyBar already carry the trial
+   funnel on phones. */
 import type { Plugin } from '../data/plugins';
-import patchImg from '../assets/plugins/revlimiter-buy-patch.png';
 
 interface Props {
   plugin: Plugin;
@@ -23,259 +23,137 @@ interface Props {
 const { plugin } = Astro.props;
 ---
 
-<a
-  class="trial-stamp"
-  href="#trial"
-  data-trial-stamp
-  style={`--patch-url:url(${patchImg.src});`}
-  aria-label={`Get the free 14 days trial of ${plugin.name}, full version, no credit card`}
->
-  <span class="ts-patchbox">
-    <span class="ts-plate"></span>
-    <span class="ts-ink">
-      <span class="ts-top">Get your <em>FREE</em></span>
-      <span class="ts-bot">14 days trial</span>
-    </span>
-    <span class="ts-lit"></span>
-    <span class="ts-glow"></span>
-  </span>
-  {/* Affordance strip (trial-first funnel, Dan 2026-07-24): the patch alone
-      read as decoration on phones — the verb row + fear-killer line make it
-      a button. .ts-cta is mobile-only (desktop has cursor + hover lamp). */}
-  <span class="ts-cta">Tap to download <span class="ts-arrow">&#9656;</span></span>
-  <span class="ts-micro">Full version &middot; no credit card</span>
-
-  {/* whisper-strength worn-glyph filter — same recipe family as the door's
-      #rc-worn-buy but scale 1.2 / no blur, so ink stays crisp at ~300px.
-      Same-document inline, never display:none (WebKit). */}
-  <svg class="ts-defs" width="0" height="0" aria-hidden="true">
-    <defs>
-      <filter id="ts-worn-lite" x="-25%" y="-50%" width="150%" height="200%" color-interpolation-filters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.09 0.13" numOctaves="2" seed="11" result="warp"/>
-        <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-    </defs>
-  </svg>
-</a>
+<div class="trial-cta" data-trial-cta>
+  <p class="tc-label">Get your <em>free</em> 14-day trial</p>
+  <form class="tc-form" data-trial-cta-form novalidate>
+    <label for="trial-cta-email" class="sr-only">Your email</label>
+    <input
+      id="trial-cta-email"
+      class="tc-email"
+      type="email"
+      inputmode="email"
+      autocomplete="email"
+      enterkeyhint="go"
+      spellcheck="false"
+      placeholder="your@email.com"
+      aria-label={`Your email, we send the ${plugin.name} download link here`}
+    >
+    <button type="submit" class="tc-submit" aria-label="Get the download link">
+      <span class="tc-face">Get it <span class="tc-arrow">&#9656;</span></span>
+    </button>
+  </form>
+  <p class="tc-status" data-trial-cta-status role="status" aria-live="polite" hidden></p>
+  <p class="tc-micro">Full version &middot; no credit card</p>
+</div>
 
 <style>
-  .trial-stamp {
-    position: relative;
-    display: inline-block;
+  /* Sized 1.5× the original pass (Dan, 2026-07-26): tripled once, then halved
+     back down. box-shadow blur/offsets scaled with them so the bevel still
+     reads correct at this size. */
+  .trial-cta {
+    display: none;               /* desktop-only — see @media (min-width: 901px) */
     width: 100%;
-    cursor: pointer;
-    transform: rotate(2deg);
-    transition: transform 0.12s ease;
-    text-decoration: none;
+    max-width: 540px;
+    margin-top: 2.6rem;
   }
 
-  /* The patch visual, split out of the anchor so the CTA/micro lines can sit
-     BELOW it inside the same tap target. Carries everything the anchor used
-     to: the asset box, the ink container, the tilt's drop shadow. */
-  .ts-patchbox {
-    position: relative;
-    display: block;
-    width: 100%;
-    aspect-ratio: 620 / 237;             /* the patch asset's own box */
-    background: var(--patch-url) center / 100% 100% no-repeat;
-    container-type: inline-size;         /* ink sizes in cqw of the stamp */
-    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.55));
-    transition: filter 0.12s ease;
+  @media (min-width: 901px) {
+    .trial-cta { display: block; }
   }
 
-  /* ── affordance strip under the patch ─────────────────────────────────
-     .ts-cta: the verb row — mobile-only (desktop gets cursor + hover lamp).
-     .ts-micro: the fear-killer, on every viewport. */
-  .ts-cta {
-    display: none;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 700;
+  .tc-label {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    text-align: center;
-    color: var(--brass-bright);
-    margin-top: 0.55rem;
+    color: var(--fg);
+    margin: 0 0 0.9rem;
   }
+  .tc-label em { font-style: normal; color: var(--brass-bright); }
 
-  .ts-arrow { color: var(--brass); }
-
-  .ts-micro {
-    display: none;                       /* mobile-only: desktop's beside-the-title
-                                            composition is benched — extra lines
-                                            collide with the tagline there */
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    text-align: center;
-    color: var(--fg-dim);
-    margin-top: 0.45rem;
-  }
-
-  /* B3 night plate: patch multiplied down to the site's dark metal, masked to
-     the patch alpha so the ragged edges keep their bite. */
-  .ts-plate {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: multiply;
-    background: #241d15;
-    opacity: 0.88;
-    -webkit-mask-image: var(--patch-url);
-    -webkit-mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-            mask-image: var(--patch-url);
-            mask-size: 100% 100%;
-            mask-repeat: no-repeat;
-    z-index: 0;
-  }
-
-  .ts-ink {
-    position: absolute;
-    inset: 0;
+  .tc-form {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 1;
-    filter: url(#ts-worn-lite);
+    gap: 0.9rem;
   }
 
-  .ts-top,
-  .ts-bot {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow', sans-serif;
-    font-weight: 700;
+  .tc-email {
+    flex: 1;
+    min-width: 0;
+    padding: 1.05rem 1.3rem;
+    background: var(--bg-1);
+    color: var(--fg);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+  }
+  .tc-email::placeholder { color: var(--fg-faint); }
+  .tc-email:focus {
+    outline: none;
+    border-color: var(--brass);
+  }
+
+  /* the button — flat brass fill, same language as the GAS exit-popup CTA
+     (.eg-cta) / BuyButton's .btn.primary. No gradient, no bevel. */
+  .tc-submit {
+    flex: none;
+    padding: 1.05rem 1.65rem 0.9rem;
+    text-align: center;
+    background: var(--brass);
+    color: var(--bg-0);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .tc-face {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.575rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    line-height: 0.98;
     white-space: nowrap;
-    color: #e8e2d8;
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+  }
+  .tc-arrow { color: var(--bg-1); opacity: 0.7; }
+
+  .tc-submit:hover {
+    background: var(--brass-bright);
+    box-shadow: 0 0 24px rgba(232, 200, 120, 0.35);
+  }
+  .tc-submit:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+
+  .tc-status {
+    font-family: var(--font-mono);
+    font-size: 1.17rem;
+    color: var(--fg-dim);
+    margin: 0.9rem 0 0;
   }
 
-  .ts-top { font-size: 11.5cqw; letter-spacing: 0.06em; }
-  .ts-bot { font-size: 14.5cqw; }
-  .ts-top em { font-style: normal; color: #e8c878; }
-
-  /* hover lamp — the door's L2 recipe (warm screen wash masked to the patch
-     + blurred halo past the edges) */
-  .ts-lit {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    background: radial-gradient(125% 125% at 50% 18%,
-        rgba(255, 247, 236, 0.9) 0%,
-        rgba(255, 247, 236, 0.5) 55%,
-        rgba(255, 247, 236, 0.26) 100%);
-    -webkit-mask-image: var(--patch-url);
-    -webkit-mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-            mask-image: var(--patch-url);
-            mask-size: 100% 100%;
-            mask-repeat: no-repeat;
-    opacity: 0;
-    transition: opacity 0.18s ease;
-    z-index: 2;
-  }
-
-  .ts-glow {
-    position: absolute;
-    inset: -35%;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    background: radial-gradient(72% 72% at 50% 45%,
-        rgba(255, 232, 196, 0.55) 0%,
-        rgba(237, 199, 154, 0.28) 45.6%,
-        rgba(0, 0, 0, 0) 75.9%);
-    opacity: 0;
-    filter: blur(22px);
-    transition: opacity 0.18s ease;
-  }
-
-  .trial-stamp:hover .ts-lit { opacity: 0.3; }
-  .trial-stamp:hover .ts-glow { opacity: 0.44; }
-  .trial-stamp:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 3px; }
-
-  /* THE PRESS — stamp sinks into the page, shadow collapses. :active covers
-     no-JS; the script below holds .pressed through the 140ms pre-nav beat. */
-  .trial-stamp:active,
-  .trial-stamp.pressed {
-    transform: rotate(2deg) translateY(4px) scale(0.965);
-  }
-
-  .trial-stamp:active .ts-patchbox,
-  .trial-stamp.pressed .ts-patchbox {
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
-  }
-
-  .ts-defs { position: absolute; width: 0; height: 0; }  /* never display:none */
-
-  /* ── Mobile (≤900px): the stamp must READ as a control (Dan, 2026-07-24 —
-     "from the phone it's not clear it's a button"). Raised dark plate with a
-     bevel + the tap-verb row; the patch keeps its 2° tilt INSIDE the plate,
-     the plate itself sits straight like a button. */
-  @media (max-width: 900px) {
-    /* hover-only halo (no hover on touch) — its -35% inset was the page's only
-       horizontal overflow on phones, so keep it card-bound (same fix as the
-       crane's .rc-buysq-glow). */
-    .ts-glow { inset: 0; }
-
-    .trial-stamp {
-      display: block;
-      transform: none;
-      background: linear-gradient(180deg, #1d1712 0%, #120e09 100%);
-      border: 1px solid var(--brass-dark);
-      border-radius: 8px;
-      padding: 0.85rem 0.9rem 0.7rem;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.07),
-        0 5px 16px rgba(0, 0, 0, 0.55);
-    }
-
-    .ts-patchbox { transform: rotate(2deg); }
-    .ts-cta { display: block; }
-    .ts-micro { display: block; }
-
-    .trial-stamp:active,
-    .trial-stamp.pressed {
-      transform: translateY(3px) scale(0.98);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 1px 4px rgba(0, 0, 0, 0.7);
-    }
-
-    /* idle breath — the glow inhales every few seconds so the eye reads
-       "interactive" without a hover to discover it. */
-    @media (prefers-reduced-motion: no-preference) {
-      .ts-glow { animation: ts-breathe 4.2s ease-in-out infinite; }
-    }
-  }
-
-  @keyframes ts-breathe {
-    0%, 55%, 100% { opacity: 0; }
-    75% { opacity: 0.3; }
+  .tc-micro {
+    font-family: var(--font-mono);
+    font-size: 1.02rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    margin: 0.75rem 0 0;
   }
 </style>
 
 <script>
-  // Let the press be SEEN before moving: hold the pressed frame for a beat,
-  // then scroll to the on-page trial section and hand focus to its email
-  // field. Conversion events moved to TrialPlates (they fire on a successful
-  // register, not on this click). Modified clicks (new-tab etc.) pass through.
-  document.querySelectorAll<HTMLAnchorElement>('[data-trial-stamp]').forEach((a) => {
-    a.addEventListener('click', (e) => {
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-      const target = document.querySelector<HTMLElement>('#trial');
-      if (!target) return;                       // section missing → plain anchor nav
+  // UI ONLY — no backend wired yet (Yoni owns the license-worker integration:
+  // POST {origin of plugin.trialUrl}/download/register, same contract as
+  // TrialPlates.astro). Submit shows an honest "not live yet" status instead
+  // of silently doing nothing or pretending to succeed.
+  document.querySelectorAll<HTMLFormElement>('[data-trial-cta-form]').forEach((form) => {
+    const status = form.parentElement?.querySelector<HTMLElement>('[data-trial-cta-status]');
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
-      a.classList.add('pressed');
-      window.setTimeout(() => {
-        a.classList.remove('pressed');
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        target.querySelector<HTMLInputElement>('[data-tp-email]')?.focus({ preventScroll: true });
-      }, 140);
+      if (!status) return;
+      status.textContent = 'Almost there — the free trial goes live shortly.';
+      status.hidden = false;
     });
   });
 </script>

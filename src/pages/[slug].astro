@@ -87,11 +87,6 @@ const altShots = hasStage
               the title and the tagline. Bench: bench/trial-stamp-test.html. */}
           <div class="title-row">
             <h1>{plugin.name}</h1>
-            {plugin.trialUrl && (
-              <div class="trial-slot">
-                <TrialStamp plugin={plugin} />
-              </div>
-            )}
           </div>
           <p class="tagline">{plugin.tagline}</p>
           <p class="plain-what">
@@ -109,6 +104,11 @@ const altShots = hasStage
             alt={`${plugin.name} interface`}
             class={narrowHero ? 'gallery--narrow' : undefined}
           />
+
+          {/* Fills the leftover space under the screenshot on desktop, where
+              the (shorter) info column ends well before the taller crane
+              door column beside it — Dan, 2026-07-26. */}
+          {plugin.trialUrl && <TrialStamp plugin={plugin} />}
         </div>
 
         <aside id="buy" class:list={['product-aside', crane && 'product-aside--crane']} data-buy-aside>
@@ -304,57 +304,6 @@ const altShots = hasStage
   </section>
 
   {buyable && <MobileBuyBar plugin={plugin} />}
-
-  {/* DEBUG (position bench): #stampedit drags the trial stamp live on the real
-      page and prints the CSS to paste into .trial-slot — same hash-gate family
-      as the crane's #cranep/#cranelight. No-op without the hash. The slot sits
-      in the title-row flex now, so the bench nudges via transform:translate
-      (a delta on the flex position), not left/top. */}
-  {plugin.trialUrl && (
-    <script>
-      // NOTE: conditionally-rendered scripts are inlined VERBATIM (no TS
-      // compile) — keep this block plain JS.
-      const q = new URLSearchParams(location.hash.slice(1));
-      const slot = document.querySelector('.trial-slot');
-      if (q.has('stampedit') && slot) {
-        // editing: the stamp must not navigate
-        slot.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); }, true);
-        slot.style.cursor = 'move';
-        const out = document.createElement('div');
-        // top-right, clear of the cookie banner (bottom strip)
-        out.style.cssText = 'position:fixed;top:90px;right:12px;z-index:9999;background:#000c;color:#e8c878;font:12px/1.6 monospace;padding:10px 14px;border:1px solid #3a3128;border-radius:6px;white-space:pre';
-        document.body.appendChild(out);
-        let dx = 0, dy = 0;
-        const apply = () => {
-          // keep the CSS -50% vertical anchor; the bench only adds a delta
-          slot.style.transform = `translate(${dx}px, calc(-50% + ${dy}px))`;
-          out.textContent = `.trial-slot {\n  margin-left: calc(clamp(1rem,2vw,2.25rem) + ${dx}px);\n  transform: translateY(calc(-50% + ${dy}px));\n}\ndrag stamp · arrows nudge · shift=10px`;
-        };
-        apply();
-        let drag = null;
-        slot.addEventListener('pointerdown', (e) => {
-          drag = { x: e.clientX - dx, y: e.clientY - dy };
-          slot.setPointerCapture(e.pointerId);
-          e.preventDefault();
-        });
-        slot.addEventListener('pointermove', (e) => {
-          if (!drag) return;
-          dx = Math.round(e.clientX - drag.x);
-          dy = Math.round(e.clientY - drag.y);
-          apply();
-        });
-        slot.addEventListener('pointerup', () => { drag = null; apply(); });
-        window.addEventListener('keydown', (e) => {
-          if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
-          e.preventDefault();
-          const step = e.shiftKey ? 10 : 1;
-          dx += e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
-          dy += e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
-          apply();
-        });
-      }
-    </script>
-  )}
 
   {/* id="waitlist" keeps BuyButton's /{slug}#waitlist links landing on the one capture form. */}
   {!buyable && <EmailCapture id="waitlist" />}
@@ -815,49 +764,7 @@ const altShots = hasStage
   :global(html.hc) .video-poster { opacity: 1; }
   :global(html.hc) .video-play { border-color: var(--fg); }
 
-  /* ── Trial stamp slot — the stamp itself lives in TrialStamp.astro; this
-     slot owns WHERE it sits. Desktop: flex sibling of the h1 in .title-row,
-     lifted above the cap line (negative margin) so it reads as a sticker
-     slapped beside the wordmark. The title is the anchor — no head-relative
-     coordinates — so the pair composes the same for any plugin name. ── */
   .product-head { position: relative; }
-
-  /* inline-block = the row hugs the wordmark, so the stamp can anchor to the
-     title's RIGHT EDGE (left:100%) and float out into the empty gap between
-     the text column and the door — not confined to the text column's width
-     (which would wrap it below the title). Absolute = out of flow, so it never
-     pushes the tagline down. */
-  .title-row { position: relative; display: inline-block; }
-
-  .trial-slot {
-    position: absolute;
-    left: 100%;               /* right edge of the title */
-    top: 50%;
-    transform: translateY(calc(-50% - 10px));
-    margin-left: clamp(1rem, 2vw, 2.25rem);
-    width: min(300px, 26vw);
-    z-index: 3;
-  }
-
-  /* Tight desktop band (901–1100px): the door is close enough that there's no
-     real gap beside the title, so beside-placement collides with the BUY card.
-     Drop the stamp below the title, left-aligned — still clear of the door. */
-  @media (min-width: 901px) and (max-width: 1100px) {
-    .title-row { display: block; }
-    .trial-slot {
-      position: static;
-      transform: none;
-      width: min(280px, 30vw);
-      margin: 0.6rem 0 0.4rem;
-    }
-  }
-
-  @media (max-width: 900px) {
-    /* Stamp is desktop-only (Dan, 2026-07-24): on phones the door/MobileBuyBar
-       already carry the trial CTA, so the stamp is dropped from the reading. */
-    .title-row { display: block; }
-    .trial-slot { display: none; }
-  }
 
   .specs-section { padding: 2rem 0 3rem; border-top: 1px solid var(--border); }
 
@@ -920,25 +827,21 @@ const altShots = hasStage
       flex-direction: column;
     }
 
-    /* Flatten title-row so h1 and .trial-slot become independent flex children,
-       letting the trial stamp order AFTER the gallery. Door-clearing margin
-       moves to h1 (display:contents has no box, so margins on it are inert).
-       :global — .gallery is the Gallery component's root, no page scope hash. */
+    /* Flatten title-row so h1 becomes an independent flex child. Door-clearing
+       margin moves to h1 (display:contents has no box, so margins on it are
+       inert). :global — .gallery is the Gallery component's root, no page
+       scope hash. TrialStamp hides itself on mobile internally (desktop-only
+       capture row), so it needs no order here — it's a no-op in this stack. */
     .product-head--crane .product-info .title-row { display: contents; }
     .product-head--crane .product-info h1 {
       order: 1;
       margin-top: max(0px, calc(min(88.5vw, 434px) - 36px));
     }
     .product-head--crane .product-info .tagline   { order: 2; }
-    /* The RevLimiter screenshot leads; the trial stamp sits directly UNDER it
-       (Dan, 2026-07-24 — reverses the earlier same-day trial-first ordering
-       that floated the stamp above the gallery). Show the plugin first, then
-       offer the free drive right beneath its picture. */
     .product-head--crane .product-info :global(.gallery) {
       order: 3;
       margin-bottom: 1.75rem;
     }
-    .product-head--crane .product-info .trial-slot { order: 4; }
     .product-head--crane .product-info .plain-what { order: 5; }
     .product-head--crane .product-info .stars-wrap { order: 6; }
     .product-head--crane .product-info .long      { order: 7; }

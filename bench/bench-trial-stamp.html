@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bench — TrialStamp v2 (simple button, GAS-exit-cta language)</title>
+<style>
+  /* ── site tokens (mirrors src/styles/global.css) ── */
+  :root {
+    --bg-0: #0b0a09;
+    --bg-1: #14110f;
+    --fg: #efe9df;
+    --fg-dim: #8a8275;
+    --fg-faint: #827c74;
+    --brass: #c9a35c;
+    --brass-bright: #e8c878;
+    --brass-dark: #8c6f3a;
+    --border: #2a2420;
+    --border-bright: #3d342c;
+    --font-display: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg-0);
+    color: var(--fg);
+    font-family: var(--font-mono);
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+  }
+
+  .stage { width: min(420px, 90vw); }
+  .stage-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--fg-faint);
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ══════════════ v2 — flat button, same language as ExitIntentPopup .eg-cta
+     (BuyButton.astro's .btn.primary base). No patch PNG, no worn-ink filter,
+     no tilt — just brass fill / dark ink / uppercase display type. ══════════ */
+  .trial-stamp {
+    display: block;
+    width: 100%;
+    padding: 0.95rem 1.5rem 0.8rem;
+    text-align: center;
+    text-decoration: none;
+    background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 55%, var(--brass-dark) 100%);
+    color: var(--bg-0);
+    border: 1px solid var(--brass-dark);
+    border-radius: 5px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.22),
+      0 3px 0 var(--brass-dark),
+      0 6px 14px rgba(0, 0, 0, 0.45);
+    transition: background 0.2s var(--ease), box-shadow 0.12s var(--ease), transform 0.12s ease;
+    cursor: pointer;
+  }
+
+  .ts-top {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .ts-top em { font-style: normal; }
+
+  .ts-micro {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+    opacity: 0.75;
+  }
+
+  .trial-stamp:hover {
+    background: linear-gradient(180deg, #fff3d6 0%, var(--brass-bright) 55%, var(--brass) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -3px 0 rgba(0, 0, 0, 0.2),
+      0 3px 0 var(--brass-dark),
+      0 8px 20px rgba(232, 200, 120, 0.3);
+  }
+  .trial-stamp:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+
+  /* THE PRESS — the 3px "riser" edge collapses and the button sinks onto it,
+     classic skeuomorphic push-button read. */
+  .trial-stamp:active,
+  .trial-stamp.pressed {
+    transform: translateY(3px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 2px 4px rgba(0, 0, 0, 0.3),
+      0 0 0 var(--brass-dark),
+      0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+  /* ══════════════ end v2 ══════════════ */
+</style>
+</head>
+<body>
+
+  <div class="stage">
+    <div class="stage-label">desktop context — .trial-slot ~420px column</div>
+
+    <a
+      class="trial-stamp"
+      href="#trial"
+      data-trial-stamp
+      aria-label="Get the free 14 days trial of RevLimiter, full version, no credit card"
+    >
+      <span class="ts-top">Get your <em>free</em> 14-day trial</span>
+      <span class="ts-micro">Full version &middot; no credit card</span>
+    </a>
+  </div>
+
+  <script>
+    document.querySelector('[data-trial-stamp]').addEventListener('click', function (e) {
+      e.preventDefault();
+      this.classList.add('pressed');
+      setTimeout(() => this.classList.remove('pressed'), 140);
+    });
+  </script>
+
+  <script src="file:///Users/danavivi/projects/revaudio/revaudio-shared/tools/bench/bench.js"></script>
+</body>
+</html>
