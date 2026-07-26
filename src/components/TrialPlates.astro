@@ -22,6 +22,7 @@
    Conversion events (fbq StartTrial + Google Ads) fire HERE on a
    successful register — not on the stamp click — so the count means
    "left an email", not "scrolled to the form". */
+import { getImage } from 'astro:assets';
 import type { Plugin } from '../data/plugins';
 import plateImg from '../assets/ui/plate-temp-tag.png';
 import screwImg from '../assets/ui/screw-brass.png';
@@ -32,6 +33,14 @@ interface Props {
 
 const { plugin } = Astro.props;
 const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
+
+/* These ride in inline style="--x:url(...)", so <Image> never sees them —
+   .src would ship the raw 4.6MB / 1.2MB source PNGs. getImage() puts them
+   through the same build pipeline at the size they actually render:
+   .plate is 100% of a 720px-max column, .screw is 5.4% of it, .nail caps
+   at 28px. Widths are 2x those for retina. */
+const plate = await getImage({ src: plateImg, width: 1440, format: 'webp' });
+const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
 ---
 
 <section
@@ -41,7 +50,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
   data-register-url={registerUrl}
   data-plugin-id={plugin.slug}
   data-portal-url={plugin.trialUrl}
-  style={`--plate-url:url(${plateImg.src});`}
+  style={`--plate-url:url(${plate.src});`}
 >
   <p class="kicker">Fresh off the lot</p>
   <h2 data-split>Take it for a 14-day drive</h2>
@@ -69,12 +78,12 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
         >
         <div class="plate-fields" aria-hidden="true">Issued by: Revaudio garage &middot; Model: {plugin.name} &middot; Term: 14 days</div>
         <div class="plate-strip plate-strip--bot">Valid 14 days from first start &middot; full version</div>
-        <span class="screw screw--l" style={`background-image:url(${screwImg.src});`}></span>
-        <span class="screw screw--r" style={`background-image:url(${screwImg.src});`}></span>
+        <span class="screw screw--l" style={`background-image:url(${screw.src});`}></span>
+        <span class="screw screw--r" style={`background-image:url(${screw.src});`}></span>
         <div class="stamp-issued">Plates issued</div>
       </div>
     </div>
-    <span class="nail" style={`background-image:url(${screwImg.src});`} aria-hidden="true"></span>
+    <span class="nail" style={`background-image:url(${screw.src});`} aria-hidden="true"></span>
     <p class="err" data-tp-err role="alert" aria-live="polite"></p>
     <button class="get-btn" data-tp-submit type="submit" aria-label="Get it, send my download link">
       <span class="face" data-tp-face>Get it <span class="arr">&#9656;</span></span>
