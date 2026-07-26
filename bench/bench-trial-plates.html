@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bench — trial plates (#trial, RevLimiter)</title>
+
+<!-- GENERATED — do not hand-edit, and never treat this file as the master.
+     Regenerate (with `npm run dev` up) via:
+       node bench/make-trial-plates-bench.mjs
+     Source of truth: src/components/TrialPlates.astro rendered at /revlimiter.
+     Markup + the CSS rules that actually match the subtree are lifted from the
+     live page, so the bench shares the PRODUCTION layout model — this section
+     is flow + container queries (cqw), and a re-authored absolute-position mock
+     would tune numbers that cannot map back to source.
+
+     Two deliberate bench-only differences:
+     - the headline is flat text (production runs it through splittext.ts, which
+       parks each word at translate(0%,110%) behind a mask until GSAP reveals
+       it — no GSAP here, so verbatim markup = invisible headline);
+     - the backdrop is flat --bg-0, without the page's ambient engine glow. Do
+       not judge glow-dependent contrast here; measure that on the real page. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Oswald:wght@400;600&family=Special+Elite&family=VT323&display=swap" rel="stylesheet">
+
+<style>
+  /* site tokens, read off the live page's :root */
+  :root {
+    --bg-0: #0b0a09;
+    --bg-1: #14110f;
+    --fg: #efe9df;
+    --fg-dim: #8a8275;
+    --fg-faint: #827c74;
+    --brass: #c9a35c;
+    --brass-bright: #e8c878;
+    --brass-dark: #8c6f3a;
+    --oxide-text: #d4622a;
+    --redline: #c8331f;
+    --font-display: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg-0);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { min-height: 100vh; padding: 2rem 0 6rem; }
+
+  /* bench chrome — the page around the section, not part of it */
+  .bench-bar {
+    position: fixed; left: 0; right: 0; top: 0; z-index: 5;
+    display: flex; gap: .5rem; align-items: center; justify-content: center;
+    padding: .5rem; background: rgba(11,10,9,.86); border-bottom: 1px solid #2a2420;
+    font: 600 .66rem/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase;
+  }
+  .bench-bar span { color: var(--fg-faint); margin-right: .4rem; }
+  .bench-bar button {
+    padding: .42rem .7rem; cursor: pointer;
+    background: #14110f; color: var(--fg-dim);
+    border: 1px solid #3d342c; border-radius: 3px;
+    font: inherit; letter-spacing: .12em;
+  }
+  .bench-bar button:hover { color: var(--brass-bright); border-color: var(--brass-dark); }
+  .bench-bar button[aria-pressed="true"] { color: var(--bg-0); background: var(--brass); border-color: var(--brass); }
+
+  /* the width harness — the section is fluid, so the thing worth benching is
+     how it behaves at each real breakpoint, not one frozen width */
+  #frame {
+    width: 1440px; max-width: 100%;
+    margin: 3.2rem auto 0;
+    outline: 1px dashed #2a2420;
+    transition: width .18s ease;
+  }
+  #frame[data-w="390"], #frame[data-w="320"] { outline-color: #3d342c; }
+
+  /* ── lifted verbatim from the live page ── */
+:root { --bg-0: #0b0a09; --bg-1: #14110f; --bg-2: #1d1916; --bg-3: #2a2420; --fg: #efe9df; --fg-dim: #8a8275; --fg-faint: #827c74; --brass: #c9a35c; --brass-bright: #e8c878; --brass-dark: #8c6f3a; --chrome: #d8d4cc; --chrome-dark: #76726a; --oxide: #8b3a1f; --oxide-deep: #5a2410; --oxide-text: #d4622a; --redline: #c8331f; --emerald: #2f6b4a; --border: #2a2420; --border-bright: #3d342c; --shadow: 0 1px 0 0 #000, 0 8px 24px rgba(0, 0, 0, 0.5); --font-display: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif; --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; --ease: cubic-bezier(0.4, 0, 0.2, 1); --ease-settle: cubic-bezier(0.22, 1, 0.36, 1); --ease-exit: cubic-bezier(0.32, 0, 0.67, 0); --dur-in: 600ms; --dur-out: 300ms; --stagger: 90ms; --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.5rem; --space-6: 2rem; --space-8: 3rem; --space-10: 4rem; --space-12: 6rem; --space-16: 8rem; --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem; --text-lg: 1.25rem; --text-xl: 1.5rem; --text-2xl: 2rem; --text-3xl: clamp(1.75rem, 4vw, 3rem); --text-4xl: clamp(2.5rem, 6vw, 5rem); --maxw: min(1440px, 95vw); }
+@media (max-width: 900px){ :root { --maxw: min(1240px, 98vw); } }
+* { box-sizing: border-box; }
+html.lenis, html.lenis body { height: auto; }
+html, body { overflow-x: clip; }
+html, body { margin: 0px; padding: 0px; background: var(--bg-0); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body { background: none; min-height: 100vh; }
+html { scroll-padding-top: calc(var(--nav-h) + 0.75rem); }
+a { color: var(--brass-bright); text-decoration: none; transition: color 0.2s var(--ease); }
+a:hover { color: var(--chrome); }
+p a { text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 900px){ p a { position: relative; } }
+@media (max-width: 900px){ p a::after { content: ""; position: absolute; left: 0px; right: 0px; top: 50%; height: 44px; transform: translateY(-50%); } }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 400; letter-spacing: 0.02em; line-height: 1.1; margin: 0px 0px 0.5em; color: var(--fg); }
+h2 { font-size: clamp(1.75rem, 4vw, 3rem); }
+p { margin: 0px 0px 1em; max-width: 64ch; }
+:root { --nav-h: 44px; --sale-h: 0px; }
+.trial-plates[data-astro-cid-toydbl7s] { max-width: 720px; margin: 0px auto; padding: clamp(2.4rem, 5.2vw, 3.75rem) 1.25rem clamp(1.9rem, 4vw, 3rem); text-align: center; }
+.trial-plates[data-astro-cid-toydbl7s] p[data-astro-cid-toydbl7s] { max-width: none; }
+.trial-plates[data-astro-cid-toydbl7s] h2[data-astro-cid-toydbl7s] { font-family: var(--font-display); font-size: clamp(1.85rem, 4.6vw, 2.5rem); font-weight: 400; letter-spacing: 0.04em; color: var(--brass-bright); margin: 0px 0px 0.79rem; text-transform: uppercase; }
+.sub[data-astro-cid-toydbl7s] { color: var(--fg-dim); font-size: 0.95rem; margin: 0px 0px 0.43rem; min-height: 2.05rem; }
+.sub[data-astro-cid-toydbl7s] b[data-astro-cid-toydbl7s] { color: var(--fg); font-weight: 600; }
+.sub[data-astro-cid-toydbl7s][data-tp-before] { font-size: 1.28rem; opacity: 0.88; }
+.plate-wrap[data-astro-cid-toydbl7s] { position: relative; display: inline-block; width: min(480px, 100%); margin: 0px; padding: 0.9rem 0px 0px; border: 0px; container-type: inline-size; }
+.nail[data-astro-cid-toydbl7s] { position: absolute; left: 50%; top: 0.35rem; width: clamp(20px, 5cqw, 28px); aspect-ratio: 1 / 1; transform: translateX(-50%); background-position: center center; background-size: 100% 100%; background-repeat: no-repeat; filter: drop-shadow(rgba(0, 0, 0, 0.55) 0px 2px 3px); pointer-events: none; }
+@media (prefers-reduced-motion: no-preference){ .plate-wrap[data-astro-cid-toydbl7s]:not(.issued) .sway[data-astro-cid-toydbl7s] { animation: 5.5s ease-in-out 0s infinite normal none running plate-sway; transform-origin: 50% 0px; } }
+.plate[data-astro-cid-toydbl7s] { position: relative; width: 100%; overflow: hidden; aspect-ratio: 2176 / 1373; background: var(--plate-url) center / 100% 100% no-repeat; filter: drop-shadow(rgba(0, 0, 0, 0.62) 0px 18px 34px); transform: rotate(-1.4deg); translate: 0px -3px; cursor: text; }
+.plate[data-astro-cid-toydbl7s]::before { content: ""; position: absolute; inset: 0px; background: rgb(42, 35, 24); mix-blend-mode: multiply; opacity: 0.42; mask-image: var(--plate-url); mask-size: 100% 100%; mask-repeat: no-repeat; pointer-events: none; }
+.plate-strip[data-astro-cid-toydbl7s] { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: rgb(42, 35, 20); font-size: clamp(0.32rem, 1.75cqw, 0.72rem); opacity: 0.82; }
+.plate-strip--top[data-astro-cid-toydbl7s] { top: 9.8%; }
+.plate-strip--bot[data-astro-cid-toydbl7s] { bottom: 11.6%; opacity: 0.8; letter-spacing: 0.14em; }
+.plate-fields[data-astro-cid-toydbl7s] { position: absolute; left: 12%; right: 12%; top: 63%; font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: rgb(42, 35, 20); font-size: clamp(0.3rem, 1.5cqw, 0.62rem); opacity: 0.38; white-space: nowrap; overflow: hidden; }
+.plate-caption[data-astro-cid-toydbl7s] { position: absolute; left: 11%; right: 11%; top: 37%; font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: rgb(42, 35, 20); font-size: clamp(0.5rem, 2.3cqw, 0.8rem); opacity: 1; white-space: nowrap; pointer-events: none; }
+.plate-email[data-astro-cid-toydbl7s] { position: absolute; left: 11%; right: 11%; top: 44%; padding-block: 0.18em; border-width: 0px 0px 3px; border-style: none none dashed; border-color: currentcolor currentcolor rgba(42, 35, 20, 0.32); border-image: none; border-radius: 0px; font-family: var(--font-display); font-size: clamp(1.5rem, 7.4cqw, 2.8rem); letter-spacing: 0.09em; text-transform: uppercase; text-align: center; color: rgb(36, 31, 18); text-shadow: rgba(255, 255, 255, 0.4) 0px 1px 0px; outline: none; caret-color: rgb(140, 32, 20); background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.16) 0%, rgba(255, 246, 222, 0) 100%); }
+.plate-email[data-astro-cid-toydbl7s]::placeholder { color: rgba(42, 35, 20, 0.72); text-shadow: none; }
+.plate-email[data-astro-cid-toydbl7s]:hover { background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.27) 0%, rgba(255, 246, 222, 0) 100%); }
+.plate-email[data-astro-cid-toydbl7s]:focus { background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.38) 0%, rgba(255, 246, 222, 0) 100%); border-bottom-color: rgba(160, 40, 20, 0.6); border-bottom-style: solid; }
+.plate-email[data-astro-cid-toydbl7s]:disabled { background: none; }
+.screw[data-astro-cid-toydbl7s] { position: absolute; width: 5.4%; aspect-ratio: 1 / 1; background-position: center center; background-size: 100% 100%; background-repeat: no-repeat; filter: drop-shadow(rgba(0, 0, 0, 0.55) 0px 2px 3px); opacity: 0; transform: scale(0.2) rotate(-540deg); pointer-events: none; }
+.screw--l[data-astro-cid-toydbl7s] { left: 18.6%; top: 8%; }
+.screw--r[data-astro-cid-toydbl7s] { right: 18.6%; top: 7.6%; }
+.stamp-issued[data-astro-cid-toydbl7s] { position: absolute; left: 50%; top: 66%; transform: translate(-50%, -50%) rotate(-9deg) scale(3); font-family: var(--font-display); font-size: clamp(1.3rem, 6.4cqw, 2.4rem); letter-spacing: 0.12em; white-space: nowrap; color: rgb(176, 40, 24); border: 4px solid rgb(176, 40, 24); border-radius: 6px; padding: 0.05em 0.45em; opacity: 0; pointer-events: none; mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='2' seed='9'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -0.35'/></filter><rect width='220' height='220' filter='url(%23s)'/></svg>"); mask-size: 220px 220px; }
+.get-btn[data-astro-cid-toydbl7s] { display: block; width: 78%; margin: 0.75rem auto 0px; border: 0px; padding: 0px; cursor: pointer; border-radius: 10px; background: linear-gradient(rgb(110, 21, 9) 0%, rgb(78, 14, 5) 100%); box-shadow: rgba(0, 0, 0, 0.55) 0px 12px 24px, rgba(140, 28, 16, 0.35) 0px 4px 10px; transition: box-shadow 0.12s, opacity 0.25s; font: inherit; }
+.get-btn[data-astro-cid-toydbl7s] .face[data-astro-cid-toydbl7s] { display: block; padding: 0.6rem 1rem 0.64rem; border-radius: 10px; background: linear-gradient(rgb(200, 51, 31) 0%, rgb(160, 38, 23) 55%, rgb(124, 28, 16) 100%); box-shadow: rgba(255, 255, 255, 0.28) 0px 1px 0px inset, rgba(0, 0, 0, 0.22) 0px -2px 4px inset; font-family: var(--font-display); font-size: clamp(1.2rem, 4.7cqw, 1.7rem); letter-spacing: 0.14em; text-transform: uppercase; color: rgb(246, 236, 217); text-shadow: rgba(0, 0, 0, 0.45) 0px 1px 2px; transform: translateY(-4px); transition: transform 0.32s cubic-bezier(0.2, 1.7, 0.4, 1), filter 0.12s; }
+.get-btn[data-astro-cid-toydbl7s]:hover .face[data-astro-cid-toydbl7s] { filter: brightness(1.07); transform: translateY(-5px); }
+.get-btn[data-astro-cid-toydbl7s]:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 4px; }
+.get-btn[data-astro-cid-toydbl7s]:active .face[data-astro-cid-toydbl7s] { transform: translateY(-1px); transition: transform 0.07s ease-out, filter 0.12s; box-shadow: rgba(255, 255, 255, 0.12) 0px 1px 0px inset, rgba(0, 0, 0, 0.3) 0px -1px 3px inset; }
+.get-btn[data-astro-cid-toydbl7s]:active { box-shadow: rgba(0, 0, 0, 0.6) 0px 4px 10px, rgba(140, 28, 16, 0.3) 0px 2px 5px; }
+.get-btn[data-astro-cid-toydbl7s] .arr[data-astro-cid-toydbl7s] { color: rgb(255, 217, 168); }
+.micro[data-astro-cid-toydbl7s] { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-dim); margin: 0.8rem 0px 0px; }
+.micro[data-astro-cid-toydbl7s] b[data-astro-cid-toydbl7s] { color: var(--brass); font-weight: 600; }
+.micro[data-astro-cid-toydbl7s] [data-astro-cid-toydbl7s][data-tp-sentto] { text-transform: none; }
+.err[data-astro-cid-toydbl7s] { font-family: var(--font-mono); font-size: 0.75rem; color: var(--oxide-text); margin: 0.35rem 0px 0px; min-height: 1em; }
+.after-note[data-astro-cid-toydbl7s] { position: absolute; left: 0px; right: 0px; bottom: 1.1rem; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass); }
+.sr-status[data-astro-cid-toydbl7s] { position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 480px){ .trial-plates[data-astro-cid-toydbl7s] { padding-inline: 0.4rem; } }
+@media (max-width: 480px){ .plate-strip--top[data-astro-cid-toydbl7s] { font-size: max(5.6px, 2.05cqw); letter-spacing: 0.08em; } }
+@media (max-width: 480px){ .plate-strip--bot[data-astro-cid-toydbl7s] { font-size: max(6.4px, 2.45cqw); letter-spacing: 0.06em; } }
+@media (max-width: 480px){ .plate-caption[data-astro-cid-toydbl7s] { font-size: max(6.4px, 2.35cqw); letter-spacing: 0.16em; top: 36%; } }
+@media (max-width: 480px){ .plate-fields[data-astro-cid-toydbl7s] { font-size: max(4.5px, 1.85cqw); letter-spacing: 0.02em; left: 13%; right: 13%; top: 66%; } }
+@media (max-width: 480px){ .plate-email[data-astro-cid-toydbl7s] { font-size: max(19px, 7.4cqw); } }
+@media (max-width: 480px){ .get-btn[data-astro-cid-toydbl7s] { width: 84%; } }
+:root { --mbb-h: 64px; }
+@media (max-width: 900px){ html { scroll-padding-bottom: calc(var(--mbb-h) + 16px); } }
+@keyframes plate-sway { 
+  0%, 100% { transform: rotate(1deg); }
+  50% { transform: rotate(-1deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="bench-bar">
+  <span>width</span>
+  <button data-w="1440" aria-pressed="true">1440</button>
+  <button data-w="1280">1280</button>
+  <button data-w="900">900</button>
+  <button data-w="480">480</button>
+  <button data-w="390">390</button>
+  <button data-w="320">320</button>
+  <span style="margin-left:1rem">state</span>
+  <button data-state="idle" aria-pressed="true">idle</button>
+  <button data-state="typed">typed</button>
+  <button data-state="issued">issued</button>
+</div>
+
+<div id="frame" data-w="1440">
+<section class="trial-plates" id="trial" data-trial-plates="" data-register-url="https://revlimiter-license.revaudio.workers.dev/download/register" data-plugin-id="revlimiter" data-portal-url="https://revlimiter-license.revaudio.workers.dev/download" style="--plate-url:url(../src/assets/ui/plate-temp-tag.png);" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="54:2"> <h2 data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="55:18" class="">Take it for a 14-day drive</h2> <p class="sub" data-tp-before="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="56:34"><b data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="56:36">Full version.</b></p> <p class="sub" data-tp-after="" hidden="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="57:39">
+Plates issued. <b data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="58:23">Check your inbox</b>, your download link is on its way.
+</p> <form class="plate-wrap" data-tp-wrap="" novalidate="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="61:52"> <div class="sway" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="62:23"> <div class="plate" data-tp-plate="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="63:40"> <div class="plate-strip plate-strip--top" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="64:51">Temporary &nbsp;·&nbsp; RevLimiter &nbsp;·&nbsp; trial</div> <div class="plate-caption" aria-hidden="true" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="65:55">Registered to</div> <input class="plate-email" data-tp-email="" type="email" inputmode="email" autocomplete="email" enterkeyhint="go" spellcheck="false" placeholder="your@email.com" aria-label="Your email, we send the download link here" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="66:10"> <div class="plate-fields" aria-hidden="true" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="77:54">Issued by: Revaudio garage · Model: RevLimiter · Term: 14 days</div> <div class="plate-strip plate-strip--bot" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="78:51">Valid 14 days from first start · full version</div> <span class="screw screw--l" style="background-image:url(../src/assets/ui/screw-brass.png);" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="79:10"></span> <span class="screw screw--r" style="background-image:url(../src/assets/ui/screw-brass.png);" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="80:10"></span> <div class="stamp-issued" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="81:35">Plates issued</div> </div> </div> <span class="nail" style="background-image:url(../src/assets/ui/screw-brass.png);" aria-hidden="true" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="84:6"></span> <p class="err" data-tp-err="" role="alert" aria-live="polite" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="85:6"></p> <button class="get-btn" data-tp-submit="" type="submit" aria-label="Get it, send my download link" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="86:101"> <span class="face" data-tp-face="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="87:39">Get it <span class="arr" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="87:64">▸</span></span> </button> <p class="after-note" data-tp-after="" hidden="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="89:48">Plates on file — check your inbox</p> </form> <p class="micro" data-tp-before="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="92:35">No credit card · the download link lands in your inbox</p> <p class="micro" data-tp-after="" hidden="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="93:41">Sent to <b data-tp-sentto="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="93:50"></b> · the link is good for 24 hours</p> <p class="micro" data-tp-after="" hidden="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="94:41">Wrong address or nothing landed? <a href="https://revlimiter-license.revaudio.workers.dev/download" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="94:100">Open the download page</a></p> <span class="sr-status" role="status" data-tp-status="" data-astro-cid-toydbl7s="" data-astro-source-file="/Users/danavivi/projects/revaudio/revaudio-website/src/components/TrialPlates.astro" data-astro-source-loc="95:4"></span> </section>
+</div>
+
+<script>
+  // ── bench controls (not part of the section) ──
+  var frame = document.getElementById('frame');
+  var sec = frame.querySelector('#trial');
+  var form = sec.querySelector('[data-tp-wrap]');
+  var email = sec.querySelector('[data-tp-email]');
+
+  function press(group, btn) {
+    document.querySelectorAll('.bench-bar button[' + group + ']').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b === btn));
+    });
+  }
+
+  document.querySelectorAll('.bench-bar button[data-w]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      frame.style.width = b.dataset.w + 'px';
+      frame.dataset.w = b.dataset.w;
+      press('data-w', b);
+    });
+  });
+
+  function setState(s) {
+    form.classList.remove('issued');
+    sec.classList.remove('issued');
+    email.disabled = false;
+    sec.querySelectorAll('[data-tp-before]').forEach(function (e) { e.hidden = false; });
+    sec.querySelectorAll('[data-tp-after]').forEach(function (e) { e.hidden = true; });
+    email.value = '';
+    email.classList.remove('long');
+    if (s === 'typed' || s === 'issued') {
+      email.value = 'daniel.production@studiobrand.com';
+      email.classList.toggle('long', email.value.length > 22);
+    }
+    if (s === 'issued') {
+      form.classList.add('issued');
+      sec.classList.add('issued');
+      email.disabled = true;
+      sec.querySelectorAll('[data-tp-before]').forEach(function (e) { e.hidden = true; });
+      sec.querySelectorAll('[data-tp-after]').forEach(function (e) { e.hidden = false; });
+      var to = sec.querySelector('[data-tp-sentto]');
+      if (to) to.textContent = email.value;
+    }
+  }
+  document.querySelectorAll('.bench-bar button[data-state]').forEach(function (b) {
+    b.addEventListener('click', function () { setState(b.dataset.state); press('data-state', b); });
+  });
+
+  // ── the section's own behaviour, mirrored from TrialPlates.astro so the
+  //    bench feels like the real thing (no network: submit just stamps it) ──
+  email.addEventListener('input', function () {
+    email.classList.toggle('long', email.value.length > 22);
+  });
+  sec.querySelector('[data-tp-plate]').addEventListener('click', function (e) {
+    if (email.disabled || e.target === email) return;
+    email.focus();
+  });
+  form.addEventListener('submit', function (e) { e.preventDefault(); setState('issued'); press('data-state', document.querySelector('[data-state="issued"]')); });
+</script>
+
+<script src="file:///Users/danavivi/projects/revaudio/revaudio-shared/tools/bench/bench.js"></script>
+</body>
+</html>

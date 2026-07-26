@@ -52,19 +52,13 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
   data-portal-url={plugin.trialUrl}
   style={`--plate-url:url(${plate.src});`}
 >
-  <p class="kicker">Fresh off the lot</p>
-  <h2 data-split>Take it for a 14-day drive</h2>
-  <p class="sub" data-tp-before>
-    <b>Full version.</b> Every control live. Nothing locked.
-  </p>
-  <p class="sub" data-tp-after hidden>
-    Plates issued. <b>Check your inbox</b>, your download link is on its way.
-  </p>
+  <h2 data-split>14 days test drive</h2>
 
-  <form class="plate-wrap" data-tp-wrap novalidate>
+  <form class="plate-wrap" id="tp-form" data-tp-wrap novalidate>
     <div class="sway">
       <div class="plate" data-tp-plate>
         <div class="plate-strip plate-strip--top">Temporary &nbsp;&middot;&nbsp; {plugin.name} &nbsp;&middot;&nbsp; trial</div>
+        <div class="plate-caption" aria-hidden="true">Registered to</div>
         <input
           class="plate-email"
           data-tp-email
@@ -84,24 +78,43 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
       </div>
     </div>
     <span class="nail" style={`background-image:url(${screw.src});`} aria-hidden="true"></span>
-    <p class="err" data-tp-err role="alert" aria-live="polite"></p>
-    <button class="get-btn" data-tp-submit type="submit" aria-label="Get it, send my download link">
-      <span class="face" data-tp-face>Get it <span class="arr">&#9656;</span></span>
-    </button>
-    <p class="after-note" data-tp-after hidden>Plates on file &mdash; check your inbox</p>
   </form>
 
-  <p class="micro" data-tp-before>No credit card &middot; the download link lands in your inbox</p>
-  <p class="micro" data-tp-after hidden>Sent to <b data-tp-sentto></b> &middot; the link is good for 24 hours</p>
-  <p class="micro" data-tp-after hidden>Wrong address or nothing landed? <a href={plugin.trialUrl}>Open the download page</a></p>
+  {/* The control and its copy live OUTSIDE the form and re-attach with
+      form="tp-form" (still a real submit, Enter on the field still posts).
+      They have to be section children so the desktop two-column grid can put
+      them in the right-hand column while the tag holds the left — nesting
+      them back under the form would drag the button into the tag's column,
+      and moving the tag out of the form would break both the container query
+      its printed type is sized from and the .issued state selectors. */}
+  <div class="tp-copy">
+    <p class="sub" data-tp-after hidden>
+      Plates issued. <b>Check your inbox</b>, your download link is on its way.
+    </p>
+    <p class="micro" data-tp-before>No credit card &middot; download link lands in your inbox</p>
+    <p class="micro" data-tp-after hidden>Sent to <b data-tp-sentto></b> &middot; the link is good for 24 hours</p>
+    <p class="err" data-tp-err role="alert" aria-live="polite"></p>
+    <button class="get-btn" form="tp-form" data-tp-submit type="submit" aria-label="Get it, send my download link">
+      <span class="face" data-tp-face>Get it <span class="arr">&#9656;</span></span>
+    </button>
+    <p class="micro" data-tp-after hidden>Wrong address or nothing landed? <a href={plugin.trialUrl}>Open the download page</a></p>
+  </div>
   <span class="sr-status" role="status" data-tp-status></span>
 </section>
 
 <style>
+  /* Compact by intent (Dan, 2026-07-26): this is one field and one button, and
+     it was eating 844px of desktop scroll between "Hear it" and the manual.
+     The whole section is squeezed on ONE axis — vertical rhythm and paper
+     size — while every element that carries the character (tag art, hang
+     nail, screws, stamp, red control) stays exactly as it was.
+     Dan then cut the copy down to the offer itself: the "Fresh off the lot"
+     kicker and the "Every control live. Nothing locked." qualifier are both
+     gone on purpose. Headline, "Full version.", the tag, the button. */
   .trial-plates {
     max-width: 720px;
     margin: 0 auto;
-    padding: clamp(3.5rem, 8vw, 6rem) 1.25rem clamp(3rem, 7vw, 5rem);
+    padding: clamp(2.4rem, 5.2vw, 3.75rem) 1.25rem clamp(1.9rem, 4vw, 3rem);
     text-align: center;
   }
 
@@ -109,35 +122,42 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
      knocks every text line ~100px off the plate's axis. One axis, everything. */
   .trial-plates p { max-width: none; }
 
-  .kicker {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--fg-faint);
-    margin: 0 0 0.8rem;
-  }
-
   .trial-plates h2 {
     font-family: var(--font-display);
-    font-size: clamp(2.1rem, 6vw, 3.2rem);
+    font-size: clamp(1.85rem, 4.6vw, 2.5rem);
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--brass-bright);
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.79rem;   /* bench 2026-07-26: the air Dan opened over .sub */
     text-transform: uppercase;
   }
 
-  .sub { color: var(--fg-dim); font-size: 1rem; margin: 0 0 2.75rem; }
+  /* min-height reserves the taller (before) line's box, so swapping to the
+     success copy doesn't shuffle the tag up mid-choreography. */
+  .sub { color: var(--fg-dim); font-size: 0.95rem; margin: 0 0 0.43rem; min-height: 2.05rem; }
   .sub b { color: var(--fg); font-weight: 600; }
 
+  /* bench 2026-07-26 — Dan scaled this line 1.35x and dropped it 11px.
+     Folded as real type rather than a `scale:` patch: 0.95rem x 1.35 =
+     1.28rem, so it reflows and stays sharp instead of being a visually
+     inflated 0.95rem box still occupying its old height. The drop is split
+     between the h2's margin above (+7px) and this line's own taller box
+     (+8.5px); margin-bottom pays both back so the tag lands where he left it.
+     Scoped to the BEFORE line, which is what he actually selected
+     (p.sub:nth-child(2)) — it's the two-word offer stamp. The success line is
+     a full sentence and wrapped to two heavy lines on phones at this size. */
+  .sub[data-tp-before] { font-size: 1.28rem; opacity: 0.88; }
+
   /* ── THE PLATE — the real paper tag art; live ink over blank regions ── */
+  /* 560 -> 480 (compaction pass), then 514 to carry the bench's 1.07 scale.
+     Everything printed on the tag is sized in cqw off this box, so the whole
+     document scales as one piece — no per-element retuning. */
   .plate-wrap {
     position: relative;
     display: inline-block;
-    width: min(560px, 100%);
+    width: min(514px, 100%);
     margin: 0;
-    padding: 1.1rem 0 0;   /* headroom for the hang nail */
+    padding: 0.9rem 0 0;   /* headroom for the hang nail */
     border: 0;
     container-type: inline-size;
   }
@@ -185,7 +205,16 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     background: var(--plate-url) center / 100% 100% no-repeat;
     filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.62));
     transform: rotate(-1.4deg);
+    /* bench 2026-07-26: Dan lifted the tag 3px. Stays on the standalone
+       `translate` property on purpose — `transform` here is the animation
+       channel (rotate, plus the shake and mount keyframes), and the two
+       compose, so the lift survives every state instead of being clobbered. */
+    translate: 0 -3px;
+    /* the whole tag is the field's hit area (see the click handler below) —
+       the cursor has to say so before the click does */
+    cursor: text;
   }
+  .issued .plate { cursor: default; }
 
   /* night-plate multiply — the raw scan is bright daylight paper; pull it
      down toward the page's dark metal like the trial stamp's B3 take,
@@ -221,11 +250,19 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     opacity: 0.82;
   }
   .plate-strip--top { top: 9.8%; }
-  .plate-strip--bot { bottom: 11.6%; opacity: 0.6; letter-spacing: 0.14em; }
+  /* the bottom strip carries the actual terms of the offer (14 days, full
+     version) — it is not decoration, so it prints closer to AA than the faux
+     record line does */
+  .plate-strip--bot { bottom: 11.6%; opacity: 0.8; letter-spacing: 0.14em; }
 
   /* faux document fields — print the dead paper below the registration line
      so the tag reads as a real record (and the ISSUED stamp lands on
-     paperwork, not on a void). */
+     paperwork, not on a void).
+     Measures ~1.75:1 and stays there ON PURPOSE: it is aria-hidden, carries
+     no information the visitor needs, and exists only as texture — WCAG's
+     pure-decoration exemption. Inking it up to AA would put it level with the
+     terms strip and the caption, which DO carry meaning, and flatten the
+     hierarchy this card depends on. Don't "fix" it. */
   .plate-fields {
     position: absolute;
     left: 12%; right: 12%;
@@ -239,6 +276,30 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     opacity: 0.38;
     white-space: nowrap;
     overflow: hidden;
+  }
+
+  /* the field's printed caption — a blank line on a form reads as decoration
+     until something names it. This is what turns the paper from a prop into
+     something you fill in, so it prints heavier than .plate-fields (which is
+     dead record text) and sits in the empty band above the line. */
+  .plate-caption {
+    position: absolute;
+    left: 11%; right: 11%;
+    /* hugs the line it labels — parked further up it read as loose texture
+       rather than as this field's caption */
+    top: 37%;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #2a2314;
+    /* deliberately larger + heavier than .plate-fields: that line is dead
+       record text, this one has a job. Sized/inked to clear AA against the
+       paper — an unreadable caption is decoration, not affordance. */
+    font-size: clamp(0.5rem, 2.3cqw, 0.8rem);
+    opacity: 1;
+    white-space: nowrap;
+    pointer-events: none;
   }
 
   /* the registration line = the email field — visual center of the paper */
@@ -260,10 +321,44 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
     outline: none;
     caret-color: #8c2014;   /* the clerk's red pen */
+    /* A resting pool of light on the line, always on. Two jobs: it marks the
+       one writable strip on a card that is otherwise all print, and it lifts
+       the paper under the placeholder — the multiply veil had pulled this
+       band dark enough that no honest placeholder ink could clear the
+       contrast bar without looking like an already-filled value. */
+    background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.16) 0%, rgba(255, 246, 222, 0) 100%);
   }
-  /* ghost graphite, not embossed chrome — the ink shadow is for TYPED text */
-  .plate-email::placeholder { color: rgba(42, 35, 20, 0.3); text-shadow: none; }
-  .plate-email:focus { border-bottom-color: rgba(160, 40, 20, 0.55); }
+  /* ghost graphite, not embossed chrome — the ink shadow is for TYPED text.
+     This placeholder is the ONLY thing telling a visitor what belongs on the
+     line, so it inks up to clear the large-text contrast bar; the near-black
+     #241f12 of a typed value still reads as a clear step darker. */
+  .plate-email::placeholder { color: rgba(42, 35, 20, 0.72); text-shadow: none; }
+
+  /* a long address at the full display size scrolls its own head off the
+     line — you can't proofread what you can't see, and the confirmation of
+     what was sent only arrives AFTER the submit. Past ~22 characters the
+     hand-lettering just gets smaller, as it would on real paper. */
+  .plate-email.long {
+    font-size: clamp(1.05rem, 5.2cqw, 1.95rem);
+    letter-spacing: 0.05em;
+  }
+
+  /* the line has to answer a pointer, or nothing on this paper says "type
+     here". A flat rgba() fill here reads as a pasted-on box — hard edges, and
+     the paper illusion dies with it. A radial pool has no edge to give away:
+     it reads as light falling on the tag. Focus adds the clerk's red pen. */
+  /* radii stay <= 50%/60% of the box with the last stop at 100%, so the pool
+     reaches zero BEFORE the element's edges — any larger and the box crops a
+     still-bright gradient and you're back to a visible rectangle. */
+  .plate-email:hover {
+    background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.27) 0%, rgba(255, 246, 222, 0) 100%);
+  }
+  .plate-email:focus {
+    background: radial-gradient(50% 60% at 50% 62%, rgba(255, 246, 222, 0.38) 0%, rgba(255, 246, 222, 0) 100%);
+    border-bottom-color: rgba(160, 40, 20, 0.6);
+    border-bottom-style: solid;
+  }
+  .plate-email:disabled { background: none; }
 
   /* mounting screws — the real brass screw art, spun into the baked eyelets */
   .screw {
@@ -301,6 +396,10 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     font-family: var(--font-display);
     font-size: clamp(1.3rem, 6.4cqw, 2.4rem);
     letter-spacing: 0.12em;
+    /* left:50% + translate(-50%) leaves this shrink-to-fit box only HALF the
+       plate to lay out in, so below ~600px the stamp broke into PLATES /
+       ISSUED across two lines. A stamp is one hit of a rubber die. */
+    white-space: nowrap;
     color: #b02818;
     border: 4px solid #b02818;
     border-radius: 6px;
@@ -319,17 +418,20 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
   }
 
   /* ── GET IT — big red 3D button, style-bible take: soft-plastic face
-     (top-lit gradient, 1px top highlight) riding 7px above a darker base,
+     (top-lit gradient, 1px top highlight) riding 4px above a darker base,
      press travels down fast, release springs back with ~5% overshoot,
      ground shadow tightens as it lands. Pure CSS, no asset. ── */
   .get-btn {
     display: block;
-    width: 78%;   /* the plate stays the hero; this is its control */
-    margin: 1.4rem auto 0;
+    /* the plate stays the hero; this is its control — so the button spans the
+       paper's printed frame (~78%) and no wider, and stays close enough under
+       the tag to read as part of it rather than as a page-wide bar. */
+    width: 78%;
+    margin: 0.75rem auto 0;
     border: 0;
     padding: 0;
     cursor: pointer;
-    border-radius: 12px;
+    border-radius: 10px;
     background: linear-gradient(180deg, #6e1509 0%, #4e0e05 100%);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(140, 28, 16, 0.35);
     transition: box-shadow 0.12s ease, opacity 0.25s ease;
@@ -339,22 +441,32 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
      warmer tomato ramp — same catalog as the door's BUY NOW. */
   .get-btn .face {
     display: block;
-    padding: 0.8rem 1rem 0.85rem;
-    border-radius: 12px;
+    padding: 0.6rem 1rem 0.64rem;
+    border-radius: 10px;
     background: linear-gradient(180deg, #c8331f 0%, #a02617 55%, #7c1c10 100%);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.28),
       inset 0 -2px 4px rgba(0, 0, 0, 0.22);
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 6cqw, 2.1rem);
+    /* NOT cqw any more: the button now lives outside .plate-wrap, which was
+       the only container-query container here. With no container ancestor,
+       cqw silently falls back to the viewport — 4.7cqw would render 68px at
+       1440. vw keeps the same size it had inside the tag (~23px at 1440). */
+    font-size: clamp(1.2rem, 1.6vw, 1.7rem);
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #f6ecd9;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-    transform: translateY(-7px);
+    /* bench 2026-07-26: Dan dropped the face 3px, i.e. a shallower extrusion
+       (7 -> 4). Folded into the face's own transform rather than left as a
+       composing `translate`, because hover and :active write this same channel
+       — a standalone offset would have ridden along and pushed the pressed
+       state 2px BELOW the base, which reads as the cap falling off. Travel is
+       now 4 -> -1 on press instead of 7 -> -1. */
+    transform: translateY(-4px);
     transition: transform 0.32s cubic-bezier(0.2, 1.7, 0.4, 1), filter 0.12s ease;
   }
-  .get-btn:hover .face { filter: brightness(1.07); transform: translateY(-8px); }
+  .get-btn:hover .face { filter: brightness(1.07); transform: translateY(-5px); }
   .get-btn:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 4px; }
   .get-btn:active .face {
     transform: translateY(-1px);
@@ -373,11 +485,11 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
 
   .micro {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.94rem;   /* bench 2026-07-26: Dan's 1.31x on this line */
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--fg-dim);
-    margin: 1.1rem 0 0;
+    margin: 0.8rem 0 0;
   }
   .micro b { color: var(--brass); font-weight: 600; }
   /* the address they must verify — show it verbatim, not uppercased */
@@ -390,23 +502,18 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--oxide-text);
-    margin: 0.7rem 0 0;
-    min-height: 1em;
+    margin: 0.35rem 0 0;
+    min-height: 1em;   /* reserved, so a retry message shifts nothing */
   }
   .err a { color: var(--brass); }
 
-  /* success: the button fades out and this line takes its space, so the
-     form doesn't end in a button-shaped hole. */
-  .after-note {
-    position: absolute;
-    left: 0; right: 0;
-    bottom: 1.1rem;
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--brass);
-  }
+  /* The button fades on success, but opacity leaves its box in flow — a
+     57px hole between the success copy and the fallback link. It collapses
+     on the SAME beat the copy swaps (JS adds .gone at the 900ms mark), so
+     the layout closes up as one move instead of jumping mid-stamp.
+     There used to be a "Plates on file, check your inbox" line filling that
+     hole; it said the same thing as the sentence directly above it. */
+  .get-btn.gone { display: none; }
 
   /* success copy arrives as its own beat — after the screws + stamp land */
   .trial-plates [data-tp-after]:not([hidden]) { animation: tp-fade-up 0.4s ease-out both; }
@@ -424,22 +531,71 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     white-space: nowrap;
   }
 
-  @media (max-width: 480px) {
-    .trial-plates { padding-inline: 0.75rem; }   /* paper nearly in the hand */
-    /* same document as desktop, floored at legible sizes: strips keep their
-       full copy at 0.5rem; the record line tightens tracking and widens its
-       box instead of disappearing. */
-    .plate-strip { font-size: 0.5rem; }
-    /* the top strip must clear the baked eyelet holes — tighter tracking and
-       a step down in size instead of shorter copy */
-    .plate-strip--top { font-size: 0.42rem; letter-spacing: 0.09em; }
-    .plate-fields {
-      font-size: 0.42rem;
-      letter-spacing: 0.05em;
-      left: 6%; right: 6%;
-      top: 67%;   /* the email glyphs run relatively taller at phone widths */
+  /* ── DESKTOP: tag left, copy + control right (bench, Dan, 2026-07-26) ──
+     Built as a real grid rather than the bench's translate offsets: those
+     don't reflow, so folding them literally would have left the section's old
+     single-column height as ~300px of hole under the tag, and pinned the
+     composition to one viewport width. Phones keep the stacked layout below
+     — the bench was explicitly desktop-only.
+     The tag spans every row of column 1 and centres against the whole stack;
+     everything else falls into column 2 in DOM order, so the reading line is
+     headline → what it costs you → the control. */
+  @media (min-width: 901px) {
+    .trial-plates {
+      max-width: 1180px;
+      display: grid;
+      /* A DEFINITE first track, not `auto`: .plate-wrap sizes in percent and
+         .plate derives its height from aspect-ratio, so against a
+         content-sized track the whole thing is circular and the tag collapses
+         to zero height. */
+      grid-template-columns: minmax(0, 514px) minmax(0, 1fr);
+      /* The 1fr rows top and bottom are what keep the copy a tight stack: the
+         tag spans every row, and without somewhere flexible to dump its extra
+         height the grid feeds that slack into the content rows instead and
+         pulls the headline away from the button. */
+      grid-template-rows: 1fr min-content min-content 1fr;
+      column-gap: clamp(2.5rem, 5vw, 5rem);
+      justify-content: center;
+      padding-block: clamp(2.75rem, 5vw, 4.25rem);
     }
-    .get-btn { width: 88%; }
+    .plate-wrap { grid-column: 1; grid-row: 1 / -1; align-self: center; width: 100%; }
+    .trial-plates > h2 { grid-column: 2; grid-row: 2; }
+    .tp-copy { grid-column: 2; grid-row: 3; }
+
+    .trial-plates h2 { margin-bottom: 0.55rem; }
+    .micro { margin-top: 0.35rem; }
+    .err { margin-top: 0.3rem; }
+    .get-btn { width: min(400px, 100%); margin: 0.85rem auto 0; }
+  }
+
+  @media (max-width: 480px) {
+    .trial-plates { padding-inline: 0.4rem; }   /* paper nearly in the hand */
+
+    /* The print stays the SAME DOCUMENT at every width — it just has to keep
+       its margins. Flat px sizes here (the previous pass) don't shrink with
+       the paper, so by 390px the bottom strip sat 8% from the paper edge
+       instead of desktop's 22%, and by 320px it ran off the card entirely
+       (only overflow:hidden hid it). Back to container units, floored just
+       above the legibility cliff, with tracking cut to buy the width back:
+       every printed line now clears the frame down to 320px. Bounds the sizes
+       are solved against: the top strip must fit between the baked eyelets
+       (~50% of the paper), everything else inside the frame (~76%). */
+    .plate-strip--top { font-size: max(5.6px, 2.05cqw); letter-spacing: 0.08em; }
+    .plate-strip--bot { font-size: max(6.4px, 2.45cqw); letter-spacing: 0.06em; }
+    .plate-caption    { font-size: max(6.4px, 2.35cqw); letter-spacing: 0.16em; top: 36%; }
+    .plate-fields {
+      /* the longest line on the card (62 chars). Its floor has to stay under
+         the box width or `overflow: hidden` amputates the tail — at 320px a
+         5.2px floor printed "TERM: 1" and stopped. Texture may be small; it
+         may not look broken. */
+      font-size: max(4.5px, 1.85cqw);
+      letter-spacing: 0.02em;
+      left: 13%; right: 13%;   /* its TERM: 14 DAYS tail was landing ~2px off the frame rule */
+      top: 66%;   /* the email glyphs run relatively taller at phone widths */
+    }
+    /* proportional too, so a long address keeps more of itself on the line */
+    .plate-email { font-size: max(19px, 7.4cqw); }
+    .get-btn { width: 84%; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -486,6 +642,9 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
       window.setTimeout(() => {
         section.querySelectorAll<HTMLElement>('[data-tp-before]').forEach((el) => { el.hidden = true; });
         section.querySelectorAll<HTMLElement>('[data-tp-after]').forEach((el) => { el.hidden = false; });
+        // collapse the faded button now, not on the fade — same beat as the
+        // copy swap, so the column closes its gap in one move
+        submit.classList.add('gone');
         status.textContent = 'Plates issued. Check your inbox, the download link is on its way to ' + email.value.trim() + '.';
       }, reduced ? 0 : 900);
       // The conversion = an email actually registered (verification sent).
@@ -541,5 +700,18 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     }
 
     form.addEventListener('submit', (e) => { e.preventDefault(); register(); });
+
+    // Long addresses shrink to stay whole on the line (see .plate-email.long).
+    email.addEventListener('input', () => {
+      email.classList.toggle('long', email.value.length > 22);
+    });
+
+    // The whole tag is the field. The registration line is a thin target on a
+    // big piece of paper, and people aim at the paper — so anywhere on it
+    // (except the line itself, which browsers handle) drops the caret in.
+    plate.addEventListener('click', (e) => {
+      if (email.disabled || e.target === email) return;
+      email.focus();
+    });
   });
 </script>

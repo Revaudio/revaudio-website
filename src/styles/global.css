@@ -98,6 +98,22 @@ html.motion-ok [data-reveal-item]:not(.revealed) { opacity: 0; }
    load. Same motion-ok gate: no-JS / reduced-motion never hide. */
 html.motion-ok [data-split]:not(.split-ready) { opacity: 0; }
 
+/* Decorative overhangs (the crane door's .rc-roomlight spill, sized
+   inset:-30% -70%) deliberately reach past their own boxes, and on
+   /revlimiter that let the page scroll 224px sideways at 1280. Clipping keeps
+   the art exactly as authored instead of shrinking it.
+   Three things this rule depends on, none of them optional:
+   - `clip`, NOT `hidden`: clip doesn't create a scroll container, so the
+     walkthrough's position:sticky stage keeps pinning.
+   - only the x axis is clipped; `overflow-y: visible` survives beside `clip`
+     (the visible→auto coercion only applies against SCROLLING values), so
+     nothing that overhangs vertically gets cut.
+   - it has to sit on BOTH: Chrome does not propagate a root-level `clip` to
+     the viewport (verified — html computed to clip and the page still
+     scrolled 224px), and body only clips its own box while the root is
+     non-visible. html alone is a no-op; body alone gets propagated away. */
+html, body { overflow-x: clip; }
+
 html, body {
   margin: 0;
   padding: 0;

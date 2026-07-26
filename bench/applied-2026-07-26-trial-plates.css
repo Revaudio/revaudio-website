@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   APPLIED BENCH DELTAS — bench-trial-plates.html → src/components/TrialPlates.astro
+   2026-07-26 · exported by Dan, folded by Claude
+   Audit trail only. Nothing here is loaded by the site.
+   ═══════════════════════════════════════════════════════════════════════════
+
+   ── WHAT WAS EXPORTED ─────────────────────────────────────────────────────
+
+   p.sub:nth-child(2)      { translate: 1px 11.296876px; scale: 1.35;
+                             z-index: 9999; opacity: 0.88; }
+   #trial                  { translate: -0.558594px -0.003906px; }
+   div.plate               { translate: 0px -3px; }
+   span.face               { translate: 0px 3px; }
+   form.plate-wrap         { translate: 0.12109375px -0.125px; }
+   p.micro:nth-child(5)    { translate: 0px 1px; }
+   TEXT p.micro:nth-child(5) → "No credit card · the download link lands in your inbox"
+
+   ── WHAT LANDED IN SOURCE ─────────────────────────────────────────────────
+
+   1. p.sub:nth-child(2) — the "Full version." line (nth-child(2) is the
+      data-tp-before copy; child 1 is the h2, child 3 is the success line).
+      scale 1.35 → real type: font-size 0.95rem → 1.28rem, so it reflows and
+      stays sharp instead of being an inflated 0.95rem box still occupying its
+      old height. opacity 0.88 kept as-is.
+      translate y +11.3px → split across the gap above (h2 margin-bottom
+      0.35 → 0.79rem, +7px) and this line's own now-taller box (+8.5px), with
+      .sub margin-bottom 1.4 → 0.43rem paying both back so everything below
+      lands where he left it.
+      SCOPED to [data-tp-before]: applied to both .sub lines, the success
+      sentence wrapped into two heavy lines on phones. .sub keeps a
+      min-height of 2.05rem so the before→after swap doesn't shuffle the tag
+      up mid-choreography.
+      z-index 9999 DROPPED — harness selection artifact, not a design choice.
+
+   2. div.plate translate 0 -3px → kept verbatim as a standalone `translate`
+      on .plate. `transform` there is the animation channel (rotate -1.4deg,
+      plus the shake and mount keyframes); the two properties compose, so the
+      lift survives every state instead of being clobbered by them.
+
+   3. span.face translate 0 +3px → folded into the face's own transform as a
+      shallower extrusion (translateY -7px → -4px, hover -8 → -5). NOT left as
+      a composing translate: :hover and :active write that same transform, so a
+      standalone offset would have ridden along and pushed the pressed state
+      2px BELOW its base — the cap falling off the button.
+
+   4. DROPPED as noise, all under 1.2px and none of it a design decision:
+      #trial (-0.56, -0.004), form.plate-wrap (+0.12, -0.13),
+      p.micro:nth-child(5) (0, +1).
+
+   5. The TEXT line is identical to the copy already in source — no edit.
+
+   ── VERIFIED ──────────────────────────────────────────────────────────────
+   bench + these deltas  vs  production after the fold, 1440 CSS px, DPR2:
+     section height  638      /  638
+     .sub mid Y      133      /  133      (from section top)
+     .sub ink        20.52px  /  20.48px
+     .sub opacity    0.88     /  0.88
+     .plate top Y    161.7    /  161.9
+     .get-btn top Y  503      /  503.1
+     face offset     -4px     /  -4px
+   Also re-checked after the fold: every printed line still fits its box at
+   1440/900/600/480/390/360/320, and contrast still passes AA (caption 4.88:1,
+   placeholder 3.12:1, terms strip 5.39:1).
+*/
