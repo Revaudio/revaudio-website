@@ -411,7 +411,12 @@ export const bySlug = (slug: string) => plugins.find((p) => p.slug === slug);
  *  'radioroulette'); the flatten covers all current and conventional names. */
 export const dlGateId = (p: Plugin) => p.slug.replace(/-/g, '');
 
-export const isBuyable = (p: Plugin) => p.status === 'live' && !!p.checkoutUrl;
+// On this branch the checkout engine is FastSpring: a product is buyable only
+// if it has a fastspringPath (checkoutUrl stays populated purely so not-merging
+// rolls back to Lemon Squeezy). Without this, a live product missing its FS
+// path would show Buy buttons whose checkout silently drops it (pathFor
+// filters it out) — the items[0] bug's little sibling.
+export const isBuyable = (p: Plugin) => p.status === 'live' && !!p.fastspringPath;
 
 export const fmtPrice = (usd: number | null) => (usd == null ? '—' : `$${usd}`);
 

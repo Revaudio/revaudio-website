@@ -247,7 +247,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       else if (lModal) { lModal.removeAttribute('open'); lock(); }
     }
 
-<<<<<<< HEAD
     // ---- Empty-cart hover tip ----
     // Hovering (or keyboard-focusing) a [data-cart-toggle] icon while the cart
     // is empty shows a small anchored tooltip instead of silently doing
@@ -272,14 +271,11 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       tipTimer = setTimeout(function () { tipEl.classList.remove('is-on'); }, 2800);
     }
 
-=======
->>>>>>> 49b5050 (Re-enable the cart on this branch for manual FastSpring testing)
     document.addEventListener('click', function (e) {
       var t = e.target;
       var addBtn = t.closest('[data-add-to-cart]');
       if (addBtn) {
         e.preventDefault();
-<<<<<<< HEAD
         var addSlug = addBtn.getAttribute('data-slug');
         var addPrice = addBtn.getAttribute('data-price');
         add({
@@ -291,14 +287,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
         });
         // One call site covers the crane BUY NOW square, the store card, and the mobile buy bar.
         track('AddToCart', { content_ids: [addSlug], content_type: 'product', value: +addPrice || 0, currency: 'USD' });
-=======
-        add({
-          slug: addBtn.getAttribute('data-slug'),
-          name: addBtn.getAttribute('data-name'),
-          price: addBtn.getAttribute('data-price'),
-          img: addBtn.getAttribute('data-img') || ''
-        });
->>>>>>> 49b5050 (Re-enable the cart on this branch for manual FastSpring testing)
         return;
       }
       if (t.closest('[data-cart-toggle]')) { e.preventDefault(); openDrawer(); return; }
@@ -353,7 +341,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
 </script>
 
 <style>
-<<<<<<< HEAD
   /* ---- Empty-cart hover tooltip ---- */
   .cart-tip {
     position: fixed;
@@ -378,8 +365,6 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
   .cart-tip.is-on { opacity: 1; }
   .cart-tip[hidden] { display: none; }
 
-=======
->>>>>>> 49b5050 (Re-enable the cart on this branch for manual FastSpring testing)
   /* ---- Cart drawer (slides from the right) ---- */
   .cart-drawer {
     margin: 0 0 0 auto;
