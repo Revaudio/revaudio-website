@@ -678,7 +678,12 @@ const altShots = hasStage
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   }
 
-  .video-frame iframe {
+  /* :global() is load-bearing — the player iframe is created at runtime by the
+     facade script, so it never carries Astro's data-astro-cid scope attribute.
+     A plain `.video-frame iframe` rule compiles to require that attribute on
+     the iframe too, matches nothing, and the player collapses to its intrinsic
+     300x150 default inside the 16:9 frame. */
+  .video-frame :global(iframe) {
     position: absolute;
     inset: 0;
     width: 100%;
