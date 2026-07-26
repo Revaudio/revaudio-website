@@ -160,3 +160,55 @@ Mirror rebuilt and deployed to wiki.revaudio.net.
 - `Revlimiter/tools/RevLicenseKeygen/gumroad-worker/src/worker.js` — `DL_PLUGINS` (+ `sitePath`,
   `DL_SITE_ORIGIN`, `DL_RETURN_TTL`), `handleDownloadVerify`, `handleDownloadRequest`, and the
   router's `/download` CORS block.
+
+---
+
+## 10. Answers — reviewed and actioned, 2026-07-26 (Yoni's Windows session)
+
+**1. Fragment move: done and live.** The worker now returns
+`https://revaudio.net/<slug>#dl=<gate>&p=<id>`, and the modal reads `location.hash`, falling back to
+`?dl=` so links minted before the switch keep working. A plain anchor (`#pricing`) is preserved
+verbatim rather than round-tripped through `URLSearchParams` — that would have rewritten it to
+`pricing=`, which is the one trap in this change.
+
+| Repo | Commit | What |
+|---|---|---|
+| `Revlimiter` | `555b614` | `handleDownloadVerify` mints `#dl=` |
+| `revaudio-website` | `4610ad5` | `TrialGateModal.astro` reads `location.hash` |
+| `revaudio-shared` | `3ce7b3a` | wiki `distribute-release` — fragment is now the documented mint format |
+
+Worker deployed (version `5f092b10-1566-4366-b292-0d2b81a3c13c`), site pushed and live, wiki mirror
+rebuilt and deployed.
+
+**2. TTL stays 24h.** The 30-day `rdlv` cookie is still set on verify, so a visitor who comes back
+weeks later isn't actually stranded — the portal still lets them in, and re-registering from the
+popup costs one email. A 30-day bearer credential in a URL is the worse trade even now that the URL
+is a fragment, because the fragment is still in the user's history and paste buffer.
+
+**3. `localhost` CORS entry stays.** Gating it behind an env check means another live edit to the
+CORS path on the same day the flow shipped, for an endpoint that still refuses everything without a
+valid gate token or cookie. Revisit when the worker next gets a real config pass.
+
+**4. Nothing else changed before real traffic.** The known-open items from §6 are addressed below.
+
+### Verification run this session
+
+- **Site, 15 headless-Chromium assertions — all passing against the local build *and* against
+  production.** Fragment opens the ready state with both platform buttons and the correct plugin
+  name; token scrubbed from the address bar; legacy `?dl=` still works; `#pricing` neither opens the
+  modal nor gets mangled; bare page stays shut; the buy-now trigger still opens the email form; the
+  `.tg-form[hidden]` fix from §5 still holds; the button posts `{plugin, os, gate}` to the existing
+  worker with no R2 key on the wire. The fragment survives the `/revlimiter` → `/revlimiter/` 301.
+- **Worker, live post-deploy:** portal 200 (10,821 b, unchanged) · `/gas/mac` still gated (302 to
+  the portal — the §7 regression did *not* come back) · no credential → `locked` · forged gate →
+  `locked` · `os:"linux"` → rejected · expired verify link → 403 · preflight from a foreign origin →
+  403, and a foreign-origin POST gets no `Access-Control-Allow-Origin` back.
+- **`verify-license-integrity.js` ran on Windows — `RESULT: OK`.** All five checks green, including
+  worker verify-exponent (3) == pubkey exponent (3) and a live canary `/activate` round-trip with
+  the seat cleaned from KV afterwards. This closes the §6 "also not run" item.
+
+### Still open
+
+**The last leg is still unclicked.** Nobody has followed a real verify link end to end and confirmed
+an installer streams. Everything around it is now proven on production, but that one human step
+remains — and it is the only thing between here and calling this done.
