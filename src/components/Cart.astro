@@ -29,8 +29,8 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
 <!-- Lemon Squeezy overlay checkout — renders the payment screen in a modal over the site. -->
 <script is:inline src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
 
-<!-- Cart deactivated: a small tooltip shown wherever the cart would open. -->
-<div class="cart-tip" data-cart-tip role="status" aria-live="polite" hidden>no cart yet — try again when we fix our cart</div>
+<!-- Empty-cart tooltip: shown on hover of the cart icon when there's nothing in it yet. -->
+<div class="cart-tip" data-cart-tip role="status" aria-live="polite" hidden>No items to show right now — your cart's empty.</div>
 
 <!-- Cart drawer -->
 <dialog class="cart-drawer" data-cart-drawer aria-label="Your cart">
@@ -252,11 +252,11 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
       else if (lModal) { lModal.removeAttribute('open'); lock(); }
     }
 
-    // ---- Cart deactivated ----
-    // The cart is temporarily off. Every entry point (add-to-cart buttons + the
-    // cart icons) shows a tooltip anchored to what was clicked instead of adding
-    // items or opening the drawer. Remove this block + the [data-cart-tip] node
-    // to bring the cart back.
+    // ---- Empty-cart hover tip ----
+    // Hovering (or keyboard-focusing) a [data-cart-toggle] icon while the cart
+    // is empty shows a small anchored tooltip instead of silently doing
+    // nothing. Clicking still opens the real drawer (which shows its own
+    // empty state) — this is just a lighter-weight preview on hover.
     var tipEl = document.querySelector('[data-cart-tip]');
     var tipTimer;
     function showCartTip(anchor) {
@@ -279,8 +279,22 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
     document.addEventListener('click', function (e) {
       var t = e.target;
       var addBtn = t.closest('[data-add-to-cart]');
-      if (addBtn) { e.preventDefault(); showCartTip(addBtn); return; }
-      if (t.closest('[data-cart-toggle]')) { e.preventDefault(); showCartTip(t.closest('[data-cart-toggle]')); return; }
+      if (addBtn) {
+        e.preventDefault();
+        var addSlug = addBtn.getAttribute('data-slug');
+        var addPrice = addBtn.getAttribute('data-price');
+        add({
+          slug: addSlug,
+          name: addBtn.getAttribute('data-name'),
+          price: addPrice,
+          checkoutUrl: addBtn.getAttribute('data-checkout-url'),
+          img: addBtn.getAttribute('data-img')
+        });
+        // One call site covers the crane BUY NOW square, the store card, and the mobile buy bar.
+        track('AddToCart', { content_ids: [addSlug], content_type: 'product', value: +addPrice || 0, currency: 'USD' });
+        return;
+      }
+      if (t.closest('[data-cart-toggle]')) { e.preventDefault(); openDrawer(); return; }
       var rm = t.closest('[data-remove]');
       if (rm) { remove(rm.getAttribute('data-remove')); return; }
       if (t.closest('[data-checkout]')) { e.preventDefault(); openCheckout(); return; }
@@ -317,12 +331,22 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
       lModal.addEventListener('click', function (e) { if (e.target === lModal) closeLegal(); }); // backdrop
     }
 
+    // mouseover/focusin bubble (mouseenter/focus don't), so delegation works
+    // the same way the click handler above does.
+    function maybeShowEmptyTip(e) {
+      var toggle = e.target.closest && e.target.closest('[data-cart-toggle]');
+      if (!toggle) return;
+      if (!count(read())) showCartTip(toggle);
+    }
+    document.addEventListener('mouseover', maybeShowEmptyTip);
+    document.addEventListener('focusin', maybeShowEmptyTip);
+
     sync();
   })();
 </script>
 
 <style>
-  /* ---- Cart-deactivated tooltip ---- */
+  /* ---- Empty-cart hover tooltip ---- */
   .cart-tip {
     position: fixed;
     z-index: 200;
