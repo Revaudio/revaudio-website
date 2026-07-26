@@ -46,6 +46,7 @@ interface Props {
 const { plugin } = Astro.props;
 const pct = discountPct(plugin);
 const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
+const gated = !!plugin.trialGateActive;
 ---
 
 <div
@@ -90,15 +91,13 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
           <button
             type="button"
             class="rc-buysq"
-            data-add-to-cart
-            data-slug={plugin.slug}
-            data-name={plugin.name}
-            data-price={cartPrice}
-            data-checkout-url={plugin.checkoutUrl}
-            aria-label={`Add ${plugin.name} to cart, ${fmtPrice(cartPrice)}`}
+            {...(gated
+              ? { 'data-trial-gate-open': true, 'data-plugin-name': plugin.name, 'data-plugin-slug': plugin.slug }
+              : { 'data-add-to-cart': true, 'data-slug': plugin.slug, 'data-name': plugin.name, 'data-price': cartPrice, 'data-checkout-url': plugin.checkoutUrl })}
+            aria-label={gated ? `Get the free trial of ${plugin.name} — checkout's under construction` : `Add ${plugin.name} to cart, ${fmtPrice(cartPrice)}`}
           >
             <span class="rc-buysq-paint"></span>
-            <span class="rc-buysq-label">BUY NOW</span>
+            <span class="rc-buysq-label">{gated ? 'FREE TRIAL' : 'BUY NOW'}</span>
             <span class="rc-buysq-lit"></span>
             <span class="rc-buysq-tint"></span>
             <span class="rc-buysq-glow"></span>
@@ -106,8 +105,10 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
           <!-- Soft exit under BUY NOW (trial-first funnel, Dan 2026-07-24):
                buyers buy, everyone else gets a painted escape hatch to the
                trial. Desktop-only — on phones this row paints ~10px tall,
-               and the mobile funnel is served by the relocated TrialStamp. -->
-          {plugin.trialUrl && (
+               and the mobile funnel is served by the relocated TrialStamp.
+               Skipped while gated — the BUY NOW square above already opens
+               the same trial offer, a second link under it would be noise. -->
+          {!gated && plugin.trialUrl && (
             <a
               class="rc-trial"
               href="#trial"

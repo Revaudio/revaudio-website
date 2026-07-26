@@ -35,6 +35,7 @@ const TITLE_FX: Record<string, { html: string; cls: string }> = {
   },
 };
 const titleFx = TITLE_FX[plugin.slug];
+const gated = !!plugin.trialGateActive;
 const thumbStyle = [
   plugin.cardThumbAspect ? `aspect-ratio:${plugin.cardThumbAspect};` : '',
   plugin.cardThumbMaxWidthPct ? `max-width:${plugin.cardThumbMaxWidthPct}%; margin-inline:auto;` : '',
@@ -109,7 +110,16 @@ const thumbStyle = [
     'Subscribe'
   )} &rarr;</span>
 </a>
-{showCart && buyable && (
+{showCart && gated && (buyable || (plugin.isFree && plugin.downloadUrl)) && (
+  <button
+    type="button"
+    class="card-add"
+    data-trial-gate-open
+    data-plugin-name={plugin.name}
+    data-plugin-slug={plugin.slug}
+  >Free trial</button>
+)}
+{showCart && !gated && buyable && (
   <button
     type="button"
     class="card-add"
@@ -120,7 +130,7 @@ const thumbStyle = [
     data-checkout-url={plugin.checkoutUrl}
   >Add to cart</button>
 )}
-{showCart && plugin.isFree && plugin.downloadUrl && (
+{showCart && !gated && plugin.isFree && plugin.downloadUrl && (
   <a class="card-add" href={plugin.downloadUrl}>Download</a>
 )}
 </div>

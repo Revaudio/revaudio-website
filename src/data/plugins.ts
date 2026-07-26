@@ -127,6 +127,13 @@ export interface Plugin {
   /** Embedded YouTube tutorial — when set, a video section renders between
    *  "Hear it" and "System requirements" on the product page. */
   tutorialVideo?: { title: string; youtubeId: string; blurb?: string };
+  /** True while checkout is intentionally paused for a payment-provider
+   *  migration (2026-07-26). Every buy/download CTA (BuyButton,
+   *  BuyButtonCrane, CraneDropZone, MobileBuyBar, PluginCard) swaps its
+   *  normal action for the TrialGateModal popup instead — "checkout's under
+   *  construction, get the trial" + an email gate. Drop this flag once
+   *  checkout is back to restore the real buy/download buttons everywhere. */
+  trialGateActive?: boolean;
 }
 
 const baseSystemReq: SystemReq = {
@@ -170,6 +177,10 @@ export const plugins: Plugin[] = [
     promoCode: 'VROOM',
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
+    // Checkout paused site-wide during the payment-provider migration
+    // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this
+    // once checkout's back.
+    trialGateActive: true,
     demoUrl: null,
     releaseTarget: 'Q3 2026',
     heroImage: 'revlimiter-hero.png',
@@ -317,6 +328,10 @@ export const plugins: Plugin[] = [
     checkoutPaused: false,
     isFree: true,
     downloadUrl: GAS_DOWNLOAD_URL,
+    // Checkout paused site-wide during the payment-provider migration
+    // (2026-07-26) — every download CTA opens TrialGateModal instead. Drop
+    // this once checkout's back.
+    trialGateActive: true,
     demoUrl: null,
     releaseTarget: 'Available now',
     heroImage: 'gas-hero.png',
@@ -352,6 +367,10 @@ export const plugins: Plugin[] = [
     regularPriceUsd: null,
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
+    // Checkout paused site-wide during the payment-provider migration
+    // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this
+    // once checkout's back.
+    trialGateActive: true,
     demoUrl: null,
     releaseTarget: '2026',
     heroImage: 'radioroulette-hero.png',

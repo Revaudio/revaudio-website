@@ -13,7 +13,28 @@ const pct = discountPct(plugin);
 ---
 
 <div class="buy-block">
-  {plugin.isFree ? (
+  {plugin.trialGateActive ? (
+    <>
+      <div class:list={['prices', { muted: !plugin.isFree }]}>
+        {plugin.isFree ? (
+          <span class="price-now">Free</span>
+        ) : (
+          <span class="price-now">{fmtPrice(plugin.introPriceUsd)}</span>
+        )}
+      </div>
+      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU</p>
+      <button
+        type="button"
+        class="btn primary"
+        data-trial-gate-open
+        data-plugin-name={plugin.name}
+        data-plugin-slug={plugin.slug}
+      >
+        Get the 14-day free trial
+      </button>
+      <p class="micro muted">Checkout&rsquo;s under construction &mdash; grab the trial while we finish the fix.</p>
+    </>
+  ) : plugin.isFree ? (
     <>
       <div class="prices">
         <span class="price-now">Free</span>

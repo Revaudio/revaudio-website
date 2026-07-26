@@ -24,10 +24,22 @@ interface Props {
 const { plugin } = Astro.props;
 const pct = discountPct(plugin);
 const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
+const gated = !!plugin.trialGateActive;
 ---
 
-<div class:list={['mbb', plugin.trialUrl && 'mbb--trial']} data-mobile-buybar>
-  {plugin.trialUrl ? (
+<div class:list={['mbb', (gated || plugin.trialUrl) && 'mbb--trial']} data-mobile-buybar>
+  {gated ? (
+    <Fragment>
+      <button type="button" class="mbb-buy mbb-buy--trial"
+        data-trial-gate-open
+        data-plugin-name={plugin.name}
+        data-plugin-slug={plugin.slug}
+        aria-label={`Get the free trial of ${plugin.name} — checkout's under construction`}>
+        Free trial &mdash; checkout paused
+      </button>
+      <span class="mbb-micro">Full version &middot; no credit card</span>
+    </Fragment>
+  ) : plugin.trialUrl ? (
     /* Trial-first funnel (Dan 2026-07-24): a single full-width CTA that starts
        the free trial (scroll to the on-page #trial email capture). No price
        shown — the crane door + #trial section carry it, and a "free" button

@@ -1,0 +1,232 @@
+---
+/**
+ * TrialGateModal — popup shown instead of Buy/Download while checkout is
+ * paused for a plugin (Plugin.trialGateActive in plugins.ts, set during the
+ * payment-provider migration). Render once in BaseLayout; any element with
+ * [data-trial-gate-open] opens it (event delegation — same pattern as
+ * SubscribeModal), reading off the trigger:
+ *   data-plugin-name  — plugin display name, drops into the copy
+ *   data-plugin-slug  — sent to the register endpoint as {plugin}
+ *   data-register-url — POST target. UI-only for now (Dan, 2026-07-26): no
+ *                        trigger sets this yet, so the form always shows the
+ *                        honest "not live yet" message instead of silently
+ *                        no-opping (SubscribeModal's `wired` pattern). Yoni
+ *                        wires the real verification worker and points a
+ *                        trigger's data-register-url at it when it exists —
+ *                        no other code change needed.
+ */
+---
+
+<dialog class="tg-modal" data-tg-modal aria-label="Get the free trial">
+  <button type="button" class="tg-x" data-tg-close aria-label="Close">&times;</button>
+  <p class="tg-kicker">Checkout&rsquo;s under construction</p>
+  <h2 data-tg-title>Grab the free trial instead</h2>
+  <p class="tg-sub" data-tg-sub>
+    Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.
+  </p>
+  <form class="tg-form" data-tg-form novalidate>
+    <label class="tg-field">
+      <span>Email</span>
+      <input type="email" data-tg-email name="email" placeholder="you@studio.com" required autocomplete="email" />
+    </label>
+    <!-- honeypot: real users never fill this; bots do -->
+    <input type="text" name="_gotcha" class="tg-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <button type="submit" class="tg-submit" data-tg-submit>Send my trial link</button>
+    <p class="tg-err" data-tg-err role="alert" aria-live="polite"></p>
+  </form>
+  <p class="tg-status" data-tg-status role="status" aria-live="polite" hidden></p>
+</dialog>
+
+<script>
+  (function () {
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    var modal = document.querySelector('[data-tg-modal]');
+    if (!modal) return;
+    var html = document.documentElement;
+    var title = modal.querySelector('[data-tg-title]');
+    var form = modal.querySelector('[data-tg-form]');
+    var email = modal.querySelector('[data-tg-email]');
+    var submit = modal.querySelector('[data-tg-submit]');
+    var err = modal.querySelector('[data-tg-err]');
+    var status = modal.querySelector('[data-tg-status]');
+
+    var registerUrl = '';
+    var pluginSlug = '';
+    var inFlight = false;
+
+    function open(trigger) {
+      var name = trigger.getAttribute('data-plugin-name') || 'RevAudio';
+      pluginSlug = trigger.getAttribute('data-plugin-slug') || '';
+      registerUrl = trigger.getAttribute('data-register-url') || '';
+      title.textContent = 'Grab the free ' + name + ' trial instead';
+      form.hidden = false;
+      status.hidden = true;
+      err.textContent = '';
+      email.value = '';
+      email.disabled = false;
+      submit.disabled = false;
+      if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', '');
+      html.style.overflow = 'hidden';
+      email.focus();
+    }
+    function close() {
+      if (typeof modal.close === 'function') modal.close(); else modal.removeAttribute('open');
+    }
+    modal.addEventListener('close', function () { html.style.overflow = ''; });
+
+    document.addEventListener('click', function (e) {
+      var t = e.target.closest && e.target.closest('[data-trial-gate-open]');
+      if (t) { e.preventDefault(); open(t); }
+    });
+    var closeBtn = modal.querySelector('[data-tg-close]');
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    // Backdrop click: a click landing on the dialog element itself (not children).
+    modal.addEventListener('click', function (e) { if (e.target === modal) close(); });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (inFlight) return;
+      var v = email.value.trim();
+      if (!EMAIL_RE.test(v)) {
+        err.textContent = 'That doesn’t look like an email.';
+        email.focus();
+        return;
+      }
+      if (!registerUrl) {
+        err.textContent = '';
+        form.hidden = true;
+        status.textContent = 'Almost there — the trial download goes live shortly. Your email wasn’t sent yet.';
+        status.hidden = false;
+        return;
+      }
+      inFlight = true;
+      submit.disabled = true;
+      err.textContent = '';
+      fetch(registerUrl, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email: v, plugin: pluginSlug }),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.ok) {
+            form.hidden = true;
+            status.textContent = 'Check your inbox — we sent the download link to ' + v + '.';
+            status.hidden = false;
+          } else {
+            err.textContent = (data && data.error) || 'Something went wrong. Try again.';
+          }
+        })
+        .catch(function () {
+          err.textContent = 'Network hiccup. Try again in a moment.';
+        })
+        .finally(function () {
+          inFlight = false;
+          submit.disabled = false;
+        });
+    });
+  })();
+</script>
+
+<style>
+  .tg-modal {
+    margin: auto;
+    width: min(440px, calc(100vw - 2.5rem));
+    padding: 2rem 2rem 1.75rem;
+    background: var(--bg-1);
+    color: var(--fg);
+    border: 1px solid var(--border-bright);
+    border-top: 3px solid var(--brass);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  }
+  .tg-modal::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+
+  :global(html.motion-ok) .tg-modal[open] {
+    animation: tg-in 0.45s var(--ease-settle) both;
+  }
+  :global(html.motion-ok) .tg-modal[open]::backdrop {
+    animation: tg-fade 0.3s var(--ease) both;
+  }
+  @keyframes tg-in { from { opacity: 0; transform: scale(0.94) translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes tg-fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .tg-x {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--fg-dim);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .tg-x:hover { color: var(--brass-bright); }
+
+  .tg-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--oxide-text);
+    margin: 0 0 0.5rem;
+  }
+
+  .tg-modal h2 {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    color: var(--brass-bright);
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1.15;
+  }
+
+  .tg-sub { color: var(--fg-dim); font-size: 0.92rem; margin: 0 0 1.5rem; }
+
+  .tg-form { display: flex; flex-direction: column; gap: 1rem; }
+
+  .tg-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .tg-field span {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-dim);
+  }
+  .tg-field input {
+    background: var(--bg-0);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.7rem 0.85rem;
+  }
+  .tg-field input:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 0; border-color: var(--brass-dark); }
+
+  .tg-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  .tg-submit {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid transparent;
+    background: var(--brass);
+    color: var(--bg-0);
+    cursor: pointer;
+    transition: background 0.2s var(--ease);
+  }
+  .tg-submit:hover { background: var(--brass-bright); }
+  .tg-submit:disabled { opacity: 0.6; cursor: default; }
+
+  .tg-err { min-height: 1.1em; margin: 0; font-size: 0.8rem; color: var(--oxide-text); }
+
+  .tg-status { margin: 0; font-size: 0.95rem; text-align: center; color: var(--brass-bright); }
+</style>
