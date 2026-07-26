@@ -1,6 +1,33 @@
 # Website handoff
 
-Updated: 2026-07-24 (TEMP PLATES trial funnel LIVE + verified end-to-end; CSP fixed; Ads-conversion hosts pending)
+Updated: 2026-07-26 ("What's inside" walkthrough alignment fixed + deployed)
+
+## 2026-07-26 — "What's inside" active card now aligns with the pinned shot (60e3123, live)
+Dan reported the walkthrough section reading misaligned. Cause: `.walk-stage` pins high
+(`top: sale + nav + 1.5rem` = 68px at 1280x665) but the per-step ScrollTriggers activated on a
+hardcoded `top 55%` line at mid-viewport, so from step 2 on every card lit up 118-156px BELOW
+the shot it described.
+- `src/lib/walkthrough.ts` only — no CSS/markup change. The activation line is now the pinned
+  stage's own centre, measured live (`sticky top + .stage-frame offsetHeight / 2`), via
+  FUNCTION-BASED `start`/`end` so every `ScrollTrigger.refresh()` re-reads it. Do not re-hardcode
+  a percentage here — it has to follow `--nav-h`, the sale banner and the shot's max-height cap.
+- Tail runway: the higher line meant the LAST card reached it exactly as the stage unpinned, so
+  `.walk-copy` gets a small JS-set `padding-bottom` (`max(0,(frameH-lastCardH)/2)` — 21px at
+  1280x665, 0 on tall viewports, 144px on /gas). **Counterintuitive: bigger is worse.** Once the
+  stage unpins, card and shot scroll together and hold their offset, so a large spacer only keeps
+  the shot still while the card slides past (tested: 24px → last card exits at -2px; 128px → -105px).
+  Set from JS + desktop-only on purpose — no-JS and reduced-motion get no highlighting, so a CSS
+  spacer would be dead space to them.
+- The lazy-shot `load` → `ScrollTrigger.refresh()` moved ABOVE the `if (!isStageMode || !parts) return`
+  early return: the crossfade plugins' line depends on the same frame height and never got it before.
+- Verified: card-to-shot centre delta went +118..+156px → -3..+14px, all 13 steps activate at their
+  own line, at 1280x665 / 1512x950 / 1920x1080 / 1024x600 / 920x700, and on live revaudio.net.
+  Drift / The AC / GAS / Radio Roulette (crossfade path) within ±4px after step 0. Step 0 shows a
+  bigger delta on tall-shot plugins ((frameH-cardH)/2) — that is the pre-existing in-flow top-aligned
+  opening, NOT a regression; it measured the same before the change.
+- Residual ±12px wobble is the intentional scrubbed drift tween on `.stage-frame`. Leave it.
+- Harness kept out of the repo (scratchpad): playwright scripts that park at each step's alignment
+  midpoint and report delta + pinned. Rebuild from this note if the section is touched again.
 
 ## 2026-07-24 (later) — RESOLVED: CSP fixed via dashboard; trial funnel human-verified end-to-end
 The Transform Rule was updated in the Cloudflare dashboard (Claude drove Dan's Chrome; Dan
