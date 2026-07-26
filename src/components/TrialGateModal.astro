@@ -24,9 +24,10 @@
  *   1. form  — email capture (the trigger path above).
  *   2. sent  — "check your inbox".
  *   3. ready — Mac + Windows buttons. Reached WITHOUT a trigger: the emailed
- *              verify link bounces back to this page as ?dl=<gate token>&p=<gate
- *              id> (license worker handleDownloadVerify), and the params are
- *              stripped from the URL as soon as they're read. The buttons hit
+ *              verify link bounces back to this page as #dl=<gate token>&p=<gate
+ *              id> (license worker handleDownloadVerify) — a fragment, so the
+ *              token never reaches a server log — and the params are stripped
+ *              from the URL as soon as they're read. The buttons hit
  *              the SAME license worker that already serves every build out of
  *              R2 — POST /download {plugin, os, gate} mints a 15-min /dl token,
  *              we navigate to it, the worker streams the object. No second
@@ -261,17 +262,29 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
         });
     });
 
-    // Return leg: /revlimiter?dl=<token>&p=<gate id>. Read once, then scrub both
-    // params out of the address bar so the token isn't sitting there to be
-    // copied, shared, or handed to the next page in the Referer.
-    var q = new URLSearchParams(window.location.search);
-    var dlToken = q.get('dl');
-    var dlPlugin = q.get('p');
+    // Return leg: /revlimiter#dl=<token>&p=<gate id>. The fragment is never sent
+    // to a server, so the token stays out of the site's and Cloudflare's access
+    // logs; the query-string form is still read as a fallback for links minted
+    // before the worker moved to fragments. Read once, then scrub the params out
+    // of the address bar so the token isn't sitting there to be copied, shared,
+    // or handed to the next page in the Referer.
+    var hashQ = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    var searchQ = new URLSearchParams(window.location.search);
+    var fromHash = !!(hashQ.get('dl') && hashQ.get('p'));
+    var src = fromHash ? hashQ : searchQ;
+    var dlToken = src.get('dl');
+    var dlPlugin = src.get('p');
     if (dlToken && dlPlugin) {
-      q.delete('dl');
-      q.delete('p');
-      var rest = q.toString();
-      history.replaceState(null, '', window.location.pathname + (rest ? '?' + rest : '') + window.location.hash);
+      src.delete('dl');
+      src.delete('p');
+      // Only rebuild the hash when it was ours — a plain anchor (#features) has
+      // to survive verbatim, and round-tripping it through URLSearchParams would
+      // rewrite it to "features=".
+      var restSearch = searchQ.toString();
+      var restHash = fromHash ? hashQ.toString() : window.location.hash.replace(/^#/, '');
+      history.replaceState(null, '', window.location.pathname
+        + (restSearch ? '?' + restSearch : '')
+        + (restHash ? '#' + restHash : ''));
       openReady(dlPlugin, dlToken);
     }
   })();
