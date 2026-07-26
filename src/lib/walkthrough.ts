@@ -159,11 +159,79 @@ export function initWalkthrough(): void {
     };
     setActive(0);
 
+    /* The line a step has to cross to become active is the PINNED STAGE'S OWN
+       CENTRE, not a fixed slice of the viewport. The stage sticks high (top =
+       sale + nav + 1.5rem) while the old 'top 55%' put the line mid-screen, so
+       from step 2 on every card lit up ~150px below the shot it described and
+       the two never read as one unit. Measured off the live elements so it
+       tracks --nav-h, the sale banner and the shot's max-height cap instead of
+       hardcoding any of them. */
+    const stageEl = root.querySelector<HTMLElement>('.walk-stage');
+    const frameEl = root.querySelector<HTMLElement>('.stage-frame');
+    const stageLine = (): number => {
+      // offsetHeight is 0 while the stage is display:none (≤900px) or before
+      // the lazy shot has resolved its box — fall back to the old mid-viewport
+      // line rather than return a degenerate one.
+      const h = frameEl?.offsetHeight ?? 0;
+      if (!stageEl || !h) return window.innerHeight * 0.55;
+      return (parseFloat(getComputedStyle(stageEl).top) || 0) + h / 2;
+    };
+
+    /* Tail runway. The line now sits half a shot higher, so the LAST card would
+       reach it exactly as the stage runs out of grid and unpins — the one card
+       that would light up against a shot already sliding away. Padding the copy
+       column lengthens the grid row, which IS the stage's sticky containing
+       block, by just enough to cover that moment.
+       Deliberately small (usually ~20px): once the stage does unpin, card and
+       shot scroll together and keep whatever offset they had, so a bigger
+       spacer would only hold the shot still while the card slid past it — worse
+       alignment, not better. Set from JS and desktop-only on purpose: no-JS and
+       reduced-motion readers get no highlighting, so to them it is dead space. */
+    const padTail = (): void => {
+      if (!copy) return;
+      const frameH = frameEl?.offsetHeight ?? 0;
+      const lastH = steps[steps.length - 1].offsetHeight;
+      copy.style.paddingBottom =
+        mq.matches && frameH ? `${Math.max(0, Math.round((frameH - lastH) / 2))}px` : '';
+    };
+    padTail();
+
+    /* The base shot loads lazily, so both the line and the runway above are
+       measured against a box that may not be final yet. Re-measure once it is.
+       Lives here rather than in the stage-mode block below so the crossfade
+       plugins (no `stage` in plugins.ts) get it too — their line depends on the
+       same frame height. */
+    const baseImg = root.querySelector<HTMLImageElement>('.stage-frame .walk-shot.base');
+    if (baseImg && !baseImg.complete) {
+      baseImg.addEventListener(
+        'load',
+        () => {
+          padTail();
+          ScrollTrigger.refresh();
+        },
+        { once: true },
+      );
+    }
+
+    /* Crossing the 901px breakpoint changes both (the stage is display:none
+       below it, so the runway must come off). ScrollTrigger refreshes itself on
+       resize, but it has no reason to know the padding changed — so re-apply
+       first, then refresh, and the function-based start/end below are re-read
+       against the new layout. */
+    mq.addEventListener('change', () => {
+      padTail();
+      ScrollTrigger.refresh();
+    });
+
     steps.forEach((step, i) => {
       ScrollTrigger.create({
         trigger: step,
-        start: 'top 55%',
-        end: 'bottom 55%',
+        // A step owns the line from the moment its top reaches it until its
+        // bottom passes it, so at the middle of that window the card's centre
+        // sits on the shot's centre. Function-based so every refresh re-reads
+        // them.
+        start: () => `top ${stageLine()}px`,
+        end: () => `bottom ${stageLine()}px`,
         onToggle: (self) => {
           // Desktop only: on mobile the steps scroll HORIZONTALLY (carousel),
           // so vertical viewport triggers would fire nonsense toggles — the
@@ -200,12 +268,5 @@ export function initWalkthrough(): void {
       else setActive(activeIdx);
     };
     mq.addEventListener('change', onBreakpoint);
-
-    // The base shot loads lazily; ScrollTrigger measured the section before
-    // it had real height, so refresh once it's actually in the DOM/painted.
-    const img = root.querySelector<HTMLImageElement>('.stage-frame .walk-shot.base');
-    if (img && !img.complete) {
-      img.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
-    }
   });
 }
