@@ -1,8 +1,4 @@
 ---
-import { Image } from 'astro:assets';
-import submitImg from '../assets/ui/btn-submit.png';
-import submitPressed from '../assets/ui/btn-submit-pressed.png';
-
 interface Props {
   heading?: string;
   subhead?: string;
@@ -13,7 +9,7 @@ interface Props {
 const {
   heading = 'Subscribe to the newsletter',
   subhead = 'New plugins, demo codes, and intro pricing, straight to your inbox. No spam.',
-  buttonLabel = 'Submit',
+  buttonLabel = 'Subscribe',
   id,
 } = Astro.props;
 
@@ -41,11 +37,9 @@ const endpoint = site.formspreeEndpoint;
       />
       <!-- honeypot: real users never fill this; bots do -->
       <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
-      <div class="notify-btn panel">
-        <Image src={submitImg} alt="" width={520} height={347} format="webp" />
-        <button type="submit" class="panel-hit hit-pill hit-submit" aria-label={buttonLabel}></button>
-        <Image src={submitPressed} alt="" width={520} height={347} format="webp" loading="eager" class="press" />
-      </div>
+      <button type="submit" class="signup-submit">
+        <span class="ss-face">{buttonLabel} <span class="ss-arrow">&#9656;</span></span>
+      </button>
     </form>
     <p class="signup-status" role="status" aria-live="polite" hidden></p>
   </div>
@@ -91,14 +85,43 @@ const endpoint = site.formspreeEndpoint;
 </script>
 
 <style>
-  /* stack the form so the full SUBMIT plate isn't cropped beside the input */
-  .signup form { flex-direction: column; align-items: stretch; gap: 0.85rem; }
-  .signup form .notify-btn {
-    width: 150px;
-    align-self: center;
-    padding: 0;
-    border: 0;
-    background: none;
+  /* Flat brass button, same language as TrialStamp's .tc-submit / .btn.primary.
+     Replaces the btn-submit image plate — that plate had to be stacked under
+     the input because it cropped beside it; a text button sits on the row. */
+  .signup form { align-items: stretch; gap: 0.5rem; }
+
+  .signup .signup-form .signup-submit {
+    flex: none;
+    padding: 0.875rem 1.5rem;
+    background: var(--brass);
+    color: var(--bg-0);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  }
+
+  .signup .signup-form .ss-face {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .signup .signup-form .ss-arrow { color: var(--bg-1); opacity: 0.7; }
+
+  .signup .signup-form .signup-submit:hover {
+    background: var(--brass-bright);
+    box-shadow: 0 0 24px rgba(232, 200, 120, 0.35);
+  }
+
+  .signup .signup-form .signup-submit:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 2px;
   }
   /* honeypot — visually and semantically hidden, still submittable by bots */
   .signup form .hp {
@@ -127,7 +150,9 @@ const endpoint = site.formspreeEndpoint;
     to { opacity: 1; transform: none; }
   }
   .signup .signup-status.err { color: var(--fg-dim); }
+  /* Under 480px the global rule stacks the form; centre the button there so it
+     doesn't stretch the full input width. */
   @media (max-width: 480px) {
-    .signup form .notify-btn { width: 100%; max-width: 280px; }
+    .signup .signup-form .signup-submit { align-self: center; min-width: 180px; }
   }
 </style>

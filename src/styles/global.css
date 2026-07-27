@@ -623,7 +623,7 @@ nav ul a:hover { color: var(--brass-bright); }
 /* footer */
 footer.site-footer {
   border-top: 1px solid var(--border);
-  padding: var(--space-8) 0 var(--space-6);
+  padding: var(--space-6) 0 var(--space-5);
   background: var(--bg-0);
 }
 
@@ -632,22 +632,27 @@ footer.site-footer {
 footer .footer-cols {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--space-6) var(--space-5);
+  gap: var(--space-5) var(--space-5);
 }
 
+/* Headings outrank their links by size and colour — brass is the same token as
+   the AUDIO half of the wordmark, so the columns key off the footer's own logo. */
 footer .footer-col-title {
-  margin: 0 0 var(--space-1);
+  margin: 0 0 var(--space-2);
   font-family: var(--font-body);
-  font-size: var(--text-xs);
+  font-size: var(--text-base);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--fg-faint);
+  color: var(--brass-bright);
 }
 
+/* gap is reset because the generic flex-column `ul` rule sets 32px, which put
+   more empty space between the links than the links themselves occupied. */
 footer .footer-cols ul {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -655,12 +660,17 @@ footer .footer-cols ul {
 
 footer a { color: var(--fg-dim); }
 footer a:hover { color: var(--brass-bright); }
-/* Tap target: each link gets a ≥44px hit box. Horizontal padding is 0 so the
-   links stay flush with their column heading. */
+/* Compact on mouse/desktop — a 44px hit box per link made the column list twice
+   as tall as its content. Coarse pointers get the full tap target back below.
+   Horizontal padding is 0 so the links stay flush with their column heading. */
 footer .footer-cols a {
   display: inline-block;
-  padding: 0.7rem 0;
+  padding: 0.25rem 0;
   font-size: var(--text-sm);
+}
+
+@media (pointer: coarse) {
+  footer .footer-cols a { min-height: 44px; padding: 0.5rem 0; }
 }
 
 /* Bottom bar — brand + copyright left, socials right. No nav or legal links
@@ -671,8 +681,8 @@ footer .footer-bar {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
   /* Indent past the fixed a11y FAB (48px chip at left:16px). --maxw's 95vw
      leaves only ~60px of gutter, so without this the chip sits on top of the
      wordmark at every desktop width. */
