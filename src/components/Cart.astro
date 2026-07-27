@@ -208,7 +208,9 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       var ver = (agree && agree.getAttribute('data-terms-version')) || '';
       window.fastspring.builder.push({
         reset: true,
-        products: [{ path: pathFor(items[0]), quantity: 1 }],
+        // Full cart, not just the first item — FastSpring's session natively
+        // sums multiple line items (unlike LS's single hosted-checkout URL).
+        products: items.map(function (i) { return { path: pathFor(i), quantity: i.qty || 1 }; }),
         // Consent record: stamp the accepted legal-bundle version onto the
         // order via FastSpring's custom-tags passthrough (FastSpring docs: tags).
         tags: { terms_accepted: 'true', terms_version: ver }
