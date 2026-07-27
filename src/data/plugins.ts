@@ -7,7 +7,10 @@
  *   status: 'live'           → Buy CTA active, set checkoutUrl to the Lemon Squeezy buy link
  *
  * Prices are intent — flip when commerce launches.
- * Checkout: Lemon Squeezy (merchant of record). Set checkoutUrl per product below.
+ * Checkout: migrating from Lemon Squeezy to FastSpring. Cart.astro reads
+ * `fastspringPath`; `checkoutUrl` (LS) is left populated as a rollback path.
+ * Buy/download CTAs are currently gated behind TrialGateModal site-wide
+ * (`trialGateActive`) while the migration is verified — see that flag below.
  */
 
 export type PluginStatus = 'in-development' | 'beta' | 'live';
@@ -99,6 +102,11 @@ export interface Plugin {
   regularPriceUsd: number | null;
   /** Lemon Squeezy hosted checkout URL. Null until wired → product shows the "checkout reopening" state. */
   checkoutUrl: string | null;
+  /** FastSpring product path (Store Builder Library) — the catalog SKU/path
+   *  configured in the FastSpring storefront admin, NOT a URL. Kept alongside
+   *  checkoutUrl (LS) so the checkout engine can roll back by just switching
+   *  which one Cart.astro reads. */
+  fastspringPath?: string | null;
   /** True while a live product has no working checkout yet (checkoutUrl not set). */
   checkoutPaused: boolean;
   /** Discount code the buyer must enter at checkout to get the intro price. */
@@ -176,6 +184,7 @@ export const plugins: Plugin[] = [
     regularPriceUsd: 93,
     promoCode: 'VROOM',
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
+    fastspringPath: 'revlimiter',
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
     // Checkout paused site-wide during the payment-provider migration
     // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this
@@ -366,6 +375,7 @@ export const plugins: Plugin[] = [
     introPriceUsd: 20,
     regularPriceUsd: null,
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
+    fastspringPath: 'radio-roulette',
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
     // Checkout paused site-wide during the payment-provider migration
     // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this

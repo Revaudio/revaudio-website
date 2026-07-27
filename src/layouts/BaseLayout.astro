@@ -88,6 +88,21 @@ const fullTitle = title === 'RevAudio'
         data-cf-beacon={`{"token": "${site.cfBeaconToken}"}`}
       ></script>
     )}
+
+    {/* FastSpring popup checkout (Store Builder Library) — replaces the old
+        lemon.js include. Cart.astro's `openCheckout()` drives it via
+        window.fastspring.builder; data-popup-closed names the completion
+        callback (fsCheckoutClosed, defined in Cart.astro's inline script).
+        data-storefront is the TEST storefront from FastSpring's setup
+        snippet — swap to the live storefront path before this ships. */}
+    <script
+      is:inline
+      id="fsc-api"
+      src="https://sbl.onfastspring.com/sbl/1.0.7/fastspring-builder.min.js"
+      type="text/javascript"
+      data-storefront="revaudio.test.onfastspring.com/popup-revaudio"
+      data-popup-closed="fsCheckoutClosed"
+    ></script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
