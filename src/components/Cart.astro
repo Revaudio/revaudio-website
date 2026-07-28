@@ -13,10 +13,11 @@ import { TERMS_LAST_UPDATED } from '../data/legal';
  * - the header cart icon ([data-cart-toggle]) + badge ([data-cart-badge]) open the drawer
  * - A required consent checkbox gates Checkout; its links open the legal-reader
  *   modal (Terms / Licence / Privacy) IN A POPUP — no page navigation.
- * - Checkout opens the FastSpring popup (Store Builder Library) ON the site,
- *   stamping the accepted terms version onto the order as custom tags. The
- *   SBL script tag itself lives in BaseLayout's <head> (FastSpring's own
- *   requirement), not here.
+ * - Checkout is PAUSED (2026-07-28, payment-provider migration unverified):
+ *   [data-checkout] opens a "not available right now" notice instead of the
+ *   real FastSpring popup. The FastSpring wiring (openCheckout(), below) is
+ *   fully built and ready — the SBL script tag lives in BaseLayout's <head>
+ *   — just disconnected from the button until the migration is confirmed.
  * Rendered once in BaseLayout. No framework — vanilla JS, progressive.
  *
  * Checkout product paths are resolved fresh from this catalog map by slug at
@@ -75,11 +76,23 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
   </div>
 </dialog>
 
+<!-- Checkout-paused notice — shown instead of the real FastSpring checkout
+     while the payment-provider migration is unverified (2026-07-28). Swap the
+     [data-checkout] handler back to openCheckout() once it's confirmed live. -->
+<dialog class="cn-modal" data-checkout-notice aria-label="Checkout unavailable">
+  <button type="button" class="cn-x" data-cn-close aria-label="Close">&times;</button>
+  <p class="cn-kicker">Checkout&rsquo;s under construction</p>
+  <h2>Not available right now</h2>
+  <p class="cn-body">We&rsquo;re finishing up a payment system upgrade. Checkout will be back in a few days &mdash; thanks for your patience.</p>
+  <button type="button" class="cn-ok" data-cn-close>Got it</button>
+</dialog>
+
 <script is:inline>
   (function () {
     var KEY = 'revaudio_cart_v2';
     var html = document.documentElement;
     var drawer = document.querySelector('[data-cart-drawer]');
+    var cnModal = document.querySelector('[data-checkout-notice]');
     var itemsEl = drawer && drawer.querySelector('[data-cart-items]');
     var emptyEl = drawer && drawer.querySelector('[data-cart-empty]');
     var footEl = drawer && drawer.querySelector('[data-cart-foot]');
@@ -105,7 +118,7 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
 
     function lock() { html.style.overflow = anyModalOpen() ? 'hidden' : ''; }
     function anyModalOpen() {
-      return (drawer && drawer.open) || (lModal && lModal.open);
+      return (drawer && drawer.open) || (lModal && lModal.open) || (cnModal && cnModal.open);
     }
 
     function add(item) {
@@ -189,6 +202,18 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       var hint = drawer && drawer.querySelector('[data-agree-hint]');
       if (label) label.classList.toggle('is-error', !!on);
       if (hint) hint.hidden = !on;
+    }
+    // Paused (2026-07-28): the payment-provider migration isn't verified yet,
+    // so the real checkout is disconnected — [data-checkout] opens the notice
+    // below instead. Point it back at openCheckout() once FastSpring is live.
+    function openCheckoutNotice() {
+      if (!cnModal) return;
+      if (typeof cnModal.showModal === 'function') cnModal.showModal(); else cnModal.setAttribute('open', '');
+      lock();
+    }
+    function closeCheckoutNotice() {
+      if (cnModal && cnModal.open && typeof cnModal.close === 'function') cnModal.close();
+      else if (cnModal) { cnModal.removeAttribute('open'); lock(); }
     }
     function openCheckout() {
       var items = read().filter(function (i) { return pathFor(i); });
@@ -292,7 +317,8 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
       if (t.closest('[data-cart-toggle]')) { e.preventDefault(); openDrawer(); return; }
       var rm = t.closest('[data-remove]');
       if (rm) { remove(rm.getAttribute('data-remove')); return; }
-      if (t.closest('[data-checkout]')) { e.preventDefault(); openCheckout(); return; }
+      if (t.closest('[data-checkout]')) { e.preventDefault(); openCheckoutNotice(); return; }
+      if (t.closest('[data-cn-close]')) { e.preventDefault(); closeCheckoutNotice(); return; }
 
       // Open the legal reader from the cart's consent links (popup, not a page).
       var openL = t.closest('[data-open-legal]');
@@ -324,6 +350,10 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
     if (lModal) {
       lModal.addEventListener('close', lock);
       lModal.addEventListener('click', function (e) { if (e.target === lModal) closeLegal(); }); // backdrop
+    }
+    if (cnModal) {
+      cnModal.addEventListener('close', lock);
+      cnModal.addEventListener('click', function (e) { if (e.target === cnModal) closeCheckoutNotice(); }); // backdrop
     }
 
     // mouseover/focusin bubble (mouseenter/focus don't), so delegation works
@@ -467,6 +497,69 @@ for (const p of plugins) if (p.fastspringPath) checkoutMap[p.slug] = p.fastsprin
   /* drawer is a flex column so cd-foot can pin to the bottom */
   .cart-drawer { display: flex; flex-direction: column; }
   .cart-drawer:not([open]) { display: none; }
+
+  /* ---- Checkout-paused notice (small centered card, TrialGateModal's tone) ---- */
+  .cn-modal {
+    position: relative;
+    margin: auto;
+    width: min(420px, calc(100vw - 2.5rem));
+    padding: 2rem 2rem 1.75rem;
+    background: var(--bg-1);
+    color: var(--fg);
+    border: 1px solid var(--border-bright);
+    border-top: 3px solid var(--brass);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  }
+  .cn-modal[open] { display: block; }
+  .cn-modal:not([open]) { display: none; }
+  .cn-modal::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+  .cn-x {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--fg-dim);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .cn-x:hover { color: var(--brass-bright); }
+  .cn-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--oxide-text);
+    margin: 0 0 0.5rem;
+  }
+  .cn-modal h2 {
+    font-family: var(--font-display);
+    letter-spacing: 0.04em;
+    color: var(--brass-bright);
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1.15;
+  }
+  .cn-body { color: var(--fg-dim); font-size: 0.92rem; line-height: 1.5; margin: 0 0 1.5rem; }
+  .cn-ok {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    border: 1px solid transparent;
+    background: var(--brass);
+    color: var(--bg-0);
+    cursor: pointer;
+    transition: background 0.2s var(--ease);
+  }
+  .cn-ok:hover { background: var(--brass-bright); }
 
   /* ---- Legal reader modal (centered, tabbed) ---- */
   .legal-modal {
