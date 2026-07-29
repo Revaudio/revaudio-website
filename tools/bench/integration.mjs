@@ -88,7 +88,13 @@ export default function bench() {
   css.textContent = [
     'html.bench-on [data-reveal], html.bench-on [data-reveal-item] { opacity: 1 !important; }',
     'html.bench-on [data-split] { opacity: 1 !important; }',
-    'html.bench-on [data-split] div { transform: none !important; }'
+    'html.bench-on [data-split] div { transform: none !important; }',
+    /* The garage wall fits itself to the viewport via zoom (--wall-fit).
+       Dragging under zoom breaks the pointer<->element mapping (cursor moves
+       N px, the element moves N*zoom), so bench pins the wall to design
+       scale. Placement done at scale 1 is correct for production: zoom
+       scales every length uniformly, translates included. */
+    'html.bench-on .audio-demos, html.bench-on .garage-wall > .trial-plates { zoom: 1 !important; }'
   ].join('\\n');
   document.head.appendChild(css);
 
