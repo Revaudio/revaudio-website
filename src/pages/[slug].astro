@@ -16,6 +16,7 @@ import { plugins, isBuyable } from '../data/plugins';
 import { pluginImage } from '../lib/images';
 import arrowBtn from '../assets/showcase/arrow-btn.png';
 import wallImg from '../assets/bg/wall-wood.png';
+import railImg from '../assets/bg/wall-rail.png';
 
 export function getStaticPaths() {
   return plugins.map((p) => ({ params: { slug: p.slug }, props: { plugin: p } }));
@@ -46,6 +47,12 @@ const playableDemos = plugin.audioDemos.filter((d) => d.beforeUrl && d.afterUrl)
 const hasWall = playableDemos.length > 0 || !!plugin.trialUrl;
 const wall = hasWall
   ? await getImage({ src: wallImg, width: 1024, format: 'webp', quality: 55 })
+  : null;
+/* The cap rail that terminates the wall (Dan, 2026-07-29: "RAIL, but a real
+   asset"). Photographic band, horizontally seamless (cross-faded at the
+   edges), same Higgsfield + PIL pipeline as the wood. */
+const rail = hasWall
+  ? await getImage({ src: railImg, width: 1024, format: 'webp', quality: 70 })
   : null;
 
 // Shots for the sticky feature walkthrough: hero + gallery, deduped. With a
@@ -233,7 +240,7 @@ const altShots = hasStage
           (1320 vs 1180 at 1440). Degrades cleanly: one section absent -> the
           wall spans the other; both absent -> no wrapper at all. */}
       {hasWall && (
-        <div class="garage-wall garage-wall--bleed" style={`--wall-url:url(${wall!.src});`}>
+        <div class="garage-wall garage-wall--bleed" style={`--wall-url:url(${wall!.src});--rail-url:url(${rail!.src});`}>
           {/* The wood rides its own layer so it can parallax-drift (data-drift-y,
               scrub.ts) while the dividers and the top light stay nailed to the
               page on ::before. .wall-art clips; .wall-wood overscans ±32px so
@@ -707,9 +714,8 @@ const altShots = hasStage
     transform: translateX(-50%);
     z-index: -1;
     pointer-events: none;
-    /* the dividers, now full-bleed — they terminate the wall */
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    /* no borders here: BOTH edges belong to the cap rails (::after) — a 1px
+       line next to a photographic rail read as a mistake. hc restores them. */
     background:
       /* top light — warm rake from above; the wood below stays honest wood.
          (There was a radial seating vignette here that pulled the bottom
@@ -743,6 +749,42 @@ const altShots = hasStage
     inset: -32px 0;
     background: var(--wall-url) top center / 512px auto repeat;
     will-change: transform;
+  }
+
+  /* The cap rails — the panelling is capped at BOTH ends like a built thing
+     (Dan, 2026-07-29: rail, then "rail also goes up top"). One photographic
+     band, horizontally seamless: dark oak, lit rounded top edge, brass
+     screws, shadowed undercut. Same orientation top and bottom — a picture
+     rail's lit edge faces up, and its undercut throws shadow onto the wood
+     below it, which is exactly the cast the top rail needs. The rails are
+     static while the wood drifts behind them — free extra depth. The
+     ::after box spans the whole wall; the middle is transparent, the two
+     rail layers pin to its edges, and the gradient layer fakes the top
+     rail's cast onto the wall (an outer box-shadow can't paint inside its
+     own box). box-shadow below separates wall from Driver's Manual.
+     z:-1 = above the wood (z:-2), below content. */
+  .garage-wall {
+    --rail-h: 30px;
+  }
+  .garage-wall::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -1;
+    pointer-events: none;
+    background:
+      var(--rail-url) top center / auto var(--rail-h) repeat-x,
+      linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) top center / 100% calc(var(--rail-h) * 2) no-repeat,
+      var(--rail-url) bottom center / auto var(--rail-h) repeat-x;
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.6);
+  }
+  /* clearance: the h2 must not crowd the top rail */
+  .garage-wall .audio-demos { padding-top: 3.25rem; }
+  @media (max-width: 480px) {
+    .garage-wall { --rail-h: 22px; }
   }
 
   /* the next section's content-width border-top would double the wall's

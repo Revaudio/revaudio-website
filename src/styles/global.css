@@ -315,7 +315,8 @@ html.hc .page-bg { display: none; }
 /* garage wall art off in high-contrast; the borders on the pseudo carry the
    dividers, so keep the pseudo but strip its gradients — and hide the wood
    layer entirely (it holds the actual texture since the parallax split) */
-html.hc .garage-wall::before { background: none; }
+html.hc .garage-wall::before { background: none; border-block: 1px solid var(--border); }
+html.hc .garage-wall::after { display: none; }   /* the cap rails are art too */
 html.hc .garage-wall .wall-art { display: none; }
 /* translucent section panels go solid black so contrast is uniform */
 html.hc .values .v,
