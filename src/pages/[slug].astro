@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BuyButton from '../components/BuyButton.astro';
 import BuyButtonCrane from '../components/BuyButtonCrane.astro';
@@ -15,6 +15,7 @@ import MobileBuyBar from '../components/MobileBuyBar.astro';
 import { plugins, isBuyable } from '../data/plugins';
 import { pluginImage } from '../lib/images';
 import arrowBtn from '../assets/showcase/arrow-btn.png';
+import wallImg from '../assets/bg/wall-wood.png';
 
 export function getStaticPaths() {
   return plugins.map((p) => ({ params: { slug: p.slug }, props: { plugin: p } }));
@@ -36,6 +37,16 @@ const narrowHero = plugin.slug === 'gas';
 // Only surface A/B demos that actually have audio. Until clips are bounced,
 // the "Hear it" section stays hidden rather than showing empty placeholders.
 const playableDemos = plugin.audioDemos.filter((d) => d.beforeUrl && d.afterUrl);
+
+/* The garage wall behind the "Hear it" -> trial span (Dan, 2026-07-29: wood,
+   full-bleed). Same getImage()-into-a-CSS-var pattern as TrialPlates' tag art
+   — <Image> never sees CSS backgrounds, so .src would ship the raw 1.5MB
+   master. 1024px source shown at 512px = 2x retina; the tile is seam-checked
+   and darkness-clamped at generation time (tools/gen-wall-texture.sh). */
+const hasWall = playableDemos.length > 0 || !!plugin.trialUrl;
+const wall = hasWall
+  ? await getImage({ src: wallImg, width: 1024, format: 'webp', quality: 55 })
+  : null;
 
 // Shots for the sticky feature walkthrough: hero + gallery, deduped. With a
 // single shot the stage just pins; per-step crossfade activates once
@@ -213,19 +224,31 @@ const altShots = hasStage
         </section>
       )}
 
-      {playableDemos.length > 0 && (
-        <section class="audio-demos" id="hear-it">
-          <h2 data-split>Hear it</h2>
-          <p class="muted" data-reveal>Before / after on real source material. No staged transients, no cherry-picked frequency content. Hit play, then <span class="hear-desk">punch <strong>ARM</strong></span><span class="hear-mob">flip <strong>the switch</strong></span> to drop RevLimiter onto the bus.</p>
-          <AudioDemoRack demos={playableDemos} plugin={plugin} />
-        </section>
-      )}
+      {/* The garage wall — the "Hear it" -> trial span reads as ONE surface
+          everything hangs on: the rack (already screwed down), the paper tag
+          (already on its nail), the CTA. The wall art is a ::before on this
+          WRAPPER, never on .trial-plates (its >=901px grid would adopt a
+          pseudo as a grid item) — and the wrapper is what lets the two
+          sections share one surface despite different content widths
+          (1320 vs 1180 at 1440). Degrades cleanly: one section absent -> the
+          wall spans the other; both absent -> no wrapper at all. */}
+      {hasWall && (
+        <div class="garage-wall garage-wall--bleed" style={`--wall-url:url(${wall!.src});`}>
+          {playableDemos.length > 0 && (
+            <section class="audio-demos" id="hear-it">
+              <h2 data-split>Hear it</h2>
+              <p class="muted" data-reveal>Before / after on real source material. No staged transients, no cherry-picked frequency content. Hit play, then <span class="hear-desk">punch <strong>ARM</strong></span><span class="hear-mob">flip <strong>the switch</strong></span> to drop RevLimiter onto the bus.</p>
+              <AudioDemoRack demos={playableDemos} plugin={plugin} />
+            </section>
+          )}
 
-      {/* On-page trial capture (TEMP PLATES, 2026-07-24) — the visitor leaves
-          an email right here instead of detouring through the download portal.
-          The trial stamp up top and the door's painted trial link both scroll
-          to this section. */}
-      {plugin.trialUrl && <TrialPlates plugin={plugin} />}
+          {/* On-page trial capture (TEMP PLATES, 2026-07-24) — the visitor leaves
+              an email right here instead of detouring through the download portal.
+              The trial stamp up top and the door's painted trial link both scroll
+              to this section. */}
+          {plugin.trialUrl && <TrialPlates plugin={plugin} />}
+        </div>
+      )}
 
       {plugin.tutorialVideo && (
         <section class="video-section" id="drivers-manual">
@@ -651,6 +674,50 @@ const altShots = hasStage
   .f-desc { color: var(--fg-dim); font-size: 0.98rem; margin: 0.4rem 0 0; max-width: 44ch; }
 
   .audio-demos { padding: 2rem 0 3rem; border-top: 1px solid var(--border); }
+
+  /* ── The garage wall (Dan, 2026-07-29: wood, full-bleed) ──
+     isolation:isolate pins the z:-1 art layer inside this box: behind both
+     sections' content, above everything outside it (including the fixed
+     .ebg), with no stacking-context leaks. The pseudo is position:absolute on
+     a non-transformed wrapper, so the walkthrough's sticky stage (outside the
+     wrapper) is untouched and TrialPlates' container query still resolves.
+     Full-bleed is safe because html+body carry overflow-x: clip. */
+  .garage-wall {
+    position: relative;
+    isolation: isolate;
+  }
+  .garage-wall .audio-demos { border-top: 0; }   /* the wall's own line replaces it */
+
+  .garage-wall::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -1;
+    pointer-events: none;
+    /* the dividers, now full-bleed — they terminate the wall */
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background:
+      /* top light — warm rake from above; the wood below stays honest wood.
+         (There was a radial seating vignette here that pulled the bottom
+         half to black — Dan, 2026-07-29: "wood without bottom black, up
+         wood with light". The light IS the seating cue now.) */
+      linear-gradient(180deg, rgba(255, 214, 150, 0.07) 0%, rgba(255, 214, 150, 0) 32%),
+      /* contrast scrim — clamps the wall near --bg-0 luminance. THE tuning
+         dial: if any text over the wall measures under AA, raise this alpha
+         before touching anything else. */
+      linear-gradient(rgba(11, 10, 9, 0.38), rgba(11, 10, 9, 0.38)),
+      /* the wall itself — 1024px source at 512px = 2x retina */
+      var(--wall-url) top center / 512px auto repeat;
+  }
+
+  /* the next section's content-width border-top would double the wall's
+     full-bleed closing line (which section follows depends on the plugin —
+     video for RevLimiter, specs when there's no tutorial) */
+  .garage-wall--bleed + :is(.video-section, .specs-section) { border-top: 0; }
 
   /* the intro names the control: desktop has the ARM plate, mobile has the
      in-glass A/B switch (AudioDemoRack's 900px layout) */

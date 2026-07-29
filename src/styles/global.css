@@ -312,6 +312,9 @@ html.hc {
 }
 /* drop the aurora/veil art so text sits on flat black, not a busy image */
 html.hc .page-bg { display: none; }
+/* garage wall art off in high-contrast; the borders on the pseudo carry the
+   dividers, so keep the pseudo but strip its background art */
+html.hc .garage-wall::before { background: none; }
 /* translucent section panels go solid black so contrast is uniform */
 html.hc .values .v,
 html.hc footer.site-footer { background: #000000; }
