@@ -128,6 +128,10 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--brass-bright);
+    /* routed into the wall — depth tokens are defined on .garage-wall
+       ([slug].astro). The fallback matters: this component is only hung on a
+       wall today, but off one there is no groove to light. */
+    text-shadow: var(--engrave, none);
     margin: 0 0 0.79rem;   /* bench 2026-07-26: the air Dan opened over .sub */
     text-transform: uppercase;
   }
@@ -506,6 +510,7 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     font-size: 0.94rem;
     color: var(--fg);
     font-weight: 600;
+    text-shadow: var(--engrave-fine, none);
   }
   /* the address they must verify — show it verbatim, not uppercased */
   .micro [data-tp-sentto] { text-transform: none; }

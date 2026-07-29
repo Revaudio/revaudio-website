@@ -723,8 +723,43 @@ const altShots = hasStage
   .garage-wall {
     position: relative;
     isolation: isolate;
+
+    /* ── Type routed INTO the board (Dan, 2026-07-29: "make the reading
+       embedded inside the wood") ──
+       Depth belongs to the wall, not to each line, so it lives here as tokens
+       and every piece of copy on the wood reads from them — one dial to tune,
+       and custom properties cascade through the DOM regardless of Astro's
+       scoped-CSS rewriting, so TrialPlates' own rules can consume these
+       without the :global() dance that owning another component's markup
+       would otherwise force.
+       The direction is not arbitrary: ::before rakes warm light down from the
+       TOP of the wall, so a groove cut into it is shadowed along its upper
+       lip and lit along its lower one. Dark copy offset UP, light copy offset
+       DOWN. Flip those two and the letters read embossed, standing proud of
+       the board instead of cut into it. The highlight is the wall's own warm
+       light (255,226,178), never white.
+       The LIT lip carries this effect almost alone, which is why it is the
+       strongest layer: against wood this dark the shadowed half of a groove
+       has nothing to be darker than, so a first pass balanced the two evenly
+       and the letters still read as printed. Hard edges throughout (0 blur on
+       both lips) — blur them and it stops being a cut and becomes a glow. */
+    --engrave:
+      0 -1px 0 rgba(0, 0, 0, 0.95),        /* tight dark line under the top lip */
+      0 2px 0 rgba(255, 226, 178, 0.3),    /* the lower lip catching the light — the effect */
+      0 3px 6px rgba(0, 0, 0, 0.6);        /* the groove's depth, seating it in the board */
+    /* Small mono type gets a shallower cut: at 11-15px a 2px offset is
+       proportionally enormous and the wide soft cast fills the counters, so
+       the fine version drops the third layer and tightens the lip to 1px. */
+    --engrave-fine:
+      0 -1px 0 rgba(0, 0, 0, 0.9),
+      0 1px 0 rgba(255, 226, 178, 0.24);
   }
   .garage-wall .audio-demos { border-top: 0; }   /* the wall's own line replaces it */
+
+  /* the two lines cut into the wood on this side of the wall (the trial
+     section cuts its own two — same tokens, its own component) */
+  .garage-wall .audio-demos > h2 { text-shadow: var(--engrave); }
+  .garage-wall .audio-demos > .muted { text-shadow: var(--engrave-fine); }
 
   /* Static plate: dividers + light + scrim. The wood itself lives on the
      .wall-art layer below so it can drift; everything here stays nailed. */

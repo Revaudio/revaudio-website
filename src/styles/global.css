@@ -318,6 +318,10 @@ html.hc .page-bg { display: none; }
 html.hc .garage-wall::before { background: none; border-block: 1px solid var(--border); }
 html.hc .garage-wall::after { display: none; }   /* the cap rails are art too */
 html.hc .garage-wall .wall-art { display: none; }
+/* no board left to route letters into, and a glow under small type is exactly
+   what this mode exists to remove. One line kills all four cut lines because
+   they read the tokens rather than carrying their own shadows. */
+html.hc .garage-wall { --engrave: none; --engrave-fine: none; }
 /* translucent section panels go solid black so contrast is uniform */
 html.hc .values .v,
 html.hc footer.site-footer { background: #000000; }
