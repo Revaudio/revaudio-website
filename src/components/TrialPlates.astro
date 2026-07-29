@@ -205,11 +205,12 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     background: var(--plate-url) center / 100% 100% no-repeat;
     filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.62));
     transform: rotate(-1.4deg);
-    /* bench 2026-07-26: Dan lifted the tag 3px. Stays on the standalone
-       `translate` property on purpose — `transform` here is the animation
-       channel (rotate, plus the shake and mount keyframes), and the two
-       compose, so the lift survives every state instead of being clobbered. */
-    translate: 0 -3px;
+    /* bench 2026-07-26, deepened to 5px 2026-07-29: Dan lifted the tag off the
+       nail. Stays on the standalone `translate` property on purpose —
+       `transform` here is the animation channel (rotate, plus the shake and
+       mount keyframes), and the two compose, so the lift survives every state
+       instead of being clobbered. */
+    translate: 0 -5px;
     /* the whole tag is the field's hit area (see the click handler below) —
        the cursor has to say so before the click does */
     cursor: text;
@@ -573,10 +574,24 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
       /* top stays tight (the rack's gap above already breathes); bottom must
          clear the wall's 30px cap rail plus air (wall-fit pass, 2026-07-29) */
       padding-block: clamp(1.5rem, 2.5vw, 2.25rem) 3.25rem;
+      /* bench 2026-07-29: the whole composition sits left-of-centre and rides
+         up toward the rack. A translate, NOT padding — the wall sizes its zoom
+         off this section's height, so trimming padding here would re-fit the
+         whole wall and quietly re-scale everything Dan just placed. */
+      translate: -9px -15px;
     }
-    .plate-wrap { grid-column: 1; grid-row: 1 / -1; align-self: center; width: 100%; }
-    .trial-plates > h2 { grid-column: 2; grid-row: 2; }
-    .tp-copy { grid-column: 2; grid-row: 3; }
+    /* bench 2026-07-29: the tag hangs higher than dead-centre against the copy */
+    .plate-wrap { grid-column: 1; grid-row: 1 / -1; align-self: center; width: 100%; translate: 0 -14px; }
+    /* bench 2026-07-29: Dan pulled the headline, the trust line and GET IT left
+       by 10-12px each — one move of the whole right column, not three nudges.
+       Done as a translate on the two column-2 items rather than by trimming
+       column-gap: the grid is width-locked (the 1fr track eats any slack), so a
+       gap trim would instead WIDEN the track — stretching both boxes 11px and
+       letting the auto-centred GET IT re-centre itself half that distance back
+       to the right, landing 5px off where Dan put it. A translate moves them
+       and changes nothing else. */
+    .trial-plates > h2 { grid-column: 2; grid-row: 2; translate: -11px 0; }
+    .tp-copy { grid-column: 2; grid-row: 3; translate: -11px 0; }
 
     .trial-plates h2 { margin-bottom: 0.55rem; }
     .micro { margin-top: 0.35rem; }

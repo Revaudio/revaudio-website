@@ -821,6 +821,14 @@ const altShots = hasStage
   .garage-wall .audio-demos { padding-bottom: 1.5rem; }   /* rack -> trial gap */
   @media (min-width: 901px) {
     .audio-demos { zoom: var(--wall-fit, 1); }
+    /* bench 2026-07-29 (desktop-only harness, so desktop-only rules): Dan
+       dropped "Hear it" 19px so it hangs clear of the top rail, and pulled the
+       intro in off the full 1320px container — a full-width line of 13 words
+       reads as a stray sentence on the wall instead of a caption under the
+       headline. translate, not margin: neither may change the wall's height,
+       which is what --wall-fit measures. */
+    .audio-demos > h2 { translate: 0 19px; }
+    .audio-demos > .muted { max-width: 550px; }
     /* :global — the trial section is TrialPlates' markup; the page's scoped
        selector can't reach into another component (the wiki's set:html
        gotcha, same mechanism). */

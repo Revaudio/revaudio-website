@@ -1,0 +1,41 @@
+{
+  "bench": "revlimiter",
+  "exported": "2026-07-29T14:05:41.670Z",
+  "note": "Apply with the bench skill: fold props into the real source. webFonts must be bundled as local TTF @font-face (never CDN-only in shipped WebView).",
+  "deltas": {
+    "div.plate": { "props": { "translate": "0px -5px" } },
+    "#tp-form": { "props": { "translate": "0px -14px" } },
+    "#trial": { "props": { "translate": "-9px -14.834301026239975px" } },
+    "section.trial-plates > h2.split-ready": { "props": { "translate": "-11px 0px" } },
+    "p.micro:nth-child(2)": { "props": { "translate": "-10px 0px" } },
+    "span.face": { "props": { "translate": "-3.15736px 0.990463px" } },
+    "button.get-btn": { "props": { "translate": "-12px 0px" } },
+    "div.tp-copy": { "props": { "translate": "0.14305415047263897px 0.14305415047263897px" } },
+    "section.video-section > h2.split-ready": { "props": { "translate": "-0.26463444577530026px 0px" } },
+    "section.audio-demos > h2.split-ready": { "props": { "translate": "0px 19px" } },
+    "section.audio-demos > p.muted.revealed": {
+      "props": { "width": "549.7254848996984px" },
+      "origText": "Real tracks, no tricks. Hit play for the before and after, <span class=\"hear-desk\">punch <strong>ARM</strong></span>",
+      "text": "Real tracks, no tricks. Hit play for the before and after, <span class=\"hear-desk\">punch <strong>ARM</strong></span>"
+    },
+    "#hear-it": { "props": { "translate": "0.14782262215506026px 0px" } }
+  },
+
+  "_applied": {
+    "date": "2026-07-29",
+    "files": ["src/components/TrialPlates.astro", "src/pages/[slug].astro"],
+    "folded": {
+      "div.plate": ".plate { translate: 0 -5px } — replaces the -3px from the 2026-07-26 round (inline overrode the rule, so -5 is the total, not -3-5)",
+      "#tp-form": ".plate-wrap { translate: 0 -14px } in the >=901px block",
+      "#trial": ".trial-plates { translate: -9px -15px } in the >=901px block. A translate, NOT trimmed padding: --wall-fit is measured off this section's height, so changing the height would re-scale the whole wall.",
+      "h2 -11 / micro -10 / get-btn -12": "one column move — translate: -11px 0 on .trial-plates > h2 and on .tp-copy. A column-gap trim was tried first and measured wrong: the grid is width-locked, so the trim WIDENS the 1fr track instead, stretching both boxes 11px and letting the auto-centred GET IT re-centre 5.4px back to the right.",
+      "audio-demos h2": ".audio-demos > h2 { translate: 0 19px } (>=901px)",
+      "audio-demos muted": ".audio-demos > .muted { max-width: 550px } (>=901px). max-width, not width, so it still shrinks on narrow screens. Measured after: still one line, wall height and --wall-fit both unchanged."
+    },
+    "dropped": {
+      "span.face / div.tp-copy / video-section h2 / #hear-it": "sub-pixel drag noise (<=3px, fractional on both axes) — grabbing an element, not moving it"
+    },
+    "verified": "Every folded element measured within 1px of the exported bench view at 1440x900 (worst: .micro 1px left, GET IT 0.8px right — both from moving the column uniformly by 11 instead of Dan's per-item 10/11/12). No horizontal overflow at 1440/1280/390. Build green.",
+    "open": "The exported TEXT was not applied. It differs from shipped source ('Hit play for the before and after, punch ARM' vs 'Hit play for the before, punch ARM for the after.') and the edit also deleted the display:none .hear-mob span, which carries the phone-only wording — applying it literally ends the sentence at a comma on mobile. origText === text here only because of a harness bug fixed the same day (origText was snapshotted post-edit, see skills/bench/LESSONS.md); it is NOT evidence the copy was left alone."
+  }
+}
