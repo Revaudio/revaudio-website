@@ -234,6 +234,14 @@ const altShots = hasStage
           wall spans the other; both absent -> no wrapper at all. */}
       {hasWall && (
         <div class="garage-wall garage-wall--bleed" style={`--wall-url:url(${wall!.src});`}>
+          {/* The wood rides its own layer so it can parallax-drift (data-drift-y,
+              scrub.ts) while the dividers and the top light stay nailed to the
+              page on ::before. .wall-art clips; .wall-wood overscans ±32px so
+              the ±24px drift never reveals an edge. Reduced motion: initScrubs
+              bails, the overscanned layer just sits still. */}
+          <div class="wall-art" aria-hidden="true">
+            <div class="wall-wood" data-drift-y="24"></div>
+          </div>
           {playableDemos.length > 0 && (
             <section class="audio-demos" id="hear-it">
               <h2 data-split>Hear it</h2>
@@ -688,6 +696,8 @@ const altShots = hasStage
   }
   .garage-wall .audio-demos { border-top: 0; }   /* the wall's own line replaces it */
 
+  /* Static plate: dividers + light + scrim. The wood itself lives on the
+     .wall-art layer below so it can drift; everything here stays nailed. */
   .garage-wall::before {
     content: '';
     position: absolute;
@@ -709,9 +719,30 @@ const altShots = hasStage
       /* contrast scrim — clamps the wall near --bg-0 luminance. THE tuning
          dial: if any text over the wall measures under AA, raise this alpha
          before touching anything else. */
-      linear-gradient(rgba(11, 10, 9, 0.38), rgba(11, 10, 9, 0.38)),
-      /* the wall itself — 1024px source at 512px = 2x retina */
-      var(--wall-url) top center / 512px auto repeat;
+      linear-gradient(rgba(11, 10, 9, 0.38), rgba(11, 10, 9, 0.38));
+  }
+
+  /* The moving wood. Outer clips (its own box only — the full-bleed width is
+     the box, so nothing else gets clipped); inner overscans ±32px vertically
+     and carries the drift. z:-2 keeps it under ::before's light + scrim in
+     the wrapper's isolated stacking context. Transform-only motion on a
+     composited layer — never background-position, that repaints 100vw
+     per frame. */
+  .wall-art {
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .wall-wood {
+    position: absolute;
+    inset: -32px 0;
+    background: var(--wall-url) top center / 512px auto repeat;
+    will-change: transform;
   }
 
   /* the next section's content-width border-top would double the wall's
