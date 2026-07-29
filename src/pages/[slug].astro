@@ -740,19 +740,25 @@ const altShots = hasStage
        light (255,226,178), never white.
        The LIT lip carries this effect almost alone, which is why it is the
        strongest layer: against wood this dark the shadowed half of a groove
-       has nothing to be darker than, so a first pass balanced the two evenly
-       and the letters still read as printed. Hard edges throughout (0 blur on
-       both lips) — blur them and it stops being a cut and becomes a glow. */
+       has nothing to be darker than. Two passes died here before this one —
+       both balanced the dark and light halves evenly, which is correct on a
+       mid-tone surface and invisible on this one (Dan, twice: "i dont see any
+       change"). The lip is also WOOD-coloured, not a pale wash: a fresh cut
+       exposes raw timber catching the light, and a cream halo just reads as a
+       glow around printed text. Hard edges throughout (0 blur on both lips) —
+       blur them and it stops being a cut. Do not push the offsets past ~2px
+       either: at 3px+ the dark throw reads as a drop shadow and the letters
+       start floating ABOVE the board instead of sitting in it. */
     --engrave:
-      0 -1px 0 rgba(0, 0, 0, 0.95),        /* tight dark line under the top lip */
-      0 2px 0 rgba(255, 226, 178, 0.3),    /* the lower lip catching the light — the effect */
-      0 3px 6px rgba(0, 0, 0, 0.6);        /* the groove's depth, seating it in the board */
-    /* Small mono type gets a shallower cut: at 11-15px a 2px offset is
+      0 -2px 0 rgba(0, 0, 0, 1),           /* the dark line under the top lip */
+      0 2px 0 rgba(198, 156, 104, 0.75),   /* raw timber on the lower lip — the effect */
+      0 4px 8px rgba(0, 0, 0, 0.75);       /* the groove's depth, seating it in the board */
+    /* Small mono type gets a shallower cut: at 15px a 2px chamfer is
        proportionally enormous and the wide soft cast fills the counters, so
        the fine version drops the third layer and tightens the lip to 1px. */
     --engrave-fine:
-      0 -1px 0 rgba(0, 0, 0, 0.9),
-      0 1px 0 rgba(255, 226, 178, 0.24);
+      0 -1px 0 rgba(0, 0, 0, 1),
+      0 1px 0 rgba(198, 156, 104, 0.6);
   }
   .garage-wall .audio-demos { border-top: 0; }   /* the wall's own line replaces it */
 
