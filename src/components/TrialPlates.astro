@@ -483,15 +483,29 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
   .get-btn.sending .face { filter: saturate(0.7) brightness(0.92); }
   .issued .get-btn { opacity: 0; pointer-events: none; }
 
+  /* Base = the success lines. Dan's bench 1.31x was scoped to the trust line
+     (p.micro:nth-child(5)) but got folded onto the shared rule, which pushed
+     "Sent to <address>" and "Wrong address or nothing landed?" onto two lines
+     with orphan words at 1440. They go back to their original size. */
   .micro {
     font-family: var(--font-mono);
-    font-size: 0.94rem;   /* bench 2026-07-26: Dan's 1.31x on this line */
+    font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--fg-dim);
     margin: 0.8rem 0 0;
   }
   .micro b { color: var(--brass); font-weight: 600; }
+
+  /* The trust line — "no credit card, link lands in your inbox" — is the one
+     objection-killer in this section, and it was sitting in --fg-dim at the
+     same weight as throwaway text. It carries Dan's 1.31x, full-strength ink
+     and a heavier stroke, so it reads as a promise rather than fine print. */
+  .micro[data-tp-before] {
+    font-size: 0.94rem;
+    color: var(--fg);
+    font-weight: 600;
+  }
   /* the address they must verify — show it verbatim, not uppercased */
   .micro [data-tp-sentto] { text-transform: none; }
 
