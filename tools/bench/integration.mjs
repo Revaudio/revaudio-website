@@ -78,6 +78,17 @@ export default function bench() {
     return;
   }
 
+  /* ?bench=reset — wipe this page's saved deltas BEFORE the harness reads
+     them, so the bench opens mirroring committed source exactly. Same key
+     the harness uses (bench.js: 'bench:' + last path segment). Then strip
+     the value from the URL so a refresh doesn't wipe fresh work. */
+  if (new URLSearchParams(location.search).get('bench') === 'reset') {
+    try { localStorage.removeItem('bench:' + location.pathname.split('/').pop()); } catch (e) {}
+    var u = new URL(location.href);
+    u.searchParams.set('bench', '');
+    history.replaceState(null, '', u.toString().replace('bench=', 'bench'));
+  }
+
   document.documentElement.classList.add('bench-on');
 
   /* The page hides anything not yet scrolled into view (reveal.ts) and parks
