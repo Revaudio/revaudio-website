@@ -349,6 +349,29 @@ const altShots = hasStage
   {/* YouTube facade → real player. Injects the autoplay iframe only on tap, so
       the player JS (and the first youtube.com hit) is deferred until intent. */}
   <script>
+    // ── wall-fit: the whole garage wall (top rail -> bottom rail) frames
+    // itself in one viewport on desktop. Measure at scale 1, then hand the
+    // ratio to CSS as --wall-fit; the two content sections consume it via
+    // `zoom` (see the wall styles). Floor 0.55 — below that, legibility
+    // beats framing and the page just scrolls. Phones scroll naturally.
+    const gwall = document.querySelector<HTMLElement>('.garage-wall');
+    if (gwall) {
+      const fit = () => {
+        if (window.innerWidth < 901) { gwall.style.removeProperty('--wall-fit'); return; }
+        gwall.style.setProperty('--wall-fit', '1');           // measure unscaled
+        const budget = window.innerHeight - 76;               // sticky nav + air
+        const z = Math.max(0.55, Math.min(1, budget / gwall.offsetHeight));
+        gwall.style.setProperty('--wall-fit', z.toFixed(4));
+      };
+      fit();
+      window.addEventListener('load', fit);                   // fonts/images settle
+      let gwRaf = 0;
+      window.addEventListener('resize', () => {
+        cancelAnimationFrame(gwRaf);
+        gwRaf = requestAnimationFrame(fit);
+      });
+    }
+
     document.querySelectorAll<HTMLButtonElement>('[data-yt-facade]').forEach((facade) => {
       facade.addEventListener('click', () => {
         const id = facade.dataset.ytId;
@@ -781,8 +804,28 @@ const altShots = hasStage
       var(--rail-url) bottom center / auto var(--rail-h) repeat-x;
     box-shadow: 0 14px 26px rgba(0, 0, 0, 0.6);
   }
-  /* clearance: the h2 must not crowd the top rail */
-  .garage-wall .audio-demos { padding-top: 3.25rem; }
+  /* clearance: the h2 must not crowd the top rail (30px + air) */
+  .garage-wall .audio-demos { padding-top: 2.75rem; }
+
+  /* ── The WHOLE wall fits ONE screen (Dan, 2026-07-29: "everything under
+     the wooden frame minimized to one full screen") ──
+     Top rail to bottom rail — Hear it AND the trial — framed whole in the
+     viewport on desktop. A media-query step ladder can't do exact framing
+     for a span this tall, so a tiny script measures the wall at scale 1 and
+     sets --wall-fit = (viewport budget / wall height), floored at 0.55.
+     The two content sections consume it via `zoom` (NOT transform — zoom
+     reflows the layout box, so the wall's own height shrinks with its
+     content and the rails stay glued to its edges). .wall-art and the
+     rails are excluded: texture density and trim stay constant, only the
+     hung content scales. Phones (<901px) scroll naturally. */
+  .garage-wall .audio-demos { padding-bottom: 1.5rem; }   /* rack -> trial gap */
+  @media (min-width: 901px) {
+    .audio-demos { zoom: var(--wall-fit, 1); }
+    /* :global — the trial section is TrialPlates' markup; the page's scoped
+       selector can't reach into another component (the wiki's set:html
+       gotcha, same mechanism). */
+    .garage-wall > :global(.trial-plates) { zoom: var(--wall-fit, 1); }
+  }
   @media (max-width: 480px) {
     .garage-wall { --rail-h: 22px; }
   }
