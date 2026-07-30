@@ -6,6 +6,10 @@
  *   status: 'beta'           → Buy CTA shows but no checkoutUrl until product live
  *   status: 'live'           → Buy CTA active, set checkoutUrl to the Lemon Squeezy buy link
  *
+ * ARRAY ORDER IS THE STORE ORDER: /store renders this list as-is, so shipping
+ * plugins lead and in-development ones trail. Nothing else depends on order
+ * (Header/Cart/TrialGateModal look plugins up by slug).
+ *
  * Prices are intent — flip when commerce launches.
  * Checkout: migrating from Lemon Squeezy to FastSpring. Cart.astro reads
  * `fastspringPath`; `checkoutUrl` (LS) is left populated as a rollback path.
@@ -259,125 +263,6 @@ export const plugins: Plugin[] = [
     },
   },
   {
-    slug: 'drift',
-    name: 'Drift',
-    category: 'panner',
-    tagline: 'A multiband panner you steer like a drift car',
-    oneLiner:
-      'Send your selected freq. band to a trip across the stereo field.',
-    plainHook: 'Controlled slides. No spinouts.',
-    plainWhat:
-      'It moves chosen frequency bands across the stereo image, with saturation, reverb and tremolo per band. Wide and alive, never seasick.',
-    longPitch:
-      'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you, controlled slides that keep the mix wide and alive.',
-    status: 'in-development',
-    statusLabel: 'In development',
-    introPriceUsd: null,
-    regularPriceUsd: null,
-    checkoutUrl: null,
-    checkoutPaused: false,
-    demoUrl: null,
-    releaseTarget: '2026',
-    heroImage: 'coming-soon-plate.png',
-    galleryImages: [],
-    features: [
-      { name: 'Multiband panning', desc: 'Split the spectrum and send each band sliding across the stereo field independently.' },
-      { name: 'Per-band character', desc: 'Saturation, reverb and tremolo dialled in per band. Movement with tone, not just position.' },
-      { name: 'Autopilot', desc: 'LFO-driven motion that steers the pan or a chosen band for you. Hands-off, living stereo.' },
-    ],
-    audioDemos: [],
-    systemReq: baseSystemReq,
-    reviewsCount: 0,
-    reviewsAvg: 0,
-  },
-  {
-    slug: 'the-ac',
-    name: 'The AC',
-    category: 'saturation',
-    tagline: 'An air-band exciter that brings the breeze',
-    oneLiner:
-      'Add clean air and shine to your top end.',
-    plainHook: 'Cold for air. Hot for warmth.',
-    plainWhat:
-      'It opens the top of your mix with sparkle instead of harshness, all from one temperature dial.',
-    longPitch:
-      'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming, all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
-    status: 'in-development',
-    statusLabel: 'In development',
-    introPriceUsd: null,
-    regularPriceUsd: null,
-    checkoutUrl: null,
-    checkoutPaused: false,
-    demoUrl: null,
-    releaseTarget: '2026',
-    heroImage: 'coming-soon-plate.png',
-    galleryImages: [],
-    features: [
-      { name: 'Air-band excitement', desc: 'Harmonic exciter focused on the top octaves. Openness and shine without harshness.' },
-      { name: 'Tube saturation', desc: 'Warm valve-style saturation on the air band for density and sheen.' },
-      { name: 'Smart resonance taming', desc: 'Dynamic EQ / resonance suppression keeps the boosted top smooth.' },
-      { name: 'Temperature dial', desc: 'One car-AC temperature control blends exciter (cold) to tube (hot); mid is both.' },
-    ],
-    audioDemos: [],
-    systemReq: baseSystemReq,
-    reviewsCount: 0,
-    reviewsAvg: 0,
-  },
-  {
-    slug: 'gas',
-    name: 'GAS',
-    category: 'saturation',
-    tagline: 'A one-knob saturator you drive like a gas pedal',
-    oneLiner:
-      'One DRIVE knob, three voices: Tube, Tape, Fuzz. Floor it for character, not just loudness.',
-    plainHook: 'Step on it.',
-    plainWhat:
-      'A free saturator: one DRIVE knob adds grit and warmth, and Tube, Tape or Fuzz picks the flavor.',
-    longPitch:
-      'One knob does the work of five. GAS stages drive gain, tone shaping, and calibrated loudness compensation together, so turning DRIVE changes character, never just volume. Three voices: Tube for even-harmonic warmth, Tape for symmetric saturation with programme-dependent squash, Fuzz for a dying-battery snarl that cleans up under sustain. A check-engine lamp lights up when you’re really flooring it.',
-    status: 'live',
-    statusLabel: 'Available now',
-    hideStatusPill: true,
-    cardThumbAspect: '800/1190',
-    cardThumbMaxWidthPct: 40,
-    introPriceUsd: null,
-    regularPriceUsd: null,
-    checkoutUrl: null,
-    checkoutPaused: false,
-    isFree: true,
-    downloadUrl: GAS_DOWNLOAD_URL,
-    // Checkout paused site-wide during the payment-provider migration
-    // (2026-07-26) — every download CTA opens TrialGateModal instead. Drop
-    // this once checkout's back.
-    trialGateActive: true,
-    demoUrl: null,
-    releaseTarget: 'Available now',
-    heroImage: 'gas-hero.png',
-    galleryImages: [],
-    tutorialVideo: {
-      title: "Driver's Manual",
-      youtubeId: 'b4RpGt4-k44',
-      blurb: 'Everything under the hood: the full GAS tutorial, one knob, three voices.',
-    },
-    // ORDER IS EDITORIAL: /gas (src/pages/gas.astro) prints the first three
-    // names as its only feature copy, so the three that sell GAS lead the list.
-    // No `stage` / `part` slugs — GAS left the shared product layout on
-    // 2026-07-30 and its one-screen page has no part-highlighter to feed. The
-    // measured rects are in git if that page ever wants them (1724a27, daf25ba).
-    features: [
-      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together, so turning the knob changes character, never volume.' },
-      { name: 'Three voices: Tube, Tape, Fuzz', desc: 'Tube: even-harmonic asymmetric warmth. Tape: symmetric saturation with programme-dependent squash. Fuzz: biased arctan/hard-clip blend with battery-sag sputter.' },
-      { name: 'Up to 8× oversampling', desc: 'Antiderivative anti-aliasing on every shaper, oversampled 8× on HQ and 4× on Eco, for drive that stays clean instead of aliasing.' },
-      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop. The 0 to 10 arc reads character, not level: deterministic, null-test friendly, no pumping, no cheating the sweep.' },
-      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it, reading real DSP heat, not just knob position.' },
-      { name: 'Parallel MIX blend', desc: 'The mini knob blends the driven signal against a latency-matched dry path, so you can park GAS on a bus and dial the grit in behind the clean. Double-click for fully wet.' },
-    ],
-    audioDemos: [],
-    systemReq: baseSystemReq,
-    reviewsCount: 0,
-    reviewsAvg: 0,
-  },
-  {
     slug: 'radio-roulette',
     name: 'Radio Roulette',
     category: 'multi-fx',
@@ -450,6 +335,125 @@ export const plugins: Plugin[] = [
         vu: { x: 65.7, y: 79.5, w: 11.6, h: 12.5, thumb: 'radioroulette-part-vu.png' },
       },
     },
+  },
+  {
+    slug: 'gas',
+    name: 'GAS',
+    category: 'saturation',
+    tagline: 'A one-knob saturator you drive like a gas pedal',
+    oneLiner:
+      'One DRIVE knob, three voices: Tube, Tape, Fuzz. Floor it for character, not just loudness.',
+    plainHook: 'Step on it.',
+    plainWhat:
+      'A free saturator: one DRIVE knob adds grit and warmth, and Tube, Tape or Fuzz picks the flavor.',
+    longPitch:
+      'One knob does the work of five. GAS stages drive gain, tone shaping, and calibrated loudness compensation together, so turning DRIVE changes character, never just volume. Three voices: Tube for even-harmonic warmth, Tape for symmetric saturation with programme-dependent squash, Fuzz for a dying-battery snarl that cleans up under sustain. A check-engine lamp lights up when you’re really flooring it.',
+    status: 'live',
+    statusLabel: 'Available now',
+    hideStatusPill: true,
+    cardThumbAspect: '800/1190',
+    cardThumbMaxWidthPct: 40,
+    introPriceUsd: null,
+    regularPriceUsd: null,
+    checkoutUrl: null,
+    checkoutPaused: false,
+    isFree: true,
+    downloadUrl: GAS_DOWNLOAD_URL,
+    // Checkout paused site-wide during the payment-provider migration
+    // (2026-07-26) — every download CTA opens TrialGateModal instead. Drop
+    // this once checkout's back.
+    trialGateActive: true,
+    demoUrl: null,
+    releaseTarget: 'Available now',
+    heroImage: 'gas-hero.png',
+    galleryImages: [],
+    tutorialVideo: {
+      title: "Driver's Manual",
+      youtubeId: 'b4RpGt4-k44',
+      blurb: 'Everything under the hood: the full GAS tutorial, one knob, three voices.',
+    },
+    // ORDER IS EDITORIAL: /gas (src/pages/gas.astro) prints the first three
+    // names as its only feature copy, so the three that sell GAS lead the list.
+    // No `stage` / `part` slugs — GAS left the shared product layout on
+    // 2026-07-30 and its one-screen page has no part-highlighter to feed. The
+    // measured rects are in git if that page ever wants them (1724a27, daf25ba).
+    features: [
+      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together, so turning the knob changes character, never volume.' },
+      { name: 'Three voices: Tube, Tape, Fuzz', desc: 'Tube: even-harmonic asymmetric warmth. Tape: symmetric saturation with programme-dependent squash. Fuzz: biased arctan/hard-clip blend with battery-sag sputter.' },
+      { name: 'Up to 8× oversampling', desc: 'Antiderivative anti-aliasing on every shaper, oversampled 8× on HQ and 4× on Eco, for drive that stays clean instead of aliasing.' },
+      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop. The 0 to 10 arc reads character, not level: deterministic, null-test friendly, no pumping, no cheating the sweep.' },
+      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it, reading real DSP heat, not just knob position.' },
+      { name: 'Parallel MIX blend', desc: 'The mini knob blends the driven signal against a latency-matched dry path, so you can park GAS on a bus and dial the grit in behind the clean. Double-click for fully wet.' },
+    ],
+    audioDemos: [],
+    systemReq: baseSystemReq,
+    reviewsCount: 0,
+    reviewsAvg: 0,
+  },
+  {
+    slug: 'drift',
+    name: 'Drift',
+    category: 'panner',
+    tagline: 'A multiband panner you steer like a drift car',
+    oneLiner:
+      'Send your selected freq. band to a trip across the stereo field.',
+    plainHook: 'Controlled slides. No spinouts.',
+    plainWhat:
+      'It moves chosen frequency bands across the stereo image, with saturation, reverb and tremolo per band. Wide and alive, never seasick.',
+    longPitch:
+      'A multiband panner built for movement. Slice your mix into bands and send each one drifting across the stereo image, with saturation, reverb and tremolo per band. Flip on Autopilot and an LFO steers the motion for you, controlled slides that keep the mix wide and alive.',
+    status: 'in-development',
+    statusLabel: 'In development',
+    introPriceUsd: null,
+    regularPriceUsd: null,
+    checkoutUrl: null,
+    checkoutPaused: false,
+    demoUrl: null,
+    releaseTarget: '2026',
+    heroImage: 'coming-soon-plate.png',
+    galleryImages: [],
+    features: [
+      { name: 'Multiband panning', desc: 'Split the spectrum and send each band sliding across the stereo field independently.' },
+      { name: 'Per-band character', desc: 'Saturation, reverb and tremolo dialled in per band. Movement with tone, not just position.' },
+      { name: 'Autopilot', desc: 'LFO-driven motion that steers the pan or a chosen band for you. Hands-off, living stereo.' },
+    ],
+    audioDemos: [],
+    systemReq: baseSystemReq,
+    reviewsCount: 0,
+    reviewsAvg: 0,
+  },
+  {
+    slug: 'the-ac',
+    name: 'The AC',
+    category: 'saturation',
+    tagline: 'An air-band exciter that brings the breeze',
+    oneLiner:
+      'Add clean air and shine to your top end.',
+    plainHook: 'Cold for air. Hot for warmth.',
+    plainWhat:
+      'It opens the top of your mix with sparkle instead of harshness, all from one temperature dial.',
+    longPitch:
+      'An air-band specialist. The AC adds breeze and shine to the top of your mix with a harmonic exciter, tube saturation, and intelligent resonance taming, all set by a single car-AC temperature dial. Cold leans bright and airy, hot leans warm and saturated, the middle blends both.',
+    status: 'in-development',
+    statusLabel: 'In development',
+    introPriceUsd: null,
+    regularPriceUsd: null,
+    checkoutUrl: null,
+    checkoutPaused: false,
+    demoUrl: null,
+    releaseTarget: '2026',
+    heroImage: 'coming-soon-plate.png',
+    galleryImages: [],
+    features: [
+      { name: 'Air-band excitement', desc: 'Harmonic exciter focused on the top octaves. Openness and shine without harshness.' },
+      { name: 'Tube saturation', desc: 'Warm valve-style saturation on the air band for density and sheen.' },
+      { name: 'Smart resonance taming', desc: 'Dynamic EQ / resonance suppression keeps the boosted top smooth.' },
+      { name: 'Temperature dial', desc: 'One car-AC temperature control blends exciter (cold) to tube (hot); mid is both.' },
+    ],
+    audioDemos: [],
+    systemReq: baseSystemReq,
+    reviewsCount: 0,
+    reviewsAvg: 0,
   },
 ];
 
