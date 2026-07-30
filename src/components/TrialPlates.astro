@@ -23,7 +23,7 @@
    successful register — not on the stamp click — so the count means
    "left an email", not "scrolled to the form". */
 import { getImage } from 'astro:assets';
-import type { Plugin } from '../data/plugins';
+import { dlGateId, type Plugin } from '../data/plugins';
 import plateImg from '../assets/ui/plate-temp-tag.png';
 import screwImg from '../assets/ui/screw-brass.png';
 
@@ -48,7 +48,11 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
   id="trial"
   data-trial-plates
   data-register-url={registerUrl}
-  data-plugin-id={plugin.slug}
+  {/* The worker keys on its own flat id, not the site slug, and falls back to
+      revlimiter on anything it doesn't recognise — so 'radio-roulette' would
+      quietly register the wrong product's trial. Every other CTA already goes
+      through dlGateId; this was the last one still sending the raw slug. */}
+  data-plugin-id={dlGateId(plugin)}
   data-portal-url={plugin.trialUrl}
   style={`--plate-url:url(${plate.src});`}
 >
@@ -56,7 +60,12 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
 
   <form class="plate-wrap" id="tp-form" data-tp-wrap novalidate>
     <div class="sway">
-      <div class="plate" data-tp-plate>
+      {/* Both printed lines are nowrap and carry the product name, so a name
+          longer than RevLimiter's runs past the eyelets (top strip) and gets
+          clipped by .plate-fields' overflow ("Term: 14 day"). Tighten the
+          tracking for long names instead of shrinking the type, which would
+          drop the terms line below its legibility floor. */}
+      <div class:list={['plate', plugin.name.length > 11 && 'plate--long-name']} data-tp-plate>
         <div class="plate-strip plate-strip--top">Temporary &nbsp;&middot;&nbsp; {plugin.name} &nbsp;&middot;&nbsp; trial</div>
         <div class="plate-caption" aria-hidden="true">Registered to</div>
         <input
@@ -259,6 +268,12 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
      version) — it is not decoration, so it prints closer to AA than the faux
      record line does */
   .plate-strip--bot { bottom: 11.6%; opacity: 0.8; letter-spacing: 0.14em; }
+
+  /* Long product name (see the template note): pull the tracking in so both
+     printed lines fit the paper. Only the two lines that carry the name are
+     touched; RevLimiter and GAS never get this class. */
+  .plate--long-name .plate-strip--top { letter-spacing: 0.1em; }
+  .plate--long-name .plate-fields { letter-spacing: 0.06em; }
 
   /* faux document fields — print the dead paper below the registration line
      so the tag reads as a real record (and the ISSUED stamp lands on
@@ -629,6 +644,11 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
       left: 13%; right: 13%;   /* its TERM: 14 DAYS tail was landing ~2px off the frame rule */
       top: 66%;   /* the email glyphs run relatively taller at phone widths */
     }
+    /* A long product name pushes this line past the 62 chars the sizes above
+       were solved for (Radio Roulette makes it 66), and the desktop long-name
+       rule loosens the tracking this block just bought back. Close it out here
+       or the tail gets amputated again. */
+    .plate--long-name .plate-fields { letter-spacing: 0; font-size: max(4.3px, 1.75cqw); }
     /* proportional too, so a long address keeps more of itself on the line */
     .plate-email { font-size: max(19px, 7.4cqw); }
     .get-btn { width: 84%; }
