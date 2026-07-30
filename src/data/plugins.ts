@@ -370,7 +370,9 @@ export const plugins: Plugin[] = [
     stage: {
       shot: 'gas-hero.png',
       parts: {
-        drive: { x: 26.8, y: 27.5, w: 46.8, h: 30 },
+        // Margin on purpose: sitting exactly on the mount's brass edge read as
+        // cropping the knob, not framing it.
+        drive: { x: 25.3, y: 26.3, w: 49.6, h: 32.6 },
         voices: { x: 15.7, y: 75.2, w: 68.6, h: 11.8 },
         dial: { x: 10.3, y: 19.3, w: 79.5, h: 49.5 },
         check: { x: 75, y: 9, w: 12.5, h: 9.4 },
@@ -386,9 +388,9 @@ export const plugins: Plugin[] = [
     oneLiner: 'The station that never plays the same song twice.',
     plainHook: 'Spin the dial. Keep what lands.',
     plainWhat:
-      'One button reshapes your sound through up to ten effects at once, and the same seed always plays back the same result.',
+      'One dial reshapes your sound through up to ten effects at once, and the same station always plays back the same result.',
     longPitch:
-      'A chaos/glitch multi-effect built around a single seed. RANDOMIZE rolls a new seed and instantly reconfigures a ten-stage chain (filter, EQ, fuzz, pitch-shift, chorus, delay, reverb, trance gate, stereo width, and pan), all deterministically, all level-matched and safety-limited so it never goes silent or blows up. Save a seed in your DAW to recall the exact sound later, or step through station presets like tuning an old dashboard radio.',
+      'A chaos engine with a memory. Every station is one number, and that number sets all ten stages at once: filter, EQ, fuzz, pitch, chorus, delay, reverb, trance gate, stereo width and pan. Double-click TUNE and it scans off to a new one. Whatever it lands on is level-matched and ceiling-safe, so the surprise is always the sound and never the volume. Find a station worth keeping and it stays: saved with your session, stored on a key, recalled exactly.',
     status: 'live',
     statusLabel: 'Available now',
     hideStatusPill: true,
