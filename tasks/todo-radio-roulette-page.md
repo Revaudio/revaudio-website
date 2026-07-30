@@ -118,3 +118,60 @@ Originally scoped out as RevLimiter-only furniture; Dan asked for it.
 sub-pixel drift per frame on RevLimiter too, 12s after load. Playwright refuses
 to click it ("element is not stable"). Harmless for mouse users, but it is a
 permanently moving click target; worth a look if anyone revisits `/cranelab`.
+
+## Bug — trial line vanishes while the door falls (Dan, 2026-07-30)
+
+**Report:** "when the door is falling the 'start your free trail' disappears
+and when the door comes back up it appears again."
+
+**Cause.** The crane rig is TWO doors. `BuyButtonCrane` hangs in the aside;
+at the page bottom `CraneDropZone` takes over — the top one goes
+`visibility:hidden` under `.crane-released` and the zone's own `.dz-door`
+falls, sits on the cracked footer border, and gets hauled back until the dock
+swap hands control back. `.dz-door` is a hand-maintained clone that only ever
+cloned the tag, the price and the promo code, so the free-trial call added to
+the hanging door earlier the same day existed on exactly one of the two. Not a
+Radio Roulette bug — a clone-divergence bug that any future painted copy would
+have hit.
+
+**Fix.** `CraneDropZone` now renders both trial slots with the same conditions
+and the same %/cqw values as `BuyButtonCrane`: `.dz-freetrial` (upper, before
+the square) and `.dz-trial` (lower, after it). Two deliberate deltas, both
+forced by this component's existing contract — no `#rc-worn-*` filters (nothing
+filtered may translate in Safari, same reason `.dz-price` dropped its own) and
+`pointer-events:auto` (the zone root is `pointer-events:none`). Real `<a>`s,
+not paint: the landed door's BUY NOW works, so a dead trial line beside it
+would be a trap. Kept OUT of `.dz-copy`, which is `aria-hidden` — a focusable
+element in an aria-hidden container is invisible to AT but still tabbable.
+`BuyButtonCrane`'s header now states the parity rule so the next line added up
+top gets cloned down.
+
+`.dz-trial` renders on neither plugin today (both are `trialGateActive`, and
+that slot also needs a sale chip in the upper one). It's there so RevLimiter
+doesn't reproduce this exact bug the day the checkout gate lifts.
+
+**Verified** — a sampler at 50ms over the whole cycle (seated → crane lets go →
+fall → landed → haul → dock swap), counting visible instances across both
+doors:
+
+| build | frames | 0 lines | 2 lines |
+|---|---|---|---|
+| pre-fix (control) | 263 | **251** | 0 |
+| after, dev | 263 | 0 | 0 |
+| after, production build | 263 | 0 | 0 |
+
+Exactly one visible line in every sampled frame, including the dock hand-off.
+Also: fallen-door rect matches the hanging door's to ≤0.24% of door width
+(x 54.89 vs 55.04, y 64.36 vs 64.31, both 113.5px wide, both 16.6px type);
+click goes to `#trial` and scrolls there; a 7x4 hit grid over BUY NOW returns
+`dz-buysq` at all 28 points, so the link's `::after` pad steals nothing; the
+lower slot was proven by injecting both elements with their components'
+`data-astro-cid-*` attributes — x 24.58 vs 24.59, y 85.57 vs 85.59, identical
+type/colour/rotation, filter the only difference; `npm run build` clean;
+zone stays `display:none` under reduced motion, at 900px and at 390px, where
+the top card hides its own line too; no console errors; no horizontal overflow
+at 390 / 900 / 901 / 1280; RevLimiter's fallen door unchanged (tag, price,
+code, BUY NOW).
+
+**Not touched:** `/cranelab` is a git-excluded local bench and carries no trial
+line, so it needs no clone.

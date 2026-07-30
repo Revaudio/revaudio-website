@@ -73,6 +73,25 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
             {plugin.promoCode && <div class="dz-ink dz-code">code <b>{plugin.promoCode}</b> at checkout</div>}
           </div>
           <div class="dz-imprint"></div>
+          <!-- Free-trial call, UPPER slot — mirrors BuyButtonCrane's
+               .rc-freetrial, same condition, same DOM position (before the
+               square). PARITY INVARIANT: the fallen door must paint exactly
+               what the hanging door paints. It didn't, and the line vanished
+               the moment the crane let go and came back at the dock swap
+               (Dan, 2026-07-30) — the clone only ever cloned the tag / price
+               / code, so any copy added up top has to be added here too.
+               A real <a>, not decoration: the landed door's BUY NOW works, so
+               a dead trial line beside it would be a trap. Deliberately NOT
+               inside .dz-copy — that wrapper is aria-hidden paint, and a
+               focusable element inside an aria-hidden container is invisible
+               to screen readers while still landing in the tab order. -->
+          {pct == null && plugin.trialUrl && (
+            <a
+              class="dz-freetrial"
+              href="#trial"
+              aria-label={`Start the free 14-day trial of ${plugin.name}`}
+            ><span>Start your</span>{' '}<span><b>free</b> trial</span></a>
+          )}
           <!-- the landed door still sells — real add-to-cart, handled by
                Cart.astro's document-level [data-add-to-cart] listener.
                (Or, while checkout's paused, opens TrialGateModal instead —
@@ -88,6 +107,19 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
             <span class="dz-buysq-paint"></span>
             <span class="dz-buysq-label">BUY NOW</span>
           </button>
+          <!-- Free-trial call, LOWER slot — mirrors .rc-trial. Same parity
+               invariant as above: it renders on neither door today (both
+               plugins are trialGateActive), but the day the gate lifts
+               RevLimiter's hanging door grows this line, and without the
+               clone it would disappear on the way down exactly like the
+               upper one did. -->
+          {!gated && pct != null && plugin.trialUrl && (
+            <a
+              class="dz-trial"
+              href="#trial"
+              aria-label={`Or get the free 14 days trial of ${plugin.name}`}
+            >or try it <b>free</b> for 14 days</a>
+          )}
         </div>
         <div class="dz-ring"></div>
       </div>
@@ -377,6 +409,102 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
     color: #241310;
     pointer-events: none;
     z-index: 1;
+  }
+
+  /* ── painted trial lines ────────────────────────────────────────────────
+     Geometry and type are ported VERBATIM from BuyButtonCrane's .rc-freetrial
+     / .rc-trial — the dock swap puts clone and real door on the same pixels in
+     the same frame, so any drift here would read as the copy jumping at the
+     hand-off. Two deltas, both forced by this component's contract:
+       · no url(#rc-worn-*) on the glyphs — nothing filtered may translate in
+         Safari, the same reason .dz-tag/.dz-price/.dz-code dropped theirs.
+         Costs nothing visible here: the wear PNG is ~255 alpha across this
+         patch of door, so even .dz-copy's mask barely bites on these rows.
+       · pointer-events:auto — the zone root is pointer-events:none, so links
+         opt back in one by one exactly like .dz-buysq does.
+     No @media block: the whole zone is desktop-only (min-width:901px), which
+     is the same side of the breakpoint where the top card shows these. ── */
+  .dz-freetrial {
+    position: absolute;
+    left: 70.2%;
+    top: 66.9%;
+    transform: translate(-50%, -50%);
+    rotate: -2.7deg;
+    z-index: 5;
+    white-space: nowrap;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 4.15cqw;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #dcc9b0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+    text-decoration: none;
+    pointer-events: auto;
+  }
+
+  .dz-freetrial span { display: block; }
+
+  .dz-freetrial b {
+    font-weight: 700;
+    color: #e8c878;
+    text-decoration: underline dotted rgba(232, 200, 120, 0.6);
+    text-underline-offset: 0.3em;
+  }
+
+  .dz-freetrial:hover { color: #f6e7c8; }
+  .dz-freetrial:hover b { text-decoration-color: #e8c878; }
+
+  .dz-freetrial:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 4px;
+  }
+
+  /* fattened pointer target, in cqw like the top card's. It reaches down over
+     the square's top edge; the square still wins that overlap — same z5, later
+     in the DOM. */
+  .dz-freetrial::after {
+    content: '';
+    position: absolute;
+    inset: -1.4cqw;
+  }
+
+  .dz-trial {
+    position: absolute;
+    left: 50%;
+    top: 88.1%;
+    transform: translate(-50%, -50%);
+    rotate: 0.9deg;
+    z-index: 5;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 3cqw;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #e9dcbf;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+    text-decoration: underline dotted rgba(232, 200, 120, 0.7);
+    text-underline-offset: 0.35em;
+    pointer-events: auto;
+  }
+
+  .dz-trial b { font-weight: 700; color: #e8c878; }
+
+  .dz-trial:hover {
+    color: #fff3d9;
+    text-decoration-color: #e8c878;
+  }
+
+  .dz-trial:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 3px;
+  }
+
+  .dz-trial::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
   }
 
   /* the door's lifting ring — rides the door so the hook has something to

@@ -29,7 +29,14 @@
    - Release choreography (page-bottom drop/pickup) NOT mounted — the card
      isn't pinned to document bottom here; the CSS vars it rides (--door-y/
      --door-rot/--crane-y) stay declared at 0 so it can bake in later.
-   Tuning still happens on /cranelab (?edit=1); paste values back here. */
+   Tuning still happens on /cranelab (?edit=1); paste values back here.
+
+   PARITY RULE — any painted copy you add to this door must be added to
+   CraneDropZone.astro's .dz-door too (same condition, same %/cqw values,
+   minus the #rc-worn-* filters). That clone IS the door from the moment the
+   crane lets go at the page bottom until the dock swap brings this one back,
+   so a line that exists only here disappears on the way down and returns on
+   the way up. Exactly how the free-trial call shipped broken, 2026-07-30. */
 import type { Plugin } from '../data/plugins';
 import { fmtPrice, discountPct, dlGateId } from '../data/plugins';
 import { site } from '../data/site';
