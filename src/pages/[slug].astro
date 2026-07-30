@@ -31,11 +31,14 @@ const { plugin } = Astro.props;
 // Pre-launch products show a "reserve / get notified" block. Once a product is
 // buyable, that block contradicts the Add-to-cart button, so it's hidden.
 const buyable = isBuyable(plugin);
-// RevLimiter's buy card is the crane-hung door (bench: /cranelab). The flag
-// also drives the --crane layout modifiers: on mobile the door FLOATS top-right
-// over the hero instead of stacking below the gallery (sketch 2026-07-06),
-// while the classic BuyButton aside keeps the plain stacked flow.
-const crane = plugin.slug === 'revlimiter' && buyable;
+// The crane-hung door buy card (bench: /cranelab), opted into per plugin via
+// `craneBuy` — it was hardcoded to revlimiter until Radio Roulette took it too
+// (2026-07-30). The flag also drives the --crane layout modifiers: on mobile the
+// door FLOATS top-right over the hero instead of stacking below the gallery
+// (sketch 2026-07-06), while the classic BuyButton aside keeps the plain
+// stacked flow. Still requires `buyable` — a door with no checkout behind it
+// would hang there advertising a button that can't transact.
+const crane = !!plugin.craneBuy && buyable;
 // GAS's hero is a compact portrait knob shot, not a wide desktop panel — at the
 // gallery's default 100%-of-column width it dwarfs the copy. Shrink it down.
 const narrowHero = plugin.slug === 'gas';

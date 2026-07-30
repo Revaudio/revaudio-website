@@ -131,6 +131,12 @@ export interface Plugin {
   reviewsAvg: number;
   /** Optional part-highlighter stage config — see `Stage`. */
   stage?: Stage;
+  /** Use the crane-hung garage door as the buy card instead of the classic
+   *  BuyButton aside (BuyButtonCrane + CraneDropZone, bench /cranelab). The
+   *  door is brand furniture, not RevLimiter's alone — its painted copy is all
+   *  data (price, discount tag, promo code), so it reads correctly for any
+   *  plugin. Only takes effect on a buyable product. */
+  craneBuy?: boolean;
   /** Free-trial CTA target (the Downloads portal). When set, the product page
    *  mounts the trial stamp between the title and the buy card. */
   trialUrl?: string;
@@ -220,6 +226,7 @@ export const plugins: Plugin[] = [
     reviewsCount: 0,
     reviewsAvg: 0,
     trialUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
+    craneBuy: true,
     tutorialVideo: {
       title: "Driver's Manual",
       youtubeId: 'Og4PRlBFco8',
@@ -394,22 +401,45 @@ export const plugins: Plugin[] = [
     heroImage: 'radioroulette-hero.png',
     galleryImages: [],
     features: [
-      { name: 'One-seed chaos engine', desc: 'One seed (1–1,000,000) deterministically configures all ten effect stages at once. The same seed always reproduces the exact same sound.' },
-      { name: 'RANDOMIZE', desc: 'Rolls a new seed and re-randomizes everything instantly. Every result is level-matched and safety-limited, so it can’t go silent or blow up.' },
-      { name: '10-stage chain', desc: 'Filter → EQ → Fuzz → Pitch → Chorus → Delay → Reverb → Gate → Stereo → Pan, independently enabled per seed.' },
-      { name: 'Filter', desc: 'State-variable low-pass, high-pass, or band-pass, with randomized cutoff and resonance.' },
-      { name: 'Fuzz', desc: 'Drive into tanh, hard-clip, or foldback distortion.' },
-      { name: 'Pitch shift', desc: 'Discrete semitone steps (±3, ±5, ±7, ±12) via a crossfaded ring buffer.' },
-      { name: 'Chorus, delay & reverb', desc: 'Rate, depth, feedback, room size, damping, and width all randomized per seed.' },
-      { name: 'Trance gate', desc: 'Square or sawtooth LFO gate, 1–12 Hz.' },
-      { name: 'Stereo width & pan', desc: 'Mid/side width from narrow to wide, static pan or auto-pan LFO.' },
-      { name: 'Station presets', desc: 'Five save slots: press to recall, shift-click to store your favorite seeds.' },
-      { name: 'Seed recall', desc: 'Every seed is DAW-automatable and saved with your session. Dial in chaos once, keep it forever.' },
+      { name: 'One station, one sound', desc: 'A station is a single number from 0 to 1,000,000, and that number configures all ten stages at once. The same station always plays back the same result, on any machine, forever.', part: 'station' },
+      { name: 'Tune it, or let it scan', desc: 'Drag TUNE to walk the dial station by station. Double-click and it sweeps like a scanner, then lands somewhere you would never have picked yourself.', part: 'tune' },
+      { name: 'Ten effects on one dial', desc: 'Filter, EQ, fuzz, pitch, chorus, delay, reverb, gate, stereo and pan. The names lit on the glass are the ones this station is running. Click a lit name to mute that stage, click again to bring it back.', part: 'chain' },
+      { name: 'Five station keys', desc: 'Click a key to recall its station, double-click to store the one you are on. The keys keep their stations on your machine, so your five favourites are always one press away.', part: 'keys' },
+      { name: 'MIX', desc: 'Global dry/wet blend, smoothed. At zero the dry path is bit-transparent, so you can park Radio Roulette on a bus and dial the damage in from nothing.', part: 'mix' },
+      { name: 'Oversampling, 1x to 32x', desc: 'The fuzz stage runs oversampled up to 32x. Click OS to cycle it: higher for clean drive on hot material, lower when you want the CPU back. House default is 2x.', part: 'os' },
+      { name: 'True bypass', desc: 'Flip POWER down and the dry signal passes untouched, on a 10 ms fade so the switch never clicks.', part: 'power' },
+      { name: 'It cannot blow up', desc: 'Every station is level-matched by a per-station gain model, then finished with a soft ceiling at -0.3 dBFS on the wet path. At least two character effects are always on, so it cannot land on silence either. Watch the VU: chaos, at a sane level.', part: 'vu' },
     ],
     audioDemos: [],
     systemReq: baseSystemReq,
     reviewsCount: 0,
     reviewsAvg: 0,
+    trialUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
+    craneBuy: true,
+    /* Part rects measured off the live v1.9.1 WebView UI (served over http,
+       WebKit): each control's getBoundingClientRect as a percent of #dash, then
+       padded so the walkthrough box frames the control instead of tracing it.
+       The dial-name rects are 1.4% tall in the DOM, hence the vertical padding.
+       Shot + thumbs regenerate from scratchpad/rr-shoot-true.mjs + rr-assets.py.
+
+       The shot is station 456149 with all ten names lit. Served without a DSP
+       behind it the UI lights its lamps from a mulberry32 demo, which is NOT
+       what the plugin does for a given station, so the shoot script recomputes
+       the real enables (mt19937, ported from deriveSettings) and paints those
+       instead. The panel in the shot is a station the plugin genuinely produces. */
+    stage: {
+      shot: 'radioroulette-hero.png',
+      parts: {
+        station: { x: 27.0, y: 67.7, w: 11.5, h: 4.4, thumb: 'radioroulette-part-station.png' },
+        tune: { x: 76.6, y: 52.6, w: 11.6, h: 24.0, thumb: 'radioroulette-part-tune.png' },
+        chain: { x: 26.8, y: 63.3, w: 43.6, h: 4.2, thumb: 'radioroulette-part-chain.png' },
+        keys: { x: 35.5, y: 78.7, w: 28.8, h: 14.3, thumb: 'radioroulette-part-keys.png' },
+        mix: { x: 11.4, y: 52.0, w: 11.8, h: 24.6, thumb: 'radioroulette-part-mix.png' },
+        os: { x: 56.8, y: 67.7, w: 6.8, h: 4.4, thumb: 'radioroulette-part-os.png' },
+        power: { x: 25.1, y: 78.0, w: 6.5, h: 15.5, thumb: 'radioroulette-part-power.png' },
+        vu: { x: 65.7, y: 79.5, w: 11.6, h: 12.5, thumb: 'radioroulette-part-vu.png' },
+      },
+    },
   },
 ];
 

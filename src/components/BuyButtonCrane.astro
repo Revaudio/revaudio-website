@@ -87,6 +87,23 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
           <!-- door hover hitbox: the door's OPAQUE bbox only (top 27%→100%) —
                the element box includes the transparent chain region up top -->
           <div class="rc-hit"></div>
+          <!-- Free-trial call, UPPER slot (Dan 2026-07-30): right of the price,
+               above the square — the same patch of metal RevLimiter's launch-sale
+               chip occupies. Rendered only when that slot is actually free (no
+               discount to stamp there) AND the plugin has a trial, keyed off
+               discountPct rather than a slug so any future sale reclaims the slot
+               on its own. Sits BEFORE the square in DOM order so tab order runs
+               top-to-bottom with the paint. Sibling of .rc-copy, like .rc-trial:
+               inside the wear-masked wrapper the focus ring erodes with the paint. -->
+          {pct == null && plugin.trialUrl && (
+            <a
+              class="rc-freetrial"
+              href="#trial"
+              {/* same wording as MobileBuyBar's trial CTA — one name for the
+                  action wherever it appears */}
+              aria-label={`Start the free 14-day trial of ${plugin.name}`}
+            ><span>Start your</span>{' '}<span><b>free</b> trial</span></a>
+          )}
           <!-- BUY NOW square — THE add-to-cart. Cart.astro's document-level
                click listener handles [data-add-to-cart]; keyboard focus gets
                the L2 treatment via JS (+ visible outline). -->
@@ -109,8 +126,12 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
                trial. Desktop-only — on phones this row paints ~10px tall,
                and the mobile funnel is served by the relocated TrialStamp.
                Skipped while gated — the BUY NOW square above already opens
-               the same trial offer, a second link under it would be noise. -->
-          {!gated && plugin.trialUrl && (
+               the same trial offer, a second link under it would be noise.
+               Also skipped when there's no discount (2026-07-30): the upper
+               slot is free then and .rc-freetrial above already carries this
+               exact offer. One trial line per door, in whichever slot the
+               sale chip isn't using. -->
+          {!gated && pct != null && plugin.trialUrl && (
             <a
               class="rc-trial"
               href="#trial"
@@ -533,6 +554,91 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
     filter: url(#rc-worn-plat);          /* no-op (scale 0) — kept for bench parity */
   }
 
+  /* ── free-trial call, upper slot ────────────────────────────────────────
+     Painted into the gap the launch-sale chip fills on RevLimiter: right of
+     the price, above the square. Sign-written, NOT boxed — a bordered chip
+     round these four words would read as a web button laid on the metal,
+     which is the one thing this door must never look like.
+     The block is the idea: "START YOUR" and "FREE TRIAL" are both exactly ten
+     characters, so in a monospaced face the two lines set to identical width
+     and the copy stacks into a true rectangle. That's where the stencil read
+     comes from — the type, not a frame. FREE takes the price's brass so the
+     door's two money words rhyme, same <b> convention as .rc-trial.
+     4.15cqw lands it in the .rc-tag / .rc-code family (4.17 / 4.36cqw), which
+     is where it belongs in the hierarchy: BUY NOW is the action, the price is
+     the offer, this is the way out. A first pass at 4.8cqw gave the block the
+     same visual mass as the $20 and the two read as competing headlines.
+     Tilt copies the price's -2.7deg exactly rather than splitting the
+     difference with the chip's -1.3deg: same hand, same afternoon, and it
+     leaves the block visibly off-axis from the square's +1deg.
+     Placement/type came off a headless measure pass, not the bench; /cranelab
+     (?edit=1) is still where these get nudged. */
+  .rc-freetrial {
+    position: absolute;
+    /* left 70.2% is not arbitrary: at this size the ten-character block's right
+       edge lands on 82.08% of the door, which is exactly where the BUY NOW
+       square's right edge falls. The two right-align down the door, so the
+       paint reads as composed rather than dropped in.
+       top 66.9% straddles the price's own band and leaves ~8px over the
+       square's bbox at a 417px door — enough that the underline never reads as
+       the square's top border. */
+    left: 70.2%;
+    top: 66.9%;
+    transform: translate(-50%, -50%);
+    rotate: -2.7deg;
+    z-index: 5;
+    white-space: nowrap;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 4.15cqw;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #dcc9b0;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+    text-decoration: none;
+  }
+
+  /* Worn filter rides the LINES, not the link — the same erosion .rc-trial
+     gets, but keeping it off the <a> leaves :focus-visible's outline crisp
+     instead of displacing it by the filter's 3.15px. Each line lands on its
+     own patch of turbulence too, so the two rows wear differently. */
+  .rc-freetrial span {
+    display: block;
+    filter: url(#rc-worn-code);
+  }
+
+  /* Link affordance sits under FREE alone, not the whole line. A rule running
+     the block's full width lands a few px above the BUY NOW patch and reads as
+     that box's top border — the block stops being paint and becomes a caption
+     bar bolted to the button. Under one brass word it's a signwriter's
+     underscore instead, and it marks the word that carries the offer. */
+  .rc-freetrial b {
+    font-weight: 700;
+    color: #e8c878;
+    text-decoration: underline dotted rgba(232, 200, 120, 0.6);
+    text-underline-offset: 0.3em;
+  }
+
+  .rc-freetrial:hover { color: #f6e7c8; }
+  .rc-freetrial:hover b { text-decoration-color: #e8c878; }
+
+  .rc-freetrial:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 4px;
+  }
+
+  /* Fatten the pointer target. In cqw, not the px .rc-trial uses: the aside
+     column narrows before the 900px breakpoint (door 417px → 333px at 901px
+     viewport) and a fixed 6px pad grows relative to a shrinking door until it
+     laps the square's top edge. The square still wins that overlap — same z5,
+     later in the DOM — but the reach shouldn't drift in the first place. */
+  .rc-freetrial::after {
+    content: '';
+    position: absolute;
+    inset: -1.4cqw;
+  }
+
   /* ── trial escape hatch — painted mono line in the gap between the BUY NOW
      square (bottom ≈87%) and the code line (top ≈90%). Same worn-code filter
      family as its neighbours; dotted brass underline = "this one's a link".
@@ -908,6 +1014,15 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
     .rc-hookglint { opacity: calc(var(--l1) * 0.18); }
     /* L2 box glow: hover-only (L2 never fires on touch), so keep it card-bound. */
     .rc-buysq-glow { inset: 0; }
+    /* Free-trial call: same verdict as .rc-trial below, measured not assumed —
+       at 390px the door is ~201px wide, so 4.15cqw sets 8.3px type and the
+       whole block is a 63x21px tap target. Scaling it to ~11px was tried and
+       still misses both the type floor and the 44px target, and it would be
+       an 11px link inside a 201px ornament that never stops swaying. Mobile's
+       trial path is already the MobileBuyBar CTA (which opens the trial while
+       checkout is paused) and the #trial section this link points at, so
+       nothing is lost by leaving the paint to desktop. */
+    .rc-freetrial { display: none; }
     /* Trial escape hatch: at a ~242px door this paints ~8px tall — unreadable
        and an accessibility miss. The mobile funnel is served by the TrialStamp
        relocated above the gallery instead. */
@@ -1045,7 +1160,10 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
       };
       const hit = root.querySelector<HTMLElement>('.rc-hit');
       const buysq = root.querySelector<HTMLElement>('.rc-buysq');
-      const trialLink = root.querySelector<HTMLElement>('.rc-trial');
+      // Every painted LINK on the door, whichever slot it's in. These sit at
+      // z5, above .rc-hit, so without their own handlers the pointer crossing
+      // one would read as leaving the door and drop L1 mid-hover.
+      const doorLinks = root.querySelectorAll<HTMLElement>('.rc-trial, .rc-freetrial');
       if (canHover) {
         hit?.addEventListener('pointerenter', l1Enter);
         hit?.addEventListener('pointerleave', l1Leave);
@@ -1053,8 +1171,10 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
         buysq?.addEventListener('pointerleave', l1Leave);
         buysq?.addEventListener('pointerenter', sqOn);       // L2 rides on top of L1
         buysq?.addEventListener('pointerleave', sqOff);
-        trialLink?.addEventListener('pointerenter', l1Enter); // trial link is on the door too
-        trialLink?.addEventListener('pointerleave', l1Leave);
+        doorLinks.forEach((el) => {                          // painted links are on the door too
+          el.addEventListener('pointerenter', l1Enter);
+          el.addEventListener('pointerleave', l1Leave);
+        });
       }
       // Keyboard focus lights the square like a hover (focus ≈ L2-on). Gated to
       // :focus-visible so mouse clicks don't double-drive the pointer handlers.
