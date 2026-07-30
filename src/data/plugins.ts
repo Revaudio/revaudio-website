@@ -354,6 +354,11 @@ export const plugins: Plugin[] = [
     releaseTarget: 'Available now',
     heroImage: 'gas-hero.png',
     galleryImages: [],
+    tutorialVideo: {
+      title: "Driver's Manual",
+      youtubeId: 'b4RpGt4-k44',
+      blurb: 'Everything under the hood: the full GAS tutorial, one knob, three voices.',
+    },
     // ORDER IS EDITORIAL: /gas (src/pages/gas.astro) prints the first three
     // names as its only feature copy, so the three that sell GAS lead the list.
     // No `stage` / `part` slugs — GAS left the shared product layout on
@@ -416,6 +421,11 @@ export const plugins: Plugin[] = [
     reviewsAvg: 0,
     trialUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
     craneBuy: true,
+    tutorialVideo: {
+      title: "Driver's Manual",
+      youtubeId: '610pUxqBSks',
+      blurb: 'Everything under the hood: the full Radio Roulette tutorial, station by station.',
+    },
     /* Part rects measured off the live v1.9.1 WebView UI (served over http,
        WebKit): each control's getBoundingClientRect as a percent of #dash, then
        padded so the walkthrough box frames the control instead of tracing it.

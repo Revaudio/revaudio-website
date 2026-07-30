@@ -49,11 +49,38 @@ const highlights = plugin.features.slice(0, 3);
       </div>
 
       <div class="gas-copy">
-        <h1>
-          {plugin.name}
-          <span class="gas-free">Free</span>
-        </h1>
-        {plugin.plainHook && <p class="gas-hook">{plugin.plainHook}</p>}
+        <div class="gas-titlerow">
+          <div class="gas-titles">
+            <h1>
+              {plugin.name}
+              <span class="gas-free">Free</span>
+            </h1>
+            {plugin.plainHook && <p class="gas-hook">{plugin.plainHook}</p>}
+          </div>
+          {plugin.tutorialVideo && (
+            <button
+              type="button"
+              class="gas-video-badge"
+              data-gas-video-open
+              data-yt-id={plugin.tutorialVideo.youtubeId}
+              data-yt-title={`${plugin.name}: ${plugin.tutorialVideo.title}`}
+              aria-label={`Play video: ${plugin.name}, ${plugin.tutorialVideo.title}`}
+            >
+              <span class="gas-video-thumb">
+                <img
+                  src={`https://i.ytimg.com/vi/${plugin.tutorialVideo.youtubeId}/hqdefault.jpg`}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  width="120"
+                  height="90"
+                />
+                <span class="gas-video-play" aria-hidden="true"></span>
+              </span>
+              <span class="gas-video-caption">{plugin.tutorialVideo.title}</span>
+            </button>
+          )}
+        </div>
         <p class="gas-what">{plugin.tagline}.</p>
 
         <ul class="gas-list">
@@ -82,7 +109,56 @@ const highlights = plugin.features.slice(0, 3);
       </div>
     </div>
   </section>
+
+  {/* Driver's Manual lightbox — the badge next to the title opens this instead
+      of an inline 16:9 section, so the one-screen promise above holds. No
+      player JS/youtube.com request until the visitor actually clicks play. */}
+  {plugin.tutorialVideo && (
+    <dialog
+      class="gas-video-modal"
+      data-gas-video-modal
+      aria-label={`${plugin.name}: ${plugin.tutorialVideo.title}`}
+    >
+      <button type="button" class="gas-video-close" data-gas-video-close aria-label="Close">&times;</button>
+      <div class="gas-video-frame" data-gas-video-frame></div>
+    </dialog>
+  )}
 </BaseLayout>
+
+<script>
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-gas-video-open]');
+  const modal = document.querySelector<HTMLDialogElement>('[data-gas-video-modal]');
+  const frame = modal?.querySelector<HTMLElement>('[data-gas-video-frame]');
+  const closeBtn = modal?.querySelector<HTMLButtonElement>('[data-gas-video-close]');
+
+  if (openBtn && modal && frame && closeBtn) {
+    function openVideo() {
+      const id = openBtn!.dataset.ytId;
+      if (!id) return;
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+      iframe.title = openBtn!.dataset.ytTitle ?? '';
+      iframe.allow =
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.allowFullscreen = true;
+      frame!.replaceChildren(iframe);
+      if (typeof modal!.showModal === 'function') modal!.showModal(); else modal!.setAttribute('open', '');
+      document.documentElement.style.overflow = 'hidden';
+    }
+    function closeVideo() {
+      if (typeof modal!.close === 'function') modal!.close(); else modal!.removeAttribute('open');
+    }
+    openBtn.addEventListener('click', openVideo);
+    closeBtn.addEventListener('click', closeVideo);
+    // Backdrop click: a click landing on the dialog element itself (not children).
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeVideo(); });
+    modal.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+      frame!.replaceChildren(); // stop playback once closed
+    });
+  }
+</script>
 
 <style>
   /* One screen, vertically centred. svh (not vh) so mobile browser chrome
@@ -124,6 +200,158 @@ const highlights = plugin.features.slice(0, 3);
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-4);
+  }
+
+  /* Title + free hook stay one visual unit; the video badge floats to its
+     right, at the row's own height — nothing else in .gas-copy moves. */
+  .gas-titlerow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4, 1.25rem);
+  }
+
+  .gas-titles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2, 0.5rem);
+  }
+
+  /* ── Driver's Manual badge — small poster thumb + play dot, YouTube's own
+     hqdefault crop. Opens the lightbox below; no player JS/request until
+     clicked, same click-to-load principle as [slug].astro's full section. ── */
+  .gas-video-badge {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .gas-video-thumb {
+    position: relative;
+    width: 88px;
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #120804;
+    border: 1px solid var(--border-bright);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  .gas-video-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.82;
+    transition: opacity 0.2s var(--ease), transform 0.3s var(--ease);
+  }
+
+  .gas-video-badge:hover .gas-video-thumb img,
+  .gas-video-badge:focus-visible .gas-video-thumb img {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  .gas-video-play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e83a3a;
+    border: 2px solid #120804;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.15s var(--ease), background 0.2s var(--ease);
+  }
+
+  .gas-video-play::before {
+    content: '';
+    position: absolute;
+    left: 55%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-style: solid;
+    border-width: 6px 0 6px 10px;
+    border-color: transparent transparent transparent #120804;
+  }
+
+  .gas-video-badge:hover .gas-video-play,
+  .gas-video-badge:focus-visible .gas-video-play {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: #ff4a4a;
+  }
+
+  .gas-video-badge:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  .gas-video-caption {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gas-video-thumb img, .gas-video-play { transition: none; }
+  }
+
+  /* ── Driver's Manual lightbox — click-to-play iframe, injected on open and
+     torn down on close so nothing plays in the background. ── */
+  .gas-video-modal {
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    width: min(860px, 92vw);
+  }
+  .gas-video-modal[open] { display: block; }
+  .gas-video-modal:not([open]) { display: none; }
+  .gas-video-modal::backdrop { background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px); }
+
+  .gas-video-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(10, 8, 4, 0.72);
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .gas-video-close:hover { background: rgba(10, 8, 4, 0.9); color: var(--brass-bright); }
+
+  .gas-video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #120804;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  }
+  .gas-video-frame :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
   }
 
   .gas-copy h1 {
@@ -257,5 +485,10 @@ const highlights = plugin.features.slice(0, 3);
     .gas-cta { width: 100%; max-width: 320px; }
     /* nowrap would overflow a phone — let it wrap here. */
     .gas-fine { white-space: normal; }
+
+    /* The badge sitting beside the title needs its own row's width to sit
+       "beside" anything — on a centred single column, stack it under
+       instead of squeezing both into a cramped row. */
+    .gas-titlerow { flex-direction: column; gap: var(--space-3); }
   }
 </style>
