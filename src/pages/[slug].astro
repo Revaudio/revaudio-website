@@ -18,8 +18,13 @@ import arrowBtn from '../assets/showcase/arrow-btn.png';
 import wallImg from '../assets/bg/wall-wood.png';
 import railImg from '../assets/bg/wall-rail.png';
 
+/* GAS is excluded on purpose: it owns its route with a bespoke one-screen page
+   at src/pages/gas.astro (Dan, 2026-07-30). Without this filter both files
+   would emit /gas. Any other plugin still gets this long-form layout. */
 export function getStaticPaths() {
-  return plugins.map((p) => ({ params: { slug: p.slug }, props: { plugin: p } }));
+  return plugins
+    .filter((p) => p.slug !== 'gas')
+    .map((p) => ({ params: { slug: p.slug }, props: { plugin: p } }));
 }
 
 const { plugin } = Astro.props;
@@ -64,21 +69,16 @@ const shots = [plugin.heroImage, ...plugin.galleryImages]
   .filter((m): m is NonNullable<typeof m> => !!m && !seenShot.has(m.src) && !!seenShot.add(m.src));
 
 // Scroll-linked part-highlighter (docs/revlimiter-whats-inside-handoff.md).
-// Active when the plugin has a `stage` and at least one feature carries a
-// `part` slug that resolves in it — otherwise the plain crossfade above stays
-// untouched. Reusable: a future plugin needs only its own `stage` + `part`
-// slugs in plugins.ts, no template changes.
-// A feature may omit `part` (a pure DSP claim with no control on the panel,
-// e.g. GAS's oversampling = a host-side Quality parameter): that step just
-// shows the panel undimmed with no box, which walkthrough.ts already does for
-// a missing data-part. A part slug that is PRESENT but unresolvable is still a
-// typo, and still disables the stage loudly rather than degrading in silence.
+// Active only when the plugin has a `stage` AND every feature carries a
+// `part` slug that resolves in it — otherwise the plain crossfade above
+// stays untouched. Reusable: a future plugin needs only its own `stage` +
+// `part` slugs in plugins.ts, no template changes.
 const stageShot = plugin.stage ? pluginImage(plugin.stage.shot) : undefined;
 const hasStage = !!(
   plugin.stage &&
   stageShot &&
-  plugin.features.some((f) => f.part && plugin.stage!.parts[f.part]) &&
-  plugin.features.every((f) => !f.part || plugin.stage!.parts[f.part])
+  plugin.features.length > 0 &&
+  plugin.features.every((f) => f.part && plugin.stage!.parts[f.part])
 );
 // Parts that swap the stage to their own screenshot (a control living in a
 // separate window / modal, not on the base panel). Each renders a hidden

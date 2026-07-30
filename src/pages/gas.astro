@@ -1,0 +1,261 @@
+---
+/**
+ * /gas — deliberately ONE SCREEN, and deliberately NOT the shared
+ * [slug].astro product layout (Dan, 2026-07-30: "ditch this revlimiter layout
+ * idea, make it a one pager the size of a regular laptop"). GAS is free and has
+ * one knob; the shared layout gave it 5.3 laptop screens of gallery, sticky
+ * feature walkthrough, specs table and install section. Everything a visitor
+ * actually needs now sits inside one 1440x900 viewport: what it is, what it
+ * costs (nothing), and the download.
+ *
+ * `getStaticPaths` in [slug].astro skips 'gas' so this file owns the route.
+ *
+ * The CTA speaks TrialGateModal's documented trigger contract (see that
+ * component's header) instead of reusing BuyButton: BuyButton's bordered card
+ * with a price block and a four-line `includes` list is taller on its own than
+ * this entire layout. The non-gated branch is kept so dropping
+ * `trialGateActive` in plugins.ts restores the direct download here too.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { plugins, dlGateId } from '../data/plugins';
+import { pluginImage } from '../lib/images';
+import { site } from '../data/site';
+
+const plugin = plugins.find((p) => p.slug === 'gas')!;
+const shot = pluginImage(plugin.heroImage)!;
+const registerUrl = site.downloadGate.workerUrl + '/download/register';
+
+/* The three lines beside the plate are the first three `features` in
+   plugins.ts — the array order carries the editorial choice, so this page holds
+   no second copy of that text to drift out of sync. */
+const highlights = plugin.features.slice(0, 3);
+---
+
+<BaseLayout title={plugin.name} description={plugin.plainWhat}>
+  <section class="gas">
+    <div class="gas-grid">
+      {/* eager + high priority: on a one-screen page the plate IS the LCP. */}
+      <div class="gas-plate">
+        <Image
+          src={shot}
+          alt={`${plugin.name} plugin interface: one DRIVE knob with Tube, Tape and Fuzz voice buttons`}
+          widths={[420, 620, 840]}
+          sizes="(max-width: 900px) 62vw, 420px"
+          format="webp"
+          quality={82}
+          loading="eager"
+        />
+      </div>
+
+      <div class="gas-copy">
+        <h1>
+          {plugin.name}
+          <span class="gas-free">Free</span>
+        </h1>
+        {plugin.plainHook && <p class="gas-hook">{plugin.plainHook}</p>}
+        <p class="gas-what">{plugin.tagline}.</p>
+
+        <ul class="gas-list">
+          {highlights.map((f) => <li>{f.name}</li>)}
+        </ul>
+
+        {plugin.trialGateActive ? (
+          <button
+            type="button"
+            class="gas-cta"
+            data-trial-gate-open
+            data-plugin-name={plugin.name}
+            data-plugin-slug={dlGateId(plugin)}
+            data-register-url={registerUrl}
+            data-gate-free
+          >
+            Download free
+          </button>
+        ) : (
+          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Download free</a>
+        )}
+
+        <p class="gas-fine">
+          {plugin.systemReq.formats} &middot; Windows &amp; macOS &middot; no licence key, we email you the link
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* One screen, vertically centred. svh (not vh) so mobile browser chrome
+     can't push the CTA under the fold. --nav-h is the sticky header token. */
+  .gas {
+    min-height: calc(100svh - var(--nav-h, 75px));
+    display: flex;
+    align-items: center;
+    padding: var(--space-6) var(--space-5) var(--space-8);
+  }
+
+  /* Both columns hug their content and the PAIR is centred. A `1fr` copy column
+     looked left-heavy: the copy caps at ~40ch, so the rest of the column was
+     dead space pinned to the right edge. */
+  .gas-grid {
+    width: 100%;
+    max-width: 1180px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+
+  /* The plate is portrait, so it is capped by HEIGHT first — that is what keeps
+     the page one screen on a short laptop window. Width follows from its ratio. */
+  .gas-plate img {
+    display: block;
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    max-height: min(66svh, 600px);
+    filter: drop-shadow(0 24px 60px rgba(0, 0, 0, 0.6));
+  }
+
+  .gas-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .gas-copy h1 {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 7vw, 5.5rem);
+    line-height: 0.9;
+    letter-spacing: 0.06em;
+    color: var(--fg);
+  }
+
+  /* Rides up off the baseline so it reads as a stamp ON the wordmark rather
+     than a word sitting after it. */
+  .gas-free {
+    align-self: center;
+    translate: 0 -0.15em;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--brass-bright);
+    border: 1px solid var(--brass-dark);
+    padding: 0.2rem 0.55rem;
+    white-space: nowrap;
+  }
+
+  .gas-hook {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    letter-spacing: 0.04em;
+    color: var(--brass-bright);
+  }
+
+  /* Wide enough for the tagline to land on ONE line at desktop — at 34ch it
+     broke after "gas" and left "pedal." orphaned on its own line. */
+  .gas-what {
+    margin: 0;
+    max-width: 48ch;
+    text-wrap: balance;
+    font-size: var(--text-lg, 1.125rem);
+    line-height: 1.5;
+    color: var(--fg-dim);
+  }
+
+  .gas-list {
+    list-style: none;
+    margin: var(--space-1) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+    color: var(--fg);
+  }
+
+  .gas-list li {
+    padding-left: 1.1rem;
+    position: relative;
+  }
+
+  .gas-list li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    color: var(--brass);
+    font-weight: 600;
+  }
+
+  .gas-cta {
+    margin-top: var(--space-2);
+    padding: 1rem 2.25rem;
+    background: var(--brass);
+    color: var(--bg-0);
+    border: 1px solid transparent;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s var(--ease);
+  }
+
+  .gas-cta:hover { background: var(--brass-bright); }
+
+  /* One line on desktop — it broke mid-phrase ("no licence key, we email / you
+     the link") when it inherited the copy column's 34ch cap. */
+  .gas-fine {
+    margin: 0;
+    max-width: none;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-faint);
+  }
+
+  /* Phones: stack, plate first but smaller. One screen is a desktop promise —
+     here the promise is just "no scrolling past the CTA". */
+  @media (max-width: 900px) {
+    .gas {
+      min-height: 0;
+      padding-top: var(--space-5);
+    }
+
+    .gas-grid {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: var(--space-4);
+      text-align: center;
+    }
+
+    /* 32svh, not "as big as fits": at 44svh the CTA landed under the fixed
+       a11y/cart FABs (they sit ~64px off the bottom) and the fine print fell
+       below the fold. Sized so the last line clears the FAB band on a 390x844
+       phone, which is the smallest screen we care about here. */
+    .gas-plate img { max-height: 32svh; }
+
+    .gas-copy {
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .gas-copy h1 { justify-content: center; }
+    .gas-what { max-width: 40ch; }
+    .gas-list { text-align: left; }
+    .gas-cta { width: 100%; max-width: 320px; }
+    /* nowrap would overflow a phone — let it wrap here. */
+    .gas-fine { white-space: normal; }
+  }
+</style>

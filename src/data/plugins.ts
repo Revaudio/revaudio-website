@@ -21,10 +21,9 @@ export interface Feature {
   desc: string;
   /** Optional slug into the plugin's `stage.parts` map — enables the
    *  scroll-linked part-highlighter on the product page. Omit for plugins
-   *  without a `stage` (falls back to plain image crossfade), or on a single
-   *  feature that has no control on the panel to point at (a pure DSP claim,
-   *  or a parameter that only exists host-side): that step shows the whole
-   *  panel undimmed instead of a highlight box. */
+   *  without a `stage` (falls back to plain image crossfade). A plugin with a
+   *  `stage` must map EVERY feature: one unmapped feature turns the whole
+   *  highlighter off, so a typo fails loudly instead of silently. */
   part?: string;
 }
 
@@ -348,37 +347,23 @@ export const plugins: Plugin[] = [
     releaseTarget: 'Available now',
     heroImage: 'gas-hero.png',
     galleryImages: [],
+    // ORDER IS EDITORIAL: /gas (src/pages/gas.astro) prints the first three
+    // names as its only feature copy, so the three that sell GAS lead the list.
+    // No `stage` / `part` slugs — GAS left the shared product layout on
+    // 2026-07-30 and its one-screen page has no part-highlighter to feed. The
+    // measured rects are in git if that page ever wants them (1724a27, daf25ba).
     features: [
-      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together, so turning the knob changes character, never volume.', part: 'drive' },
-      { name: 'Three voices: Tube, Tape, Fuzz', desc: 'Tube: even-harmonic asymmetric warmth. Tape: symmetric saturation with programme-dependent squash. Fuzz: biased arctan/hard-clip blend with battery-sag sputter.', part: 'voices' },
-      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop. The 0 to 10 arc reads character, not level: deterministic, null-test friendly, no pumping, no cheating the sweep.', part: 'dial' },
-      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it, reading real DSP heat, not just knob position.', part: 'check' },
-      { name: 'Parallel MIX blend', desc: 'The mini knob blends the driven signal against a latency-matched dry path, so you can park GAS on a bus and dial the grit in behind the clean. Double-click for fully wet.', part: 'mix' },
-      // No `part`: oversampling is the Quality parameter (host-side only, HQ 8x /
-      // Eco 4x — see GAS/plugin/Source/PluginProcessor.cpp), so there is nothing
-      // on the panel to box. The step shows the whole plate undimmed.
+      { name: 'One-knob DRIVE macro', desc: 'A single control stages drive gain, pre/post EQ, dynamics, and calibrated loudness compensation together, so turning the knob changes character, never volume.' },
+      { name: 'Three voices: Tube, Tape, Fuzz', desc: 'Tube: even-harmonic asymmetric warmth. Tape: symmetric saturation with programme-dependent squash. Fuzz: biased arctan/hard-clip blend with battery-sag sputter.' },
       { name: 'Up to 8× oversampling', desc: 'Antiderivative anti-aliasing on every shaper, oversampled 8× on HQ and 4× on Eco, for drive that stays clean instead of aliasing.' },
+      { name: 'Calibrated loudness compensation', desc: 'A static calibrated gain match, not a live auto-gain loop. The 0 to 10 arc reads character, not level: deterministic, null-test friendly, no pumping, no cheating the sweep.' },
+      { name: 'Check-engine heat lamp', desc: 'Lights up when you’re really flooring it, reading real DSP heat, not just knob position.' },
+      { name: 'Parallel MIX blend', desc: 'The mini knob blends the driven signal against a latency-matched dry path, so you can park GAS on a bus and dial the grit in behind the clean. Double-click for fully wet.' },
     ],
     audioDemos: [],
     systemReq: baseSystemReq,
     reviewsCount: 0,
     reviewsAvg: 0,
-    // Part rects measured against src/assets/plugins/gas-hero.png (1600x2380
-    // source, a headless render of the real WebView UI at 4x its 400x595 design
-    // canvas). Percent of image, top-left origin. `drive` sits inside `dial` on
-    // purpose: the tour opens on the knob, then pulls back to the whole arc.
-    stage: {
-      shot: 'gas-hero.png',
-      parts: {
-        // Margin on purpose: sitting exactly on the mount's brass edge read as
-        // cropping the knob, not framing it.
-        drive: { x: 25.3, y: 26.3, w: 49.6, h: 32.6 },
-        voices: { x: 15.7, y: 75.2, w: 68.6, h: 11.8 },
-        dial: { x: 10.3, y: 19.3, w: 79.5, h: 49.5 },
-        check: { x: 75, y: 9, w: 12.5, h: 9.4 },
-        mix: { x: 14.3, y: 6.2, w: 11.6, h: 12.3 },
-      },
-    },
   },
   {
     slug: 'radio-roulette',

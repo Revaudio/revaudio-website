@@ -1,8 +1,42 @@
 # Website handoff
 
-Updated: 2026-07-30 (/gas got the part-highlighter walkthrough; committed, NOT pushed)
+Updated: 2026-07-30 (/gas is now a bespoke one-screen page; committed, NOT pushed)
 
-## 2026-07-30 — /gas moved from crossfade to the real part-highlighter stage
+## 2026-07-30 (later) — /gas left the shared product layout for a one-screen page
+Dan, after seeing the walkthrough below: "ditch this revlimiter layout idea, make it a one pager
+short like the size of a regular laptop." So GAS is off `[slug].astro` entirely.
+- **`src/pages/gas.astro`** — new, owns the route. Portrait plate left, copy right, vertically
+  centred, `min-height: calc(100svh - var(--nav-h))`. The plate is capped by HEIGHT
+  (`min(66svh, 600px)`) not width — that cap is what keeps it one screen on a short laptop window.
+  Content: name + FREE stamp, `plainHook`, `tagline`, three feature names, the download CTA, one
+  mono spec line. Nothing else.
+- **`src/pages/[slug].astro`** — `getStaticPaths` now filters out `'gas'`. Without that filter two
+  files emit `/gas`. Also reverted the `hasStage` relaxation from earlier today: with GAS gone, no
+  plugin has a partless feature (audited: revlimiter 13/13, radio-roulette 14/14), so the strict
+  every-feature-mapped invariant is back and unused generality is gone.
+- **`plugins.ts`** — GAS keeps its 6 features but loses `stage` + all `part` slugs (dead once the
+  walkthrough went). Feature ORDER is now editorial: gas.astro prints the first three names as its
+  only feature copy, so DRIVE macro / three voices / 8x oversampling lead. There is no second copy
+  of that text on the page.
+- **The CTA speaks TrialGateModal's trigger contract directly** rather than reusing `BuyButton` —
+  BuyButton's bordered card (price block + 3-line `includes` list) is taller than the whole layout.
+  Non-gated branch kept, so dropping `trialGateActive` restores the direct download here too.
+  **Verified by clicking it:** modal opens with the free-plugin copy ("GAS is free — grab it",
+  "Free forever. Full version, no trial clock"), email field present, `data-plugin-slug=gas` and
+  the register URL both correct. The `#dl=`/`#p=` verify-email bounce-back still lands here because
+  TrialGateModal lives in BaseLayout. **The download funnel is intact — do not "simplify" the CTA
+  into a plain `<a href={downloadUrl}>`, that skips the email gate.**
+- Measured: **5293px → 856px of content**, 5.3 screens → 1 screen. Everything above the fold at
+  1440x900, 1366x768 and 1280x720. Mobile 390x844 also fits, but the plate had to come down to
+  `32svh`: at 44svh the CTA landed under the fixed a11y/cart FABs and the spec line fell below the
+  fold. `docScreens` still reads ~1.4 because the site Footer sits below the one screen — the page
+  itself is one screen. Squeezing the footer in too would mean a ~480px plate; Dan's call.
+- Zero console errors. RevLimiter and Radio Roulette both still render `data-walkthrough` (the
+  route filter and the gate revert are no-ops for them).
+- **Superseded, not deleted:** the part-highlighter work from earlier today is in `1724a27` +
+  `daf25ba` with the 5 measured rects, if a future page ever wants them.
+
+## 2026-07-30 — /gas moved from crossfade to the real part-highlighter stage (SUPERSEDED, see above)
 GAS was the thinnest product page: one hero, no `stage`, so "What's inside" just pinned a single
 shot. It now runs the same highlighter RevLimiter does.
 - `src/data/plugins.ts` — GAS gets a `stage` with 5 part rects + `part` slugs on its features, and
