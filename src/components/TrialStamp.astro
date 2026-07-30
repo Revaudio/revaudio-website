@@ -6,30 +6,39 @@
    input + button, simple flat-then-3D button (same language as the GAS
    exit-popup CTA / .btn.primary), no torn-patch art, no worn-ink filter.
 
-   NOT wired to a backend yet — Yoni owns the worker integration
-   (POST {origin of plugin.trialUrl}/download/register, same contract as
-   TrialPlates.astro). Submit is a no-op that shows an honest "coming soon"
-   status line, same convention as EmailCapture.astro's unwired state.
+   Backend: same contract as TrialPlates.astro — POST
+   {origin of plugin.trialUrl}/download/register {email, plugin: dlGateId}.
+   The worker keys on its own flat id, not the site slug (falls back to
+   revlimiter on anything it doesn't recognise), so dlGateId(plugin) is
+   mandatory here, not the raw slug.
 
    Mobile: hidden — the door's own "or try it free for 14 days" link
    (BuyButtonCrane's .rc-trial) and MobileBuyBar already carry the trial
    funnel on phones. */
-import type { Plugin } from '../data/plugins';
+import { dlGateId, type Plugin } from '../data/plugins';
 
 interface Props {
   plugin: Plugin;
 }
 
 const { plugin } = Astro.props;
+const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
 ---
 
-<div class="trial-cta" data-trial-cta>
+<div
+  class="trial-cta"
+  data-trial-cta
+  data-register-url={registerUrl}
+  data-plugin-id={dlGateId(plugin)}
+  data-portal-url={plugin.trialUrl}
+>
   <p class="tc-label">Get your <em>free</em> 14-day trial</p>
   <form class="tc-form" data-trial-cta-form novalidate>
     <label for="trial-cta-email" class="sr-only">Your email</label>
     <input
       id="trial-cta-email"
       class="tc-email"
+      data-trial-cta-email
       type="email"
       inputmode="email"
       autocomplete="email"
@@ -38,8 +47,8 @@ const { plugin } = Astro.props;
       placeholder="your@email.com"
       aria-label={`Your email, we send the ${plugin.name} download link here`}
     >
-    <button type="submit" class="tc-submit" aria-label="Get the download link">
-      <span class="tc-face">Get it <span class="tc-arrow">&#9656;</span></span>
+    <button type="submit" class="tc-submit" data-trial-cta-submit aria-label="Get the download link">
+      <span class="tc-face" data-trial-cta-face>Get it <span class="tc-arrow">&#9656;</span></span>
     </button>
   </form>
   <p class="tc-status" data-trial-cta-status role="status" aria-live="polite" hidden></p>
@@ -131,6 +140,7 @@ const { plugin } = Astro.props;
     color: var(--fg-dim);
     margin: 0.9rem 0 0;
   }
+  .tc-status a { color: var(--brass); }
 
   .tc-micro {
     font-family: var(--font-mono);
@@ -143,17 +153,78 @@ const { plugin } = Astro.props;
 </style>
 
 <script>
-  // UI ONLY — no backend wired yet (Yoni owns the license-worker integration:
-  // POST {origin of plugin.trialUrl}/download/register, same contract as
-  // TrialPlates.astro). Submit shows an honest "not live yet" status instead
-  // of silently doing nothing or pretending to succeed.
-  document.querySelectorAll<HTMLFormElement>('[data-trial-cta-form]').forEach((form) => {
-    const status = form.parentElement?.querySelector<HTMLElement>('[data-trial-cta-status]');
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!status) return;
-      status.textContent = 'Almost there — the free trial goes live shortly.';
+  // Same contract as TrialPlates.astro: POST {email, plugin: dlGateId} to the
+  // license worker's email gate, then point the visitor at their inbox. No
+  // shake/stamp choreography here — just the flat capture row's own states.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  document.querySelectorAll<HTMLElement>('[data-trial-cta]').forEach((section) => {
+    const form = section.querySelector<HTMLFormElement>('[data-trial-cta-form]');
+    const email = section.querySelector<HTMLInputElement>('[data-trial-cta-email]');
+    const submit = section.querySelector<HTMLButtonElement>('[data-trial-cta-submit]');
+    const face = section.querySelector<HTMLElement>('[data-trial-cta-face]');
+    const status = section.querySelector<HTMLElement>('[data-trial-cta-status]');
+    if (!form || !email || !submit || !face || !status) return;
+
+    const registerUrl = section.dataset.registerUrl!;
+    const pluginId = section.dataset.pluginId!;
+    const portalUrl = section.dataset.portalUrl!;
+    const faceIdle = face.innerHTML;
+    let inFlight = false;
+
+    function showStatus(html: string) {
+      status.innerHTML = html;
       status.hidden = false;
-    });
+    }
+
+    async function register() {
+      if (inFlight) return;
+      const v = email.value.trim();
+      if (!EMAIL_RE.test(v)) {
+        showStatus('That doesn’t look like an email.');
+        email.focus();
+        return;
+      }
+      inFlight = true;
+      submit.disabled = true;
+      face.textContent = 'Sending…';
+      status.hidden = true;
+      try {
+        const res = await fetch(registerUrl, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: v, plugin: pluginId }),
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          email.disabled = true;
+          submit.disabled = true;
+          showStatus('Check your inbox — the download link for ' + v + ' is on its way.');
+          // The conversion = an email actually registered (verification sent),
+          // same guarded tags as TrialPlates (only exist after cookie consent).
+          try { if (window.fbq) window.fbq('track', 'StartTrial'); } catch (_) {}
+          try {
+            if (window.gtag) window.gtag('event', 'conversion', {
+              send_to: 'AW-18334323184/KDtwCLHa4dIcEPCjvqZE',
+              value: 1.0,
+              currency: 'ILS',
+            });
+          } catch (_) {}
+        } else {
+          showStatus((data && data.error) || 'Something went wrong. Please try again.');
+        }
+      } catch (_) {
+        // Network/CORS failure — hand them the portal so nobody dead-ends.
+        showStatus('Couldn’t reach the garage. <a href="' + portalUrl + '">Open the download page instead</a>.');
+      } finally {
+        inFlight = false;
+        if (!email.disabled) {
+          submit.disabled = false;
+          face.innerHTML = faceIdle;
+        }
+      }
+    }
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); register(); });
   });
 </script>
