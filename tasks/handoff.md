@@ -1,6 +1,43 @@
 # Website handoff
 
-Updated: 2026-07-26 ("What's inside" walkthrough alignment fixed + deployed)
+Updated: 2026-07-30 (/gas got the part-highlighter walkthrough; committed, NOT pushed)
+
+## 2026-07-30 — /gas moved from crossfade to the real part-highlighter stage
+GAS was the thinnest product page: one hero, no `stage`, so "What's inside" just pinned a single
+shot. It now runs the same highlighter RevLimiter does.
+- `src/data/plugins.ts` — GAS gets a `stage` with 5 part rects + `part` slugs on its features, and
+  a 6th feature (**Parallel MIX blend**) for the top-left mini knob, which is a real control the
+  page never mentioned. Also fixed a wrong claim: the old oversampling desc said "oversampled per
+  voice", but `GAS/plugin/Source/GasEngine.h` explicitly uses ONE oversampler at one factor for
+  all voices (HQ 8x / Eco 4x) so PDC never changes on a voice switch. Copy now says that.
+- `src/pages/[slug].astro` — `hasStage` no longer demands that EVERY feature carry a `part`. It
+  needs one resolvable part, and tolerates features with none. GAS's oversampling bullet is the
+  Quality parameter, host-side only, with nothing on the panel to box; that step shows the plate
+  undimmed. `walkthrough.ts` already did this for a missing `data-part` — only the gate was strict.
+  A `part` that IS set but unresolvable still kills the stage (a typo should fail loudly).
+- `src/assets/plugins/gas-hero.png` — replaced 802x1192 with a 1600x2380 headless render of the
+  real WebView UI (`GAS/plugin/Source/ui/public/index.html`, served over http, Chrome
+  `--window-size=1600,2380`; the UI's `applyZoom` scales its 400x595 canvas by innerWidth/400, and
+  `inJuce` is false so it renders standalone). Pixel-for-pixel the same panel as before, just 2x
+  the master. The stage asks for a 1200px-wide derivative, which was a 1.5x UPSCALE off the old
+  source. Repeat the render the same way if the plugin UI changes.
+- **Rect recipe for the next plugin:** compute from the UI's own CSS (element left/top/size, then
+  fold in inline `translate`/`scale` and `transform-origin`), then verify by drawing the boxes onto
+  the actual hero PNG before trusting them. Two of five were visibly off from CSS math alone,
+  because `object-fit: contain` art and drop-shadows inset the visible control inside its box.
+- Verified in a real browser (Playwright, built output on `astro preview`): stage mode active, all
+  6 steps activate, live-measured box rects match plugins.ts exactly (26.8/27.5/46.8/30 etc.), the
+  no-part step goes `visibility: hidden` + opacity 0, mobile ≤900px gives 6 carousel cards +
+  "06 / 06" counter, zero console errors, RevLimiter still in stage mode (gate change is a no-op
+  for it), /store card serves a 480x714 derivative of the new hero.
+- **Still missing for true RevLimiter parity, both blocked on content, not code:** `audioDemos`
+  (RevLimiter has 3; nothing exists for GAS, and no demos means no "Hear it" AND no garage wall,
+  since `hasWall` = demos || trialUrl and GAS is free with no trialUrl) and `tutorialVideo`
+  (RevLimiter has one on YouTube). `galleryImages` is NOT a gap — RevLimiter's is empty too.
+- **Dead data spotted, not touched:** `StagePart.thumb` is populated for all 10 RevLimiter parts
+  (`revlimiter-part-*.png`, ~10 files in `src/assets/plugins/`) but nothing in the templates or
+  `walkthrough.ts` reads it. Either the mobile step-preview was dropped or never landed. Left
+  alone deliberately — GAS therefore got no part thumbs. Worth a decision: wire it or delete them.
 
 ## 2026-07-26 — "What's inside" active card now aligns with the pinned shot (60e3123, live)
 Dan reported the walkthrough section reading misaligned. Cause: `.walk-stage` pins high
