@@ -25,3 +25,6 @@ tools/_crane-candidates/*
 !tools/_crane-candidates/master-installed-orig.png
 !tools/_crane-candidates/wear-installed-orig.png
 revedit.overrides.json
+
+# Editor / agent local config
+.claude/
