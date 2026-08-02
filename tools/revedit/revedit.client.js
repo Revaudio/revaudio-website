@@ -24,7 +24,8 @@
   ];
 
   let editing = false;
-  let selected = null; // element id ("hero.text" or "hero.text/line1")
+  let selected = null; // PRIMARY element id ("hero.text" or "hero.text/line1")
+  let selection = []; // every selected id, click order; selected === last one
   let drill = null;    // id of the drilled-into group
   let pop = null;
   let MF = {};         // manifest: id -> { props: [{key,label,min,max,step,unit,css|filter}] }
@@ -49,17 +50,28 @@
   :root{--re-panel:#171009;--re-panel2:#20160c;--re-line:#3a2c18;--re-brass:#c9a35c;
     --re-red:#e0442b;--re-cream:#ece4d4;--re-dim:#9a8d76;--re-pit:#0c0906;}
   .re-ui{font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--re-cream);}
-  body.re-on [data-edit]{cursor:grab;}
+  /* pointer-events:auto is not cosmetic: a decorative layer that sets
+     pointer-events:none in the page (so it doesn't swallow clicks on the text
+     under it) is otherwise impossible to select here. Edit mode overrides it
+     for anything tagged data-edit, and normal browsing is untouched. */
+  body.re-on [data-edit]{cursor:grab;pointer-events:auto;}
   body.re-on [data-edit]:hover{outline:1px dashed rgba(201,163,92,.55);outline-offset:4px;}
   [data-edit].re-sel{outline:1.5px solid var(--re-brass)!important;outline-offset:4px;}
   body.re-on .re-drill [data-edit-sub]:hover{outline:1px dotted rgba(224,68,43,.75);outline-offset:3px;cursor:pointer;}
   .re-sel-sub{outline:1.5px solid var(--re-red)!important;outline-offset:3px;}
   [contenteditable].re-editing-text{outline:1.5px solid var(--re-red)!important;outline-offset:3px;cursor:text;}
-  .re-tag{position:absolute;z-index:2147483000;background:var(--re-brass);color:#140d05;
+  /* fixed, NOT absolute: positionChrome places both from getBoundingClientRect,
+     which is viewport-relative, so absolute put them off by exactly scrollY.
+     Worse, an absolute box parked past the viewport edge grows the document's
+     scrollWidth/Height — that extra overflow toggles a scrollbar, the scrollbar
+     reflows the page, the reflow fires positionChrome, which moves the box
+     again: an endless wiggle once a scaled element pushed the handle out of
+     view (~1.22x on a 1728px window). fixed elements never add scroll area. */
+  .re-tag{position:fixed;z-index:2147483000;background:var(--re-brass);color:#140d05;
     font:700 10px/1 -apple-system,sans-serif;letter-spacing:.12em;text-transform:uppercase;
     padding:3px 8px;border-radius:2px;pointer-events:none;white-space:nowrap;}
   .re-tag.sub{background:var(--re-red);color:#fff;}
-  .re-handle{position:absolute;z-index:2147483000;width:13px;height:13px;background:var(--re-brass);
+  .re-handle{position:fixed;z-index:2147483000;width:13px;height:13px;background:var(--re-brass);
     border:2px solid #140d05;border-radius:2px;cursor:nwse-resize;}
   .re-fab{position:fixed;right:16px;bottom:16px;z-index:2147483001;display:flex;gap:8px;}
   .re-btn{background:var(--re-panel);border:1px solid var(--re-line);color:var(--re-cream);
@@ -162,14 +174,32 @@
     }
     applyManifest(el, id, s);
   }
+  /* Manifest lookup with a wildcard fallback: "hero.text/*" supplies props to
+     every sub of hero.text, so shared controls (glow on each line) are declared
+     once instead of copy-pasted per sub id. */
+  function mf(id) {
+    if (MF[id]) return MF[id];
+    return id.includes('/') ? MF[id.split('/')[0] + '/*'] : null;
+  }
   function applyManifest(el, id, s) {
-    const m = MF[id];
+    const m = mf(id);
     if (!m || !m.props) return;
     const filters = [];
     m.props.forEach((p) => {
       const v = s.props ? s.props[p.key] : null;
-      if (p.filter) { if (v != null) filters.push(`${p.filter}(${v}${p.unit || ''})`); }
-      else el.style[p.css] = v != null ? v + (p.unit || '') : '';
+      if (p.filter) { if (v != null) filters.push(`${p.filter}(${v}${p.unit || ''})`); return; }
+      /* tpl lets ONE slider drive a multi-part value — a glow needs three
+         lengths and a colour, a mask needs a whole gradient. Without it those
+         params can't be expressed declaratively at all. */
+      const val = v == null ? '' : (p.tpl ? String(p.tpl).split('{v}').join(v) : v + (p.unit || ''));
+      /* css may be a list, for prefix pairs like mask-image/-webkit-mask-image. */
+      (Array.isArray(p.css) ? p.css : [p.css]).forEach((prop) => {
+        /* Custom properties MUST go through setProperty — el.style['--x'] is a
+           silent no-op — and they're the only way to reach a pseudo-element,
+           which is how the hero scrim (.hero-head::before) becomes tunable. */
+        if (prop.startsWith('--')) { if (val === '') el.style.removeProperty(prop); else el.style.setProperty(prop, val); }
+        else el.style[prop] = val;
+      });
     });
     el.style.filter = filters.length ? filters.join(' ') : '';
   }
@@ -219,13 +249,19 @@
       });
       state = doc[bpName()];
     } catch { /* fresh session */ }
-    discover();
-    applyAll();
+    rescan();
     // The hero entrance timeline ends by writing inline transform/opacity on
     // these same elements (gsap leaves final values inline) — re-apply after
     // it has finished so saved overrides win on reload.
-    [3200, 5400].forEach((t) => setTimeout(applyAll, t));
+    [3200, 5400].forEach((t) => setTimeout(rescan, t));
   }
+  /* discover() again, not just applyAll(): SplitText (src/lib/splittext.ts)
+     rewrites a [data-split] headline's innards to animate the words, then
+     revert()s — and revert rebuilds the markup, so every [data-edit-sub] span
+     inside it is a NEW node. Without re-discovering, `targets` still holds the
+     original detached spans and edits to headline lines land on nothing at
+     all, silently. Cheap to redo (idempotent, guarded inserts). */
+  function rescan() { discover(); applyAll(); }
 
   /* ---------- chrome: fab / tag / handle ---------- */
   const fab = document.createElement('div');
@@ -241,12 +277,31 @@
 
   function positionChrome() {
     if (!selected || !targets[selected] || state.els[selected].hidden) { tag.hidden = true; handle.hidden = true; return; }
+    if (selection.length > 1) {
+      /* Tag rides the union box's top-left. No resize handle for a group —
+         "resize these five" has no one obvious meaning, and the popup's
+         Scale× (which multiplies each element's own scale) is unambiguous. */
+      const rs = selection.map((sid) => targets[sid]?.getBoundingClientRect()).filter(Boolean);
+      if (!rs.length) { tag.hidden = true; handle.hidden = true; return; }
+      tag.style.left = Math.min(...rs.map((x) => x.left)) + 'px';
+      tag.style.top = (Math.min(...rs.map((x) => x.top)) - 26) + 'px';
+      tag.textContent = selection.length + ' selected';
+      tag.classList.remove('sub');
+      tag.hidden = false; handle.hidden = true;
+      return;
+    }
     const r = targets[selected].getBoundingClientRect();
-    tag.style.left = r.left + 'px'; tag.style.top = (r.top - 26) + 'px';
+    tag.style.left = clamp(r.left, 0, innerWidth - 120) + 'px';
+    tag.style.top = clamp(r.top - 26, 0, innerHeight - 20) + 'px';
     tag.textContent = selected;
     tag.classList.toggle('sub', selected.includes('/'));
     tag.hidden = false;
-    handle.style.left = (r.right - 6) + 'px'; handle.style.top = (r.bottom - 6) + 'px';
+    /* Clamped into the viewport: scale an element past the window edge and an
+       unclamped handle is simply unreachable — you can enlarge but never drag
+       back. The resize math reads pointer distance from the element's centre,
+       not the handle's position, so pinning it to the edge changes nothing. */
+    handle.style.left = clamp(r.right - 6, 0, innerWidth - 15) + 'px';
+    handle.style.top = clamp(r.bottom - 6, 0, innerHeight - 15) + 'px';
     handle.hidden = false;
   }
   addEventListener('scroll', positionChrome, { passive: true });
@@ -277,6 +332,7 @@
 
   function openPopup(id) {
     closePopup();
+    discover(); // rebind to live nodes before wiring sliders (see rescan)
     const s = state.els[id];
     const el = targets[id];
     const isSub = id.includes('/');
@@ -354,13 +410,18 @@
     }
 
     /* Specific: extra per-element controls declared in revedit.manifest.json. */
-    if (MF[id] && MF[id].props) {
+    const mfe = mf(id);
+    if (mfe && mfe.props) {
       sect(body, 'Specific');
-      MF[id].props.forEach((p) => {
-        const init = (s.props && s.props[p.key] != null) ? s.props[p.key] : (p.filter ? 1 : (p.css === 'lineHeight' ? 1.2 : 0));
+      mfe.props.forEach((p) => {
+        /* `def` is the value the page already renders at, so a freshly opened
+           slider sits where the design actually is instead of snapping it to 0
+           the first time it's touched. */
+        const fallback = p.def != null ? p.def : (p.filter ? 1 : (p.css === 'lineHeight' ? 1.2 : 0));
+        const init = (s.props && s.props[p.key] != null) ? s.props[p.key] : fallback;
         body.appendChild(row(p.label, p.min, p.max, p.step, init,
           (v) => v + (p.unit || (p.filter ? '×' : '')),
-          (v) => { if (!s.props) s.props = {}; s.props[p.key] = v; apply(id); }));
+          (v) => { if (!s.props) s.props = {}; s.props[p.key] = v; apply(id); positionChrome(); }));
       });
     }
 
@@ -429,16 +490,134 @@
   }
   function closePopup() { if (pop) { pop.remove(); pop = null; } }
 
-  function select(id) {
+  /* ---------- multi-selection popup ----------
+     Absolute X/Y sliders are meaningless for a group (every element has its own
+     origin), so Nudge/Scale here are RELATIVE: each input applies the change
+     since its own last value, leaving the elements' differences intact. */
+  function openMultiPopup() {
+    closePopup();
+    discover();
+    const ids = selection.slice();
+    pop = document.createElement('div'); pop.className = 're-pop re-ui';
+    pop.innerHTML = `<header><span class="re-crumb">${ids.length} selected</span><button class="re-x" aria-label="Close">✕</button></header><div class="re-body"></div>`;
+    document.body.appendChild(pop);
+    const rs = ids.map((i) => targets[i]?.getBoundingClientRect()).filter(Boolean);
+    const bx = { left: Math.min(...rs.map((r) => r.left)), right: Math.max(...rs.map((r) => r.right)),
+                 top: Math.min(...rs.map((r) => r.top)), bottom: Math.max(...rs.map((r) => r.bottom)) };
+    let px = bx.right + 18;
+    if (px + 300 > innerWidth) px = bx.left - 306;
+    pop.style.left = clamp(px, 8, innerWidth - 300) + 'px';
+    pop.style.top = clamp(bx.top, 8, innerHeight - 420) + 'px';
+    pop.querySelector('.re-x').onclick = closePopup;
+    pop.querySelector('header').addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;
+      const sx = e.clientX - pop.offsetLeft, sy = e.clientY - pop.offsetTop;
+      const mv = (ev) => { pop.style.left = (ev.clientX - sx) + 'px'; pop.style.top = (ev.clientY - sy) + 'px'; };
+      const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); };
+      addEventListener('pointermove', mv); addEventListener('pointerup', up); e.preventDefault();
+    });
+
+    const body = pop.querySelector('.re-body');
+    hint(body, `Shift-click to add or remove. Everything here applies to all <b>${ids.length}</b>.<br>${ids.join(' · ')}`);
+    const each = (fn) => { ids.forEach(fn); positionChrome(); };
+
+    sect(body, 'Move · relative');
+    let lx = 0, ly = 0, ls = 1;
+    body.appendChild(row('Nudge X', -600, 600, 1, 0, (v) => v + 'px', (v) => {
+      const d = v - lx; lx = v; each((i) => { state.els[i].x += d; apply(i); }); }));
+    body.appendChild(row('Nudge Y', -600, 600, 1, 0, (v) => v + 'px', (v) => {
+      const d = v - ly; ly = v; each((i) => { state.els[i].y += d; apply(i); }); }));
+    body.appendChild(row('Scale ×', 0.3, 2, 0.01, 1, (v) => v.toFixed(2) + '×', (v) => {
+      const k = v / ls; ls = v; each((i) => { const s2 = state.els[i]; s2.scale = clamp(s2.scale * k, 0.3, 2.2); apply(i); }); }));
+
+    /* Align to the selection's own bounding box — measured live, then folded
+       into each element's x/y so it persists like any other move. */
+    sect(body, 'Align · to selection box');
+    const mkAlign = (defs) => {
+      const rowEl = document.createElement('div'); rowEl.className = 're-btnrow';
+      rowEl.innerHTML = defs.map((d) => `<button class="re-sbtn">${d[0]}</button>`).join('');
+      [...rowEl.querySelectorAll('button')].forEach((btn, n) => {
+        btn.onclick = () => {
+          const live = ids.map((i) => ({ i, r: targets[i].getBoundingClientRect() })).filter((o) => o.r);
+          const box = { left: Math.min(...live.map((o) => o.r.left)), right: Math.max(...live.map((o) => o.r.right)),
+                        top: Math.min(...live.map((o) => o.r.top)), bottom: Math.max(...live.map((o) => o.r.bottom)) };
+          live.forEach(({ i, r }) => { const [dx, dy] = defs[n][1](r, box); state.els[i].x += dx; state.els[i].y += dy; apply(i); });
+          positionChrome(); save();
+        };
+      });
+      body.appendChild(rowEl);
+    };
+    mkAlign([
+      ['⟸ L', (r, b) => [b.left - r.left, 0]],
+      ['⟺ C', (r, b) => [(b.left + b.right) / 2 - (r.left + r.right) / 2, 0]],
+      ['⟹ R', (r, b) => [b.right - r.right, 0]],
+    ]);
+    mkAlign([
+      ['⟰ T', (r, b) => [0, b.top - r.top]],
+      ['⟳ M', (r, b) => [0, (b.top + b.bottom) / 2 - (r.top + r.bottom) / 2]],
+      ['⟱ B', (r, b) => [0, b.bottom - r.bottom]],
+    ]);
+
+    sect(body, 'Fade');
+    body.appendChild(row('Opacity', 0, 1, 0.01, state.els[selected].opacity, (v) => Math.round(v * 100) + '%',
+      (v) => each((i) => { state.els[i].opacity = v; apply(i); })));
+
+    /* Only props every selected element actually has — setting "Glow" across a
+       mixed selection must not write a property one of them doesn't declare. */
+    const firstProps = (mf(ids[0]) || {}).props || [];
+    const shared = firstProps.filter((p) => ids.every((i) => ((mf(i) || {}).props || []).some((q) => q.key === p.key)));
+    if (shared.length) {
+      sect(body, 'Shared · all ' + ids.length);
+      shared.forEach((p) => {
+        const fb = p.def != null ? p.def : (p.filter ? 1 : 0);
+        const cur = (state.els[selected].props && state.els[selected].props[p.key] != null) ? state.els[selected].props[p.key] : fb;
+        body.appendChild(row(p.label, p.min, p.max, p.step, cur, (v) => v + (p.unit || (p.filter ? '×' : '')),
+          (v) => each((i) => { const st = state.els[i]; if (!st.props) st.props = {}; st.props[p.key] = v; apply(i); })));
+      });
+    }
+
+    // Font applies to any selection; size only where every member is a text sub.
+    sect(body, 'Type · all ' + ids.length);
+    const fsel = document.createElement('div'); fsel.className = 're-row';
+    fsel.innerHTML = `<label>Font</label><select>${FONTS.map(([v, l]) =>
+      `<option value='${v.replace(/'/g, '&#39;')}'>${l}</option>`).join('')}</select>`;
+    fsel.querySelector('select').onchange = (e) => { each((i) => { state.els[i].ff = e.target.value; apply(i); }); save(); };
+    body.appendChild(fsel);
+    if (ids.every((i) => i.includes('/') && targets[i] && targets[i].textContent.trim())) {
+      const base = state.els[selected].fz || Math.round(parseFloat(getComputedStyle(targets[selected]).fontSize));
+      body.appendChild(row('Size', 9, 140, 1, base, (v) => v + 'px', (v) => each((i) => { state.els[i].fz = v; apply(i); })));
+    }
+
+    const clr = document.createElement('div'); clr.className = 're-btnrow';
+    clr.innerHTML = `<button class="re-sbtn">✕ Clear selection</button>`;
+    clr.querySelector('button').onclick = () => deselect();
+    body.appendChild(clr);
+  }
+
+  function paintSelection() {
     $$('.re-sel,.re-sel-sub').forEach((e) => e.classList.remove('re-sel', 're-sel-sub'));
-    selected = id;
-    targets[id].classList.add(id.includes('/') ? 're-sel-sub' : 're-sel');
+    selection.forEach((sid) => targets[sid]?.classList.add(sid.includes('/') ? 're-sel-sub' : 're-sel'));
+  }
+  /* additive = shift-click: toggle this id in/out of the selection instead of
+     replacing it. Clicking an already-selected element with shift removes it,
+     so a mis-add is undone the same way it was made. */
+  function select(id, additive) {
+    if (additive && selection.includes(id)) {
+      selection = selection.filter((x) => x !== id);
+      if (!selection.length) { deselect(); return; }
+    } else if (additive && selection.length) {
+      selection.push(id);
+    } else {
+      selection = [id];
+    }
+    selected = selection[selection.length - 1];
+    paintSelection();
     positionChrome();
-    openPopup(id);
+    if (selection.length > 1) openMultiPopup(); else openPopup(selected);
   }
   function deselect() {
     $$('.re-sel,.re-sel-sub').forEach((e) => e.classList.remove('re-sel', 're-sel-sub'));
-    selected = null; positionChrome(); closePopup(); killGhost();
+    selection = []; selected = null; positionChrome(); closePopup(); killGhost();
   }
 
   /* ---------- before/after ghost ---------- */
@@ -507,16 +686,25 @@
     }
     const id = idAt(e.target);
     if (!id) return;
-    const s = state.els[id];
-    const sx = e.clientX - s.x, sy = e.clientY - s.y;
+    const additive = e.shiftKey;
+    /* Grabbing any member of a multi-selection drags the whole group by the
+       same delta — each element keeps its own origin, so relative spacing is
+       preserved. Grabbing a non-member drags just it (and the pointerup below
+       reselects it), which is what a plain click on something else means. */
+    const group = (!additive && selection.length > 1 && selection.includes(id)) ? selection.slice() : [id];
+    const starts = group.map((gid) => ({ id: gid, x: state.els[gid].x, y: state.els[gid].y }));
+    const ox = e.clientX, oy = e.clientY;
     let moved = false;
     const mv = (ev) => {
-      if (!moved && Math.hypot(ev.clientX - (sx + s.x), ev.clientY - (sy + s.y)) < 3) return;
-      moved = true; s.x = ev.clientX - sx; s.y = ev.clientY - sy; apply(id); positionChrome();
+      const dx = ev.clientX - ox, dy = ev.clientY - oy;
+      if (!moved && Math.hypot(dx, dy) < 3) return;
+      moved = true;
+      starts.forEach((st) => { const s2 = state.els[st.id]; s2.x = st.x + dx; s2.y = st.y + dy; apply(st.id); });
+      positionChrome();
     };
     const up = () => {
       removeEventListener('pointermove', mv); removeEventListener('pointerup', up);
-      if (moved) save(); else select(id);
+      if (moved) save(); else select(id, additive);
     };
     addEventListener('pointermove', mv); addEventListener('pointerup', up);
     e.preventDefault();
@@ -553,11 +741,13 @@
     if (e.target.matches && e.target.matches('input,select,textarea')) return;
     if (e.key === 'Escape') { if (selected) deselect(); else exitDrill(); return; }
     if (!selected) return;
-    const step = e.shiftKey ? 10 : 1, s = state.els[selected];
-    let hit = true;
-    if (e.key === 'ArrowLeft') s.x -= step; else if (e.key === 'ArrowRight') s.x += step;
-    else if (e.key === 'ArrowUp') s.y -= step; else if (e.key === 'ArrowDown') s.y += step;
+    const step = e.shiftKey ? 10 : 1;
+    let dx = 0, dy = 0, hit = true;
+    if (e.key === 'ArrowLeft') dx = -step; else if (e.key === 'ArrowRight') dx = step;
+    else if (e.key === 'ArrowUp') dy = -step; else if (e.key === 'ArrowDown') dy = step;
     else hit = false;
+    // Nudge every selected element, not just the primary.
+    if (hit) selection.forEach((sid) => { state.els[sid].x += dx; state.els[sid].y += dy; apply(sid); });
     if (hit) { apply(selected); positionChrome(); save(); e.preventDefault(); }
   });
 

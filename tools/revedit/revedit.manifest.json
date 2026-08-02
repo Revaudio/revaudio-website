@@ -1,20 +1,35 @@
 {
-  "hero.sign": {
-    "props": [
-      { "key": "tilt", "label": "Tilt", "min": -15, "max": 15, "step": 0.5, "unit": "deg", "css": "rotate" },
-      { "key": "bright", "label": "Brightness", "min": 0.4, "max": 1.6, "step": 0.01, "filter": "brightness" }
-    ]
-  },
   "hero.gauge": {
     "props": [
-      { "key": "bright", "label": "Brightness", "min": 0.4, "max": 1.6, "step": 0.01, "filter": "brightness" },
-      { "key": "sat", "label": "Saturation", "min": 0, "max": 2, "step": 0.01, "filter": "saturate" }
+      { "key": "size", "label": "Medallion size", "min": 260, "max": 900, "step": 4, "def": 640, "unit": "px", "css": "--medallion" },
+      { "key": "edge", "label": "Edge fade", "min": 30, "max": 100, "step": 1, "def": 100, "unit": "%",
+        "css": ["maskImage", "webkitMaskImage"],
+        "tpl": "radial-gradient(circle, #000 {v}%, transparent 100%)" },
+      { "key": "blur", "label": "Blur (push back)", "min": 0, "max": 14, "step": 0.5, "def": 0, "unit": "px", "filter": "blur" },
+      { "key": "bright", "label": "Brightness", "min": 0.4, "max": 1.6, "step": 0.01, "def": 1, "filter": "brightness" },
+      { "key": "sat", "label": "Saturation", "min": 0, "max": 2, "step": 0.01, "def": 1, "filter": "saturate" }
     ]
   },
+
   "hero.text": {
     "props": [
-      { "key": "ls", "label": "Letter sp.", "min": -2, "max": 14, "step": 0.5, "unit": "px", "css": "letterSpacing" },
-      { "key": "lh", "label": "Line height", "min": 0.8, "max": 2, "step": 0.05, "css": "lineHeight" }
+      { "key": "scrim", "label": "Scrim strength", "min": 0, "max": 2.2, "step": 0.02, "def": 1.3, "css": "--scrim" },
+      { "key": "scrimW", "label": "Scrim width", "min": 0, "max": 140, "step": 1, "def": 70, "unit": "%", "css": "--scrim-x" },
+      { "key": "scrimH", "label": "Scrim height", "min": 0, "max": 100, "step": 1, "def": 27, "unit": "%", "css": "--scrim-y" },
+      { "key": "scrimFade", "label": "Scrim softness", "min": 30, "max": 100, "step": 1, "def": 86, "unit": "%", "css": "--scrim-fade" },
+      { "key": "ls", "label": "Letter sp.", "min": -2, "max": 14, "step": 0.5, "def": 0, "unit": "px", "css": "letterSpacing" },
+      { "key": "lh", "label": "Line height", "min": 0.8, "max": 2, "step": 0.05, "def": 1.2, "css": "lineHeight" },
+      { "key": "glow", "label": "Glow (all text)", "min": 0, "max": 40, "step": 1, "def": 0, "unit": "px",
+        "css": "textShadow", "tpl": "0 0 {v}px color-mix(in srgb, currentColor 55%, transparent)" }
+    ]
+  },
+
+  "hero.text/*": {
+    "props": [
+      { "key": "glow", "label": "Glow", "min": 0, "max": 40, "step": 1, "def": 0, "unit": "px",
+        "css": "textShadow", "tpl": "0 0 {v}px color-mix(in srgb, currentColor 55%, transparent)" },
+      { "key": "ls", "label": "Letter sp.", "min": -2, "max": 14, "step": 0.5, "def": 0, "unit": "px", "css": "letterSpacing" },
+      { "key": "lh", "label": "Line height", "min": 0.8, "max": 2, "step": 0.05, "def": 1.2, "css": "lineHeight" }
     ]
   }
 }
