@@ -114,56 +114,89 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       const textDur = slowIn ? 3 : 0.6;
       const dialDur = slowIn ? 2.65 : 0.8;
 
-      const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-      // Dev-only handle for the RevEdit overlay (entrance scrubber + needle
-      // controls). Tree-shaken out of prod builds.
-      if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
-      tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: textDur, stagger: 0.12 }, 0.05)
-        .fromTo('[data-hero-sweep]', { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
+      const startEntrance = () => {
+        const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+        // Dev-only handle for the RevEdit overlay (entrance scrubber + needle
+        // controls). Tree-shaken out of prod builds.
+        if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
+        tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: textDur, stagger: 0.12 }, 0.05)
+          .fromTo('[data-hero-sweep]', { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
 
-      // One render path per dial, three signals each — base (load sweep →
-      // idle), scroll deflection, pointer micro-deflection (lerped). Only
-      // one of the two dials is ever visible at a time (desktop vs mobile
-      // breakpoint), but both animate the same way regardless.
-      dials.forEach((dial) => {
-        const needle = dial.querySelector<HTMLElement>('[data-needle]');
-        if (!needle) return;
+        // One render path per dial, three signals each — base (load sweep →
+        // idle), scroll deflection, pointer micro-deflection (lerped). Only
+        // one of the two dials is ever visible at a time (desktop vs mobile
+        // breakpoint), but both animate the same way regardless.
+        dials.forEach((dial) => {
+          const needle = dial.querySelector<HTMLElement>('[data-needle]');
+          if (!needle) return;
 
-        const state = { base: A_MIN, scroll: 0, pointer: 0, pointerTarget: 0 };
-        if (import.meta.env.DEV) (window as any).__reveditHero?.dials.push(state);
-        gsap.ticker.add(() => {
-          state.pointer += (state.pointerTarget - state.pointer) * 0.08;
-          gsap.set(needle, { rotation: Math.min(state.base + state.scroll + state.pointer, A_MAX) });
-        });
-
-        tl.fromTo(dial, { y: 40, scale: 0.88, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: dialDur }, 0.35)
-          .to(state, { base: A_MAX, duration: 0.85, ease: 'power3.in' }, 0.9) // floor it
-          .to(state, { base: A_IDLE, duration: 1.1, ease: 'back.out(1.05)' }, '>'); // settle to idle
-
-        // ── Scroll: rev toward the redline as the hero leaves the viewport ──
-        ScrollTrigger.create({
-          trigger: root,
-          start: 'top top',
-          end: 'bottom 20%',
-          scrub: true,
-          onUpdate: (self) => { state.scroll = self.progress * (A_RED - A_IDLE); },
-        });
-
-        // ── Pointer: micro-deflection (desktop only) ──
-        if (matchMedia('(pointer: fine)').matches) {
-          root.addEventListener('pointermove', (e) => {
-            const r = dial.getBoundingClientRect();
-            state.pointerTarget = ((e.clientX - (r.left + r.width / 2)) / r.width) * 6; // ±3° feel
+          const state = { base: A_MIN, scroll: 0, pointer: 0, pointerTarget: 0 };
+          if (import.meta.env.DEV) (window as any).__reveditHero?.dials.push(state);
+          gsap.ticker.add(() => {
+            state.pointer += (state.pointerTarget - state.pointer) * 0.08;
+            gsap.set(needle, { rotation: Math.min(state.base + state.scroll + state.pointer, A_MAX) });
           });
-          root.addEventListener('pointerleave', () => { state.pointerTarget = 0; });
-        }
-      });
+
+          tl.fromTo(dial, { y: 40, scale: 0.88, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: dialDur }, 0.35)
+            .to(state, { base: A_MAX, duration: 0.85, ease: 'power3.in' }, 0.9) // floor it
+            .to(state, { base: A_IDLE, duration: 1.1, ease: 'back.out(1.05)' }, '>'); // settle to idle
+
+          // ── Scroll: rev toward the redline as the hero leaves the viewport ──
+          ScrollTrigger.create({
+            trigger: root,
+            start: 'top top',
+            end: 'bottom 20%',
+            scrub: true,
+            onUpdate: (self) => { state.scroll = self.progress * (A_RED - A_IDLE); },
+          });
+
+          // ── Pointer: micro-deflection (desktop only) ──
+          if (matchMedia('(pointer: fine)').matches) {
+            root.addEventListener('pointermove', (e) => {
+              const r = dial.getBoundingClientRect();
+              state.pointerTarget = ((e.clientX - (r.left + r.width / 2)) / r.width) * 6; // ±3° feel
+            });
+            root.addEventListener('pointerleave', () => { state.pointerTarget = 0; });
+          }
+        });
+      };
+
+      // ── First-load readiness gate ──
+      // The hero pieces are pre-hidden in CSS (html.motion-ok rules below —
+      // the same pattern the data-split h1 already rides), and the entrance
+      // waits for the display fonts plus the visible dial face to finish
+      // decoding. Without the gate a cold cache plays the fade against a
+      // mid-swap fallback font and a still-decoding medallion — and worse,
+      // the markup paints, vanishes when GSAP's from-state lands, then fades
+      // back in. The 150ms floor gives warm-cache visits one settled painted
+      // frame before motion starts; the 2.5s race bounds the wait, so a
+      // stalled font or image can only delay the entrance, never strand the
+      // pre-hide (GSAP's inline styles take over the moment the timeline is
+      // built).
+      const faces = dials
+        .filter((dial) => dial.offsetParent !== null)
+        .map((dial) => dial.querySelector<HTMLImageElement>('img.g-face'))
+        .filter((img): img is HTMLImageElement => img !== null);
+      const settled = Promise.all([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 150)),
+        ...faces.map((img) => img.decode().catch(() => {})),
+      ]);
+      Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2500))]).then(startEntrance);
     }
   }
 </script>
 
 <style>
   /* ── Hero — centered text column over the REV gauge medallion. ── */
+  /* First-load pre-hide for the entrance pieces, released by the readiness
+     gate in the script above (GSAP's inline from-state takes over the moment
+     the timeline is built, so no release class is needed). Gated on
+     html.motion-ok so no-JS and reduced-motion visitors get the static hero —
+     the same pattern the data-split h1 rides in global.css. */
+  :global(html.motion-ok) [data-hero-in],
+  :global(html.motion-ok) [data-dial] { opacity: 0; }
+  :global(html.motion-ok) [data-hero-sweep] { transform: scaleX(0); }
   /* border-bottom: none overrides the global .hero divider — the hero should
      flow straight into the plugin showcase. */
   /* Bottom padding +100px pushes every section after this one (carousel, DAW
