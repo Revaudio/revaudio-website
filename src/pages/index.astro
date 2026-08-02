@@ -31,7 +31,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     <div class="hero-grid">
       <div class="hero-head" data-edit="hero.text">
         <div class="hh-tag" data-hero-in data-edit-sub="tag">Boutique VST plugins</div>
-        <h1 class="hh-h1" data-split>
+        <h1 class="hh-h1">
           <span class="hh-h1-line" data-edit-sub="line1">Engineered,</span>
           <span class="hh-h1-line" data-edit-sub="line2">Then Tuned.</span>
         </h1>
@@ -89,6 +89,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
 
 <script>
   import { gsap, ScrollTrigger, reducedMotion } from '../lib/motion';
+  import { SplitText } from 'gsap/SplitText';
 
   // Plugin scale: dB −60…0 maps to −135°…+135°. Idle ≈ −50 dB, redline ≈ −10 dB.
   const A_MIN = -135, A_IDLE = -90, A_RED = 90, A_MAX = 135;
@@ -121,6 +122,33 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
         if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
         tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: textDur, stagger: 0.12 }, 0.05)
           .fromTo('[data-hero-sweep]', { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
+
+        // ── Headline: lands right after the needle's side-to-side sweep ──
+        // The rev is the drum-roll, the headline is the payoff — so on desktop
+        // it enters at 2.85s, the moment the settle tween below parks the
+        // needle back at idle. Mobile keeps the early snap arrival: no
+        // medallion there, and a ~3s-late headline on the only first-screen
+        // content reads as a hang, not a payoff. Runs inside the hero timeline
+        // (not lib/splittext.ts data-split), so it shares the entrance's
+        // readiness gate and can never strand on a hung font — the fallback
+        // path is a plain rise if SplitText refuses the element.
+        const h1 = root.querySelector<HTMLElement>('.hh-h1');
+        if (h1) {
+          const h1At = slowIn ? 2.85 : 0.15;
+          try {
+            gsap.registerPlugin(SplitText);
+            const split = SplitText.create(h1, { type: 'words', mask: 'words', aria: 'auto' });
+            gsap.set(h1, { opacity: 1 }); // release the pre-hide; words still sit below their masks
+            tl.fromTo(
+              split.words,
+              { yPercent: 110 },
+              { yPercent: 0, duration: 0.6, ease: 'expo.out', stagger: 0.08, onComplete: () => split.revert() },
+              h1At,
+            );
+          } catch {
+            tl.fromTo(h1, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, h1At);
+          }
+        }
 
         // One render path per dial, three signals each — base (load sweep →
         // idle), scroll deflection, pointer micro-deflection (lerped). Only
@@ -195,7 +223,8 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
      html.motion-ok so no-JS and reduced-motion visitors get the static hero —
      the same pattern the data-split h1 rides in global.css. */
   :global(html.motion-ok) [data-hero-in],
-  :global(html.motion-ok) [data-dial] { opacity: 0; }
+  :global(html.motion-ok) [data-dial],
+  :global(html.motion-ok) .hh-h1 { opacity: 0; }
   :global(html.motion-ok) [data-hero-sweep] { transform: scaleX(0); }
   /* border-bottom: none overrides the global .hero divider — the hero should
      flow straight into the plugin showcase. */

@@ -16,24 +16,33 @@ export async function initSplitHeadlines(): Promise<void> {
   if (!els.length) return;
 
   gsap.registerPlugin(SplitText);
-  await document.fonts.ready;
+  // Bounded wait: fonts.ready has no timeout of its own, and one pending or
+  // failed font request (Safari + a stalled Google Fonts fetch) left the
+  // pre-hidden headline stranded invisible. A hung font may only delay the
+  // reveal, never block it — same 2.5s budget as the hero entrance gate.
+  await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 2500))]);
 
   els.forEach((el) => {
-    const split = SplitText.create(el, { type: 'words', mask: 'words', aria: 'auto' });
-    // Words start below their masks (immediateRender), so the element can go
-    // visible now — releases the CSS pre-hide without anything flashing.
-    el.classList.add('split-ready');
-    gsap.fromTo(
-      split.words,
-      { yPercent: 110 },
-      {
-        yPercent: 0,
-        duration: 0.6,
-        ease: 'expo.out',
-        stagger: 0.08,
-        scrollTrigger: { trigger: el, start: 'top 85%', once: true },
-        onComplete: () => split.revert(),
-      },
-    );
+    try {
+      const split = SplitText.create(el, { type: 'words', mask: 'words', aria: 'auto' });
+      // Words start below their masks (immediateRender), so the element can go
+      // visible now — releases the CSS pre-hide without anything flashing.
+      el.classList.add('split-ready');
+      gsap.fromTo(
+        split.words,
+        { yPercent: 110 },
+        {
+          yPercent: 0,
+          duration: 0.6,
+          ease: 'expo.out',
+          stagger: 0.08,
+          scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+          onComplete: () => split.revert(),
+        },
+      );
+    } catch {
+      // Splitting failed — release the pre-hide and show the text static.
+      el.classList.add('split-ready');
+    }
   });
 }
