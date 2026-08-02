@@ -187,6 +187,9 @@
     const filters = [];
     m.props.forEach((p) => {
       const v = s.props ? s.props[p.key] : null;
+      /* js props drive the page's dev timeline hooks (the headline beat)
+         instead of CSS — the page owns the tween, RevEdit just feeds it. */
+      if (p.js) { if (v != null) window.__reveditHero?.retime?.({ [p.js]: v }); return; }
       if (p.filter) { if (v != null) filters.push(`${p.filter}(${v}${p.unit || ''})`); return; }
       /* tpl lets ONE slider drive a multi-part value — a glow needs three
          lengths and a colour, a mask needs a whole gradient. Without it those

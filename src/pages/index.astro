@@ -137,13 +137,41 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
         if (h1) {
           const h1At = slowIn ? 2.85 : 0.15;
           const lines = h1.querySelectorAll<HTMLElement>('.hh-h1-line');
+          const h1Targets: gsap.TweenTarget = lines.length ? Array.from(lines) : h1;
           gsap.set(h1, { opacity: 1 }); // release the pre-hide; the lines carry the reveal
-          tl.fromTo(
-            lines.length ? lines : h1,
-            { y: 26, opacity: 0 },
-            { y: 0, opacity: 1, duration: 0.7, stagger: 0.12 },
-            h1At,
-          );
+          // Standalone tween + tl.add so the RevEdit hook below can rebuild it
+          // in place; ease is explicit because add() doesn't inherit the
+          // timeline's defaults the way tl.fromTo does.
+          const buildH1 = (at: number, dur: number, stag: number) => {
+            const tw = gsap.fromTo(
+              h1Targets,
+              { y: 26, opacity: 0 },
+              { y: 0, opacity: 1, duration: dur, ease: 'expo.out', stagger: stag },
+            );
+            tl.add(tw, at);
+            return tw;
+          };
+          let h1Tween = buildH1(h1At, 0.7, 0.12);
+
+          if (import.meta.env.DEV) {
+            // RevEdit hook: the manifest's h1At/h1Dur/h1Stag sliders land here
+            // (via the `js` prop branch in applyManifest). Rebuilds the tween
+            // at the new beat, then replays from just before it so the new
+            // rate is felt immediately — debounced so a slider drag replays
+            // once, not per tick.
+            const cfg = { h1At, h1Dur: 0.7, h1Stag: 0.12 };
+            let replayT: ReturnType<typeof setTimeout> | undefined;
+            (window as any).__reveditHero.retime = (patch: Record<string, number>) => {
+              const changed = Object.entries(patch).some(([k, v]) => cfg[k as keyof typeof cfg] !== v);
+              Object.assign(cfg, patch);
+              if (!changed) return;
+              h1Tween.kill();
+              tl.remove(h1Tween);
+              h1Tween = buildH1(cfg.h1At, cfg.h1Dur, cfg.h1Stag);
+              clearTimeout(replayT);
+              replayT = setTimeout(() => { tl.pause().seek(Math.max(0, cfg.h1At - 0.4)); tl.play(); }, 250);
+            };
+          }
         }
 
         // One render path per dial, three signals each — base (load sweep →
