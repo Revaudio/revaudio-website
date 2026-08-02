@@ -213,6 +213,16 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
        and the "medallion" reading falls apart. */
     max-width: min(52ch, var(--medallion));
     flex: 0 1 auto;
+    /* Optical centring nudge: the disc's visual centre sits a hair left of and
+       below the box centre, so the type is pushed back the other way. Desktop
+       only — reset at the mobile breakpoint, where there is no disc to centre
+       against. */
+    transform: translate(3px, -10px);
+    /* Soft halo, tuned against the medallion. Does NOT count toward the
+       contrast ratios below (WCAG scores glyph vs background, and a shadow is
+       neither) — it is there to separate the type from the dial's engraving,
+       not to carry legibility. Reset on mobile with the transform. */
+    text-shadow: 0 0 31px color-mix(in srgb, currentColor 55%, transparent);
   }
 
   /* Scrim: holds type contrast where the brass ring and the lit redline would
@@ -223,15 +233,20 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
      slider moves — a pseudo-element can't be selected in the editor, and a
      custom property on the parent is the only way to reach one. */
   .hero-head {
-    /* Strength and feather are set by CONTRAST, not by taste: at 1.02/66% the
-       eyebrow measured 3.25:1 over the dial's 12-o'clock tick — a WCAG AA
-       failure (19.9px regular brass needs 4.5:1). 1.3/86% measures 7.09:1 with
-       zero glyph pixels under threshold, and does it without touching the
-       medallion's 0.8 brightness. Re-measure before lowering either. */
-    --scrim: 1.3;    /* strength  — multiplies every stop's alpha */
-    --scrim-x: 70%;  /* how far it spreads past the text sideways */
-    --scrim-y: 27%;  /* ...and vertically (the lede needs the reach) */
-    --scrim-fade: 86%; /* where it finishes fading to nothing */
+    /* These four are set by CONTRAST, not by taste. Measured from rendered
+       pixels at 1568px, worst-case background behind the eyebrow (the dial's
+       12-o'clock tick), against a 4.5:1 AA requirement:
+         1.02 / 12% / 22% / 66%  ->  3.25:1  FAIL
+         1.30 / 70% / 27% / 86%  ->  7.09:1  pass
+         1.18 / 120% / 43% / 61% ->  5.16:1  pass   <- shipping
+       Strength and feather trade against reach: this set is weaker and fades
+       sooner than the 1.3/86% one, but spreads far enough sideways and down to
+       cover more of the disc, which nets out safe. That coupling means you
+       cannot reason about one knob alone — re-measure after ANY change here. */
+    --scrim: 1.18;   /* strength  — multiplies every stop's alpha */
+    --scrim-x: 120%; /* how far it spreads past the text sideways */
+    --scrim-y: 43%;  /* ...and vertically (the lede needs the reach) */
+    --scrim-fade: 61%; /* where it finishes fading to nothing */
   }
   .hero-head::before {
     content: '';
@@ -246,7 +261,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
        widening the feather stretches the whole falloff instead of just moving
        the last stop and kinking the curve. The fractions come from the 48% /
        70% the curve was originally tuned at against an 86% fade; at today's
-       66% default they resolve to ~37% / ~54%. */
+       61% they resolve to ~34% / ~50%. */
     background: radial-gradient(
       ellipse at center,
       rgba(8, 7, 6, calc(0.86 * var(--scrim))) 0%,
@@ -359,7 +374,9 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     /* Collapse the row back to a stack. Text is already centered at every
        width, so only the column direction/width changes. */
     .hero-grid { flex-direction: column; gap: 2rem; min-height: 0; }
-    .hero-head { max-width: 62ch; }
+    /* Both the optical nudge and the halo exist only to seat the type against
+       the medallion, and there is no medallion at this width. */
+    .hero-head { max-width: 62ch; transform: none; text-shadow: none; }
     /* No medallion on mobile — the stack keeps its own small in-flow gauge
        under the headline, and a 400px backdrop behind narrow type would only
        fight it. Both the scrim and the frame go with it. */
