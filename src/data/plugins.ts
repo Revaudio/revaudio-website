@@ -11,11 +11,12 @@
  * (Header/Cart/TrialGateModal look plugins up by slug).
  *
  * Prices are intent — flip when commerce launches.
- * Checkout: back on Lemon Squeezy (2026-08-03) while FastSpring account
- * verification is pending. Cart.astro reads `checkoutUrl` (LS overlay);
- * `fastspringPath` stays populated for the FS cutover, when Cart.astro's
- * FS engine returns (revert of the 2026-08-03 LS-restore commit).
- * GAS's download CTA stays behind TrialGateModal (email-capture funnel).
+ * Checkout: engine-switched in src/data/site.ts (checkoutEngine). 2026-08-03:
+ * 'ls' — Lemon Squeezy re-activated as the interim engine (checkoutUrl) while
+ * FastSpring onboarding finishes (fastspringPath, ready to flip to). The
+ * site-wide trial gate is LIFTED for the paid plugins; GAS keeps
+ * `trialGateActive` on purpose — its email-gate IS the free download's
+ * delivery mechanism, not a checkout pause.
  */
 
 export type PluginStatus = 'in-development' | 'beta' | 'live';
@@ -165,8 +166,11 @@ const baseSystemReq: SystemReq = {
   daws: 'Cubase 12+, Studio One 6+, Reaper 7+, Ableton Live 11+, FL Studio 21+, Logic Pro 11+',
 };
 
-// RevLimiter — Lemon Squeezy hosted checkout URL.
-const REVLIMITER_CHECKOUT_URL: string | null = 'https://revaudiopg.lemonsqueezy.com/checkout/buy/78885904-8a19-4e23-9510-31b50775ada5';
+// RevLimiter — Lemon Squeezy hosted checkout URL. The VROOM discount rides the
+// URL (checkout[discount_code]) so the intro price applies without the buyer
+// typing anything — a visible code field sends buyers coupon-hunting mid-buy.
+// VERIFY on the next test purchase: LS must show $56 pre-applied.
+const REVLIMITER_CHECKOUT_URL: string | null = 'https://revaudiopg.lemonsqueezy.com/checkout/buy/78885904-8a19-4e23-9510-31b50775ada5?checkout[discount_code]=VROOM';
 
 // Radio Roulette — Lemon Squeezy hosted checkout URL. Interim: we're
 // migrating the whole payment system to FastSpring, but this LS variant
@@ -199,9 +203,10 @@ export const plugins: Plugin[] = [
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
     fastspringPath: 'revlimiter',
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
-    // Checkout reopened on Lemon Squeezy (2026-08-03) while FastSpring
-    // verification is pending — buy CTA live again; `fastspringPath` stays
-    // for the FS cutover.
+    // Gate lifted 2026-08-03: checkout re-opened on the LS interim engine
+    // (site.checkoutEngine) — BUY is a real add-to-cart again and the door's
+    // painted trial line carries the trial offer. Re-set to true only if
+    // checkout pauses again.
     trialGateActive: false,
     demoUrl: null,
     releaseTarget: 'Q3 2026',
@@ -288,9 +293,8 @@ export const plugins: Plugin[] = [
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
     fastspringPath: 'radio-roulette',
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
-    // Checkout reopened on Lemon Squeezy (2026-08-03) while FastSpring
-    // verification is pending — buy CTA live again; `fastspringPath` stays
-    // for the FS cutover.
+    // Gate lifted 2026-08-03 with RevLimiter's — see that entry. Re-set to
+    // true only if checkout pauses again.
     trialGateActive: false,
     demoUrl: null,
     releaseTarget: '2026',

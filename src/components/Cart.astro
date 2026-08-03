@@ -13,18 +13,34 @@ import { TERMS_LAST_UPDATED } from '../data/legal';
  * - the header cart icon ([data-cart-toggle]) + badge ([data-cart-badge]) open the drawer
  * - A required consent checkbox gates Checkout; its links open the legal-reader
  *   modal (Terms / Licence / Privacy) IN A POPUP — no page navigation.
- * - Checkout opens the Lemon Squeezy overlay (lemon.js + ?embed=1) ON the site,
- *   stamping the accepted terms version onto the order as a consent record.
+ * - Checkout runs on site.checkoutEngine (2026-08-03: 'ls' — Lemon Squeezy
+ *   re-activated as the interim engine while FastSpring onboarding finishes):
+ *   'ls' opens the LS hosted-overlay checkout (lemon.js + ?embed=1), one
+ *   hosted URL per order (LS can't sum a multi-item cart — first item wins,
+ *   same as the original LS era). 'fastspring' is dormant until the FS
+ *   cutover (SBL tag re-added to BaseLayout then). Flip the engine in
+ *   src/data/site.ts only.
  * Rendered once in BaseLayout. No framework — vanilla JS, progressive.
  *
  * Checkout URLs are resolved fresh from this catalog map by slug at checkout
  * time — NEVER from the URL persisted in the cart.
  */
+import { site } from '../data/site';
+const engine = site.checkoutEngine;
 const checkoutMap: Record<string, string> = {};
-for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
+for (const p of plugins) {
+  const target = engine === 'ls' ? p.checkoutUrl : p.fastspringPath;
+  if (target) checkoutMap[p.slug] = target;
+}
 ---
 
-<script is:inline type="application/json" data-checkout-map set:html={JSON.stringify(checkoutMap)}></script>
+<script is:inline type="application/json" data-checkout-map data-engine={engine} set:html={JSON.stringify(checkoutMap)}></script>
+
+{/* Lemon Squeezy overlay checkout — renders the payment screen in a modal over
+    the site. No SRI: LS rotates lemon.js and ships it unversioned, so an
+    integrity pin would hard-break checkout on their next deploy (same call as
+    the CF beacon in BaseLayout). The CSP transform rule scopes what can load. */}
+{engine === 'ls' && <script is:inline src="https://assets.lemonsqueezy.com/lemon.js" defer></script>}
 
 <!-- Lemon Squeezy overlay checkout — renders the payment screen in a modal over the site. -->
 <script is:inline src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
@@ -104,6 +120,38 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
     // LS redirect has cleared the cart.
     var lastCheckoutValue = 0;
 
+    // ---- Lemon Squeezy overlay (engine 'ls') ----
+    // lemon.js is included above only when the engine is 'ls'. Setup() wires
+    // the overlay's event stream; Checkout.Success clears the cart and lands
+    // on /thank-you — the same contract fsCheckoutClosed keeps for FastSpring.
+    var lemonReady = false;
+    function ensureLemon() {
+      if (lemonReady) return !!(window.LemonSqueezy && window.LemonSqueezy.Url);
+      if (typeof window.createLemonSqueezy !== 'function') return false;
+      try {
+        window.createLemonSqueezy();
+        window.LemonSqueezy.Setup({
+          eventHandler: function (ev) {
+            if (ev && ev.event === 'Checkout.Success') {
+              write([]); sync();
+              // Client-side Purchase is best-effort: it undercounts consent-declines
+              // and races the redirect. If an LS-webhook → CAPI Purchase is added
+              // later it MUST carry the LS order id as eventID and this call must be
+              // deduped or removed. Not fired on /thank-you load (would re-fire on refresh).
+              track('Purchase', { value: lastCheckoutValue, currency: 'USD' });
+              window.location.href = '/thank-you';
+            }
+          }
+        });
+        lemonReady = true;
+      } catch (e) {}
+      return lemonReady;
+    }
+    function engineName() {
+      var el = document.querySelector('[data-checkout-map]');
+      return (el && el.getAttribute('data-engine')) || 'fastspring';
+    }
+
     function lock() { html.style.overflow = anyModalOpen() ? 'hidden' : ''; }
     function anyModalOpen() {
       return (drawer && drawer.open) || (lModal && lModal.open);
@@ -158,31 +206,6 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
       lock();
     }
 
-    // ---- Lemon Squeezy overlay ----
-    var lemonReady = false;
-    function ensureLemon() {
-      if (lemonReady) return !!(window.LemonSqueezy && window.LemonSqueezy.Url);
-      if (typeof window.createLemonSqueezy !== 'function') return false;
-      try {
-        window.createLemonSqueezy();
-        window.LemonSqueezy.Setup({
-          eventHandler: function (ev) {
-            if (ev && ev.event === 'Checkout.Success') {
-              write([]); sync();
-              // Client-side Purchase is best-effort: it undercounts consent-declines
-              // and races the redirect. If an LS-webhook → CAPI Purchase is added
-              // later it MUST carry the LS order id as eventID and this call must be
-              // deduped or removed. Not fired on /thank-you load (would re-fire on refresh).
-              track('Purchase', { value: lastCheckoutValue, currency: 'USD' });
-              window.location.href = '/thank-you';
-            }
-          }
-        });
-        lemonReady = true;
-      } catch (e) {}
-      return lemonReady;
-    }
-
     function checkoutMap() {
       var el = document.querySelector('[data-checkout-map]');
       try { return el ? JSON.parse(el.textContent || '{}') : {}; } catch (e) { return {}; }
@@ -212,16 +235,38 @@ for (const p of plugins) if (p.checkoutUrl) checkoutMap[p.slug] = p.checkoutUrl;
       var cart = read();
       lastCheckoutValue = cart.reduce(function (s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
       track('InitiateCheckout', { value: lastCheckoutValue, currency: 'USD', num_items: count(cart) });
-      var url = checkoutUrlFor(items[0]);
-      url += (url.indexOf('?') === -1 ? '?' : '&') + 'embed=1';
-      // Consent record: stamp the accepted legal-bundle version onto the order via
-      // LS custom passthrough data. (LS docs: Passing Custom Data.)
-      url += '&checkout[custom][terms_accepted]=true';
       var ver = (agree && agree.getAttribute('data-terms-version')) || '';
-      if (ver) url += '&checkout[custom][terms_version]=' + encodeURIComponent(ver);
+      // Engine 'ls' — LS hosted-overlay checkout. One hosted URL per order (LS
+      // can't sum a multi-item cart — first item wins, same as the original LS
+      // era). Overlay when lemon.js is up, plain redirect otherwise — the LS
+      // path never fails closed.
+      if (engineName() === 'ls') {
+        var url = checkoutUrlFor(items[0]);
+        url += (url.indexOf('?') === -1 ? '?' : '&') + 'embed=1';
+        // Consent record: stamp the accepted legal-bundle version onto the
+        // order via LS custom passthrough data. (LS docs: Passing Custom Data.)
+        url += '&checkout[custom][terms_accepted]=true';
+        if (ver) url += '&checkout[custom][terms_version]=' + encodeURIComponent(ver);
+        if (drawer && drawer.open) drawer.close();
+        if (ensureLemon()) { window.LemonSqueezy.Url.Open(url); return; }
+        window.location.href = url;
+        return;
+      }
+      // Engine 'fastspring' — dormant until the FS cutover (the SBL script tag
+      // was removed from BaseLayout with the LS reopen; restore it at flip
+      // time). Fail closed: no plain-URL fallback exists for SBL.
+      if (!(window.fastspring && window.fastspring.builder)) return;
+      window.fastspring.builder.push({
+        reset: true,
+        // Full cart, not just the first item — FastSpring's session natively
+        // sums multiple line items (unlike LS's single hosted-checkout URL).
+        products: items.map(function (i) { return { path: checkoutUrlFor(i), quantity: i.qty || 1 }; }),
+        // Consent record: stamp the accepted legal-bundle version onto the
+        // order via FastSpring's custom-tags passthrough (FastSpring docs: tags).
+        tags: { terms_accepted: 'true', terms_version: ver }
+      });
       if (drawer && drawer.open) drawer.close();
-      if (ensureLemon()) { window.LemonSqueezy.Url.Open(url); return; }
-      window.location.href = url;
+      window.fastspring.builder.checkout();
     }
 
     // ---- Legal reader modal (read-only; Terms / Licence / Privacy tabs) ----

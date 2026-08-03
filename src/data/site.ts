@@ -4,6 +4,17 @@
 
 export const site = {
   /**
+   * Which engine the cart's Checkout button drives.
+   * 'ls'         — Lemon Squeezy hosted-overlay checkout (plugins.ts checkoutUrl).
+   *                Interim while FastSpring onboarding completes (partner
+   *                re-activated LS 2026-08-03).
+   * 'fastspring' — FastSpring SBL popup (plugins.ts fastspringPath). Flip this
+   *                single value when FastSpring is verified — then make a real
+   *                test purchase on the live site before calling it done.
+   */
+  checkoutEngine: 'ls' as 'ls' | 'fastspring',
+
+  /**
    * Cloudflare Web Analytics beacon token (free, cookieless, privacy-friendly).
    * How to get it: Cloudflare dashboard → Analytics & Logs → Web Analytics →
    * "Add a site" → enter revaudio.net → copy the token from the JS snippet

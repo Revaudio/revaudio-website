@@ -7,9 +7,12 @@ interface Props {
 }
 
 const {
-  heading = 'Subscribe to the newsletter',
-  subhead = 'New plugins, demo codes, and intro pricing, straight to your inbox. No spam.',
-  buttonLabel = 'Subscribe',
+  // Offer-first defaults (conversion pass 2026-08-03): "Subscribe to the
+  // newsletter" is the weakest framing in the category, and live competitor
+  // audit found zero brands saying "No spam" — permission language instead.
+  heading = 'Join the pit crew',
+  subhead = 'Early plugin drops, demo codes, and intro pricing, straight to your inbox. Unsubscribe anytime.',
+  buttonLabel = 'Sign me up',
   id,
 } = Astro.props;
 

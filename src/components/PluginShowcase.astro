@@ -115,7 +115,15 @@ const SLIDES = [
       more:     { left: 0, top: 422, ff: 'Oswald, sans-serif',       fw: 400, fs: 17, ls: 0 },
     },
   },
-].filter((s) => bySlug(s.slug));
+].filter((s) => {
+  // Rotation carries ONLY buyable/downloadable plugins (conversion pass
+  // 2026-08-03): a "Target 2026" slide in the homepage's prime slot sells
+  // nothing and reads roadmap-company. Slide defs for in-development plugins
+  // stay above with their bench-tuned styles — they re-enter the rotation by
+  // themselves the day their status flips to live.
+  const p = bySlug(s.slug);
+  return p && p.status !== 'in-development';
+});
 
 const pos = (st: { left: number; top: number; w?: number; h?: number }) =>
   `left:${st.left}px;top:${st.top}px;` + (st.w ? `width:${st.w}px;` : '') + (st.h ? `height:${st.h}px;` : '');
@@ -296,23 +304,12 @@ const peekClass = (i: number) => {
     }, { threshold: 0.35 });
     io.observe(sc);
 
-    // ── auto-advance: 6s while in view; pause on hover; die permanently on
-    //    first user interaction; never under reduced motion. ──
-    let autoTimer: number | null = null;
-    let autoDead = reduced;
-    let hovering = false;
-    const stopAuto = () => { if (autoTimer !== null) { clearInterval(autoTimer); autoTimer = null; } };
-    const startAuto = () => {
-      if (autoDead || !inView || hovering || autoTimer !== null) return;
-      autoTimer = window.setInterval(() => {
-        if (!inView || hovering) { stopAuto(); return; }
-        go(idx + 1, false);
-      }, 6000);
-    };
-    const killAuto = () => { autoDead = true; stopAuto(); };
-    onInView.push(startAuto);
-    sc.addEventListener('mouseenter', () => { hovering = true; stopAuto(); });
-    sc.addEventListener('mouseleave', () => { hovering = false; startAuto(); });
+    // ── auto-advance REMOVED 2026-08-03 (conversion pass): a timer that flips
+    //    the slide mid-read takes the product away from whoever's looking at
+    //    it, and timed motion is what banner-blindness filters. The visitor
+    //    drives — arrows, dots, keys, swipe. killAuto stays as a no-op seam
+    //    for the interaction handlers that used to retire the timer. ──
+    const killAuto = () => {};
 
     // Uniformly scale the fixed bench-exact stage to fit width — all
     // viewports. On phones this shrinks the whole coverflow (card + peeking
