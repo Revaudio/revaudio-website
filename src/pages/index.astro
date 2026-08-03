@@ -10,6 +10,16 @@ import SubscribeModal from '../components/SubscribeModal.astro';
 import faceImg from '../assets/hero/rev-gauge-face.png';
 import needleImg from '../assets/hero/needle-v2.png';
 import hubImg from '../assets/hero/hub-v2.png';
+import { plugins, dlGateId } from '../data/plugins';
+import { site } from '../data/site';
+
+// Hero + closing trial CTAs open the TrialGateModal (mounted in BaseLayout)
+// in place — same trigger contract as PluginCard / the crane door. The gate
+// id MUST be dlGateId(), never the slug (the worker silently falls back to
+// revlimiter on unknown ids — wiki gotcha).
+const revlimiter = plugins.find((p) => p.slug === 'revlimiter')!;
+const trialGateId = dlGateId(revlimiter);
+const trialRegisterUrl = site.downloadGate.workerUrl + '/download/register';
 
 /* Gauge geometry — the plugin's 406-viewBox units as % of the square dial box:
    needle <image> x122 y67.69 w162.4, pivot (203,203); hub x180.54 y181.08 w45.5.
@@ -30,7 +40,10 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
   <section class="hero hero-feat" data-hero>
     <div class="hero-grid">
       <div class="hero-head" data-edit="hero.text">
-        <div class="hh-tag" data-hero-in data-edit-sub="tag">Boutique VST plugins</div>
+        {/* Plain-English line before the metaphor (stop B): what we sell, in
+            words a first visit parses instantly — fluency reads as lower
+            risk. The identity stays loud in the headline below. */}
+        <div class="hh-tag" data-hero-in data-edit-sub="tag">Boutique mastering &amp; mix plugins</div>
         <h1 class="hh-h1">
           <span class="hh-h1-line" data-edit-sub="line1">Engineered,</span>
           <span class="hh-h1-line" data-edit-sub="line2">Then Tuned.</span>
@@ -61,14 +74,18 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
             the 3s [data-hero-in] cascade — the sweep's end delivers it, then
             it holds still (onset only, never looped). */}
         <div class="hh-cta" data-hero-cta>
-          <a
+          <button
+            type="button"
             class="trial-cta"
-            href="/revlimiter#trial"
+            data-trial-gate-open
+            data-plugin-name={revlimiter.name}
+            data-plugin-slug={trialGateId}
+            data-register-url={trialRegisterUrl}
             aria-label="Start the free 14-day trial of RevLimiter, full version, no credit card"
           >
             <span class="tc-verb">Start your 14-day free trial</span>
             <span class="tc-micro">RevLimiter &middot; full version &middot; no credit card</span>
-          </a>
+          </button>
           <a class="hh-cta-alt" href="#plugins">See the plugins</a>
         </div>
 
@@ -112,14 +129,18 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       mobile hero CTA / buy bar. */}
   <section class="closing-cta" aria-label="Start a free trial">
     <h2 class="cc-head">Hear it on your own mix</h2>
-    <a
+    <button
+      type="button"
       class="trial-cta"
-      href="/revlimiter#trial"
+      data-trial-gate-open
+      data-plugin-name={revlimiter.name}
+      data-plugin-slug={trialGateId}
+      data-register-url={trialRegisterUrl}
       aria-label="Start the free 14-day trial of RevLimiter, full version, no credit card"
     >
       <span class="tc-verb">Start your 14-day free trial</span>
       <span class="tc-micro">RevLimiter &middot; full version &middot; no credit card</span>
-    </a>
+    </button>
     <a class="cc-alt" href="/store">Browse the store &rarr;</a>
   </section>
 
@@ -159,12 +180,7 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
         // controls). Tree-shaken out of prod builds.
         if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
         tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: textDur, stagger: 0.12 }, 0.05)
-          .fromTo('[data-hero-sweep]', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.7, ease: 'power3.out' }, 0.75)
-          // CTA rides the sweep's tail (sweep 0.75→1.45): one onset transient
-          // that lands as the redline completes, then holds still. Not in the
-          // slow [data-hero-in] cascade — the button must be live while the
-          // atmosphere is still assembling around it.
-          .fromTo('[data-hero-cta]', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }, 1.2);
+          .fromTo('[data-hero-sweep]', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
 
         // ── Headline: rides the rev, lands with the settle ──
         // Desktop beat (Dan's call): enter at 1.3s — a touch before the
@@ -272,6 +288,18 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       // stalled font or image can only delay the entrance, never strand the
       // pre-hide (GSAP's inline styles take over the moment the timeline is
       // built).
+      // ── The CTA is NOT gated on the readiness race below ──
+      // Stop B rule: clickable within ~800ms — the atmosphere assembles
+      // around a live button, never the reverse. One onset transient
+      // immediately (module scripts run post-parse), then it holds still.
+      // The main timeline's fonts/dial gate can add up to 2.65s on a cold
+      // cache; the CTA must never inherit that wait.
+      gsap.fromTo(
+        '[data-hero-cta]',
+        { y: 18, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out', delay: 0.25 },
+      );
+
       const faces = dials
         .filter((dial) => dial.offsetParent !== null)
         .map((dial) => dial.querySelector<HTMLImageElement>('img.g-face'))
@@ -493,10 +521,12 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     align-items: center;
     gap: 0.35rem;
     padding: 0.95rem 2.1rem;
+    border: 0; /* it's a <button> now (opens the trial gate) — reset the UA chrome */
     border-radius: 4px;
     background: var(--brass-bright);
     color: var(--bg-0);
     text-shadow: none; /* cancel .hero-head's halo — enamel doesn't glow */
+    cursor: pointer;
     transition: filter 0.2s var(--ease), transform 0.12s var(--ease);
   }
   .trial-cta:hover { filter: brightness(1.12); transform: translateY(-1px); }
