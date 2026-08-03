@@ -209,10 +209,11 @@ export const plugins: Plugin[] = [
     features: [
       { name: 'True-peak limiting', desc: 'Hit the ceiling, never cross it. Inter-sample peak control at oversampled rate, with a base-rate hard-clip as the safety net.', part: 'ceiling' },
       { name: 'Adaptive multi-band release', desc: 'Per-band envelope tracking. Bass holds, mids breathe, highs respond. No static release time fights your material.', part: 'bands' },
-      { name: 'Multiband glue or EQ', desc: 'One switch flips the multiband stage between transparent glue compression and a live multiband EQ, so you shape each band’s tone, not just its level.', part: 'mb' },
-      { name: 'Visual crossover', desc: 'Open the digital crossover: a live spectrum with two draggable split points that set exactly where Low, Mid and High divide.', part: 'crossover' },
+      { name: 'Multiband glue', desc: 'One switch engages transparent multiband glue: Low, Mid and High gain density, with no tone coloring.', part: 'mb' },
+      { name: 'Visual crossover', desc: 'Open the digital crossover: a live spectrum with two draggable split points that set exactly where Low, Mid and High divide. The dashed lines are each band’s comp threshold — drag them to set.', part: 'crossover' },
       { name: 'Analog-modelled saturation', desc: 'Asymmetric soft-to-hard curve with DC-block. Adds density and weight before the brick wall.', part: 'saturation' },
       { name: 'Three engine modes', desc: 'One switch, three drive characters: Cruise for gentle, transparent glue; Sport for punchy, snappy grip; NOS for loud, aggressive hard-clip muscle.', part: 'modes' },
+      { name: 'Auto gain', desc: 'Auto makeup gain recovers loudness as the threshold digs deeper. Click it off to hear the honest level — no loudness flattery. Built for fair A/B checks.', part: 'again' },
       { name: 'Clipper ceiling', desc: 'The hard ceiling nothing gets past. Set the absolute peak limit: pull it down for safe true-peak headroom, push it up for raw loudness.', part: 'clipper' },
       { name: 'Pro-tier metering', desc: 'Trust your eyes, not a guess: true peak, max peak, LUFS-M/S/I, LRA and per-band GR, RT-safe and audited against external mastering meters.', part: 'meters' },
       { name: 'Live spectrum analyser', desc: 'An always-on spectrum across the bottom deck. Watch your master’s balance in real time as it hits the wall.', part: 'spectrum' },
@@ -236,29 +237,33 @@ export const plugins: Plugin[] = [
       youtubeId: 'Og4PRlBFco8',
       blurb: 'Everything under the hood: the full RevLimiter tutorial, from first insert to redline.',
     },
-    // Part rects measured against src/assets/plugins/revlimiter-hero.png
-    // (2542x1226 source). Percent of image, top-left origin.
+    // Part rects for the v3.1.9 panel shot (2600x1256 source). Measured from
+    // the live WebView UI DOM (getBoundingClientRect as % of .plugin, served
+    // over http in WebKit), then padded so each box frames its control.
+    // Shot + thumbs regenerate from tools/revlimiter-shoot/.
     stage: {
       shot: 'revlimiter-hero.png',
       parts: {
-        ceiling: { x: 66.5, y: 16.5, w: 18, h: 28, thumb: 'revlimiter-part-ceiling.png' },
-        bands: { x: 2.5, y: 16.5, w: 18, h: 51, thumb: 'revlimiter-part-bands.png' },
-        mb: { x: 22.5, y: 18, w: 6, h: 28.5, thumb: 'revlimiter-part-mb.png' },
+        ceiling: { x: 65.5, y: 16.5, w: 19, h: 29.5, thumb: 'revlimiter-part-ceiling.png' },
+        bands: { x: 2.3, y: 12.5, w: 17.5, h: 58, thumb: 'revlimiter-part-bands.png' },
+        mb: { x: 22, y: 18, w: 6.6, h: 32.5, thumb: 'revlimiter-part-mb.png' },
         // Alternate shot — the X·OVER control opens its own modal window that
         // isn't on the base panel, so this part swaps the whole stage image.
         crossover: { shot: 'revlimiter-xover.png' },
         // Orphan (no discrete control) — whole drive/HEAT cluster.
-        saturation: { x: 0.8, y: 44, w: 40, h: 54, thumb: 'revlimiter-part-saturation.png' },
+        saturation: { x: 1, y: 44.5, w: 39.5, h: 54.5, thumb: 'revlimiter-part-saturation.png' },
         // Cruise / Sport / NOS bat-lever triplet (box all three).
-        modes: { x: 62.5, y: 52.5, w: 21, h: 22, thumb: 'revlimiter-part-modes.png' },
-        meters: { x: 83.5, y: 25, w: 15, h: 27, thumb: 'revlimiter-part-meters.png' },
-        spectrum: { x: 19.5, y: 75, w: 69, h: 22, thumb: 'revlimiter-part-spectrum.png' },
+        modes: { x: 60.8, y: 51.5, w: 24, h: 30.3, thumb: 'revlimiter-part-modes.png' },
+        // A-GAIN press button (gain comp), left of the mode switches.
+        again: { x: 55.1, y: 62.3, w: 6.4, h: 12.7 },
+        meters: { x: 83.8, y: 25, w: 14.9, h: 27, thumb: 'revlimiter-part-meters.png' },
+        spectrum: { x: 19.6, y: 76.5, w: 70, h: 21.5, thumb: 'revlimiter-part-spectrum.png' },
         // Far-right column knobs (own the CLIPPER + OUTPUT labels).
-        clipper: { x: 88, y: 55, w: 11, h: 18, thumb: 'revlimiter-part-clipper.png' },
-        output: { x: 88, y: 75.5, w: 11, h: 23 },
-        oversampling: { x: 76.5, y: 6, w: 7.5, h: 7, thumb: 'revlimiter-part-oversampling.png' },
-        gauge: { x: 36, y: 0.5, w: 29.5, h: 61 },
-        ab: { x: 29.5, y: 5.5, w: 6.5, h: 12, thumb: 'revlimiter-part-ab.png' },
+        clipper: { x: 86, y: 50.5, w: 12.6, h: 23, thumb: 'revlimiter-part-clipper.png' },
+        output: { x: 87.9, y: 74, w: 10.5, h: 25 },
+        oversampling: { x: 77.2, y: 5.8, w: 6.7, h: 7, thumb: 'revlimiter-part-oversampling.png' },
+        gauge: { x: 36, y: 0.5, w: 30, h: 62 },
+        ab: { x: 29.5, y: 6, w: 6.4, h: 11.5, thumb: 'revlimiter-part-ab.png' },
       },
     },
   },
