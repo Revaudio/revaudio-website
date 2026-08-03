@@ -11,10 +11,11 @@
  * (Header/Cart/TrialGateModal look plugins up by slug).
  *
  * Prices are intent — flip when commerce launches.
- * Checkout: migrating from Lemon Squeezy to FastSpring. Cart.astro reads
- * `fastspringPath`; `checkoutUrl` (LS) is left populated as a rollback path.
- * Buy/download CTAs are currently gated behind TrialGateModal site-wide
- * (`trialGateActive`) while the migration is verified — see that flag below.
+ * Checkout: back on Lemon Squeezy (2026-08-03) while FastSpring account
+ * verification is pending. Cart.astro reads `checkoutUrl` (LS overlay);
+ * `fastspringPath` stays populated for the FS cutover, when Cart.astro's
+ * FS engine returns (revert of the 2026-08-03 LS-restore commit).
+ * GAS's download CTA stays behind TrialGateModal (email-capture funnel).
  */
 
 export type PluginStatus = 'in-development' | 'beta' | 'live';
@@ -198,10 +199,10 @@ export const plugins: Plugin[] = [
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
     fastspringPath: 'revlimiter',
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
-    // Checkout paused site-wide during the payment-provider migration
-    // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this
-    // once checkout's back.
-    trialGateActive: true,
+    // Checkout reopened on Lemon Squeezy (2026-08-03) while FastSpring
+    // verification is pending — buy CTA live again; `fastspringPath` stays
+    // for the FS cutover.
+    trialGateActive: false,
     demoUrl: null,
     releaseTarget: 'Q3 2026',
     heroImage: 'revlimiter-hero.png',
@@ -287,10 +288,10 @@ export const plugins: Plugin[] = [
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
     fastspringPath: 'radio-roulette',
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
-    // Checkout paused site-wide during the payment-provider migration
-    // (2026-07-26) — every buy CTA opens TrialGateModal instead. Drop this
-    // once checkout's back.
-    trialGateActive: true,
+    // Checkout reopened on Lemon Squeezy (2026-08-03) while FastSpring
+    // verification is pending — buy CTA live again; `fastspringPath` stays
+    // for the FS cutover.
+    trialGateActive: false,
     demoUrl: null,
     releaseTarget: '2026',
     heroImage: 'radioroulette-hero.png',
