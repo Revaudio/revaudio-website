@@ -415,9 +415,14 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
   }
 
   .hh-lede {
-    font-family: var(--font-body);
-    font-size: 1.3068rem; /* was 1.188rem */
-    line-height: 1.6;
+    /* Display face, not body — benched in bench/hero-text-bench.html. Bebas has
+       no lowercase, so this line sets all-caps regardless of how the copy is
+       typed; the extra leading and the negative tracking are there to hold it
+       together at that width. */
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.75;
+    letter-spacing: -0.01em;
     /* Lifted off plain --fg-dim, which never had the contrast this lede needs:
        2.95:1 over the medallion's brass ring on desktop, and 3.62:1 over the
        engine-glow backdrop on mobile (worse as --heat rises with scroll). Both
@@ -425,7 +430,10 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
        mobile breakpoint. Mixed from the two existing tokens rather than a new
        hex, so it still moves with a theme change. */
     color: color-mix(in srgb, var(--fg-dim) 55%, var(--fg));
-    max-width: 52ch;
+    /* Inert on desktop — .hero-head above caps the column at
+       min(52ch, var(--medallion)), so the lede can never reach this. Kept
+       because it is what the mobile override below overrides. */
+    max-width: 90ch;
     margin: 0 auto;
   }
 
