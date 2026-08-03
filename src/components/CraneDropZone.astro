@@ -70,7 +70,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               <span class="dz-now">{fmtPrice(plugin.introPriceUsd)}</span>
               {plugin.regularPriceUsd != null && <span class="dz-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
-            {plugin.promoCode && <div class="dz-ink dz-code">code <b>{plugin.promoCode}</b> at checkout</div>}
+            {plugin.promoCode && <div class="dz-ink dz-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
           </div>
           <div class="dz-imprint"></div>
           <!-- Free-trial call, UPPER slot — mirrors BuyButtonCrane's

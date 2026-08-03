@@ -3,6 +3,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PluginCard from '../../components/PluginCard.astro';
 import EmailCapture from '../../components/EmailCapture.astro';
 import { plugins } from '../../data/plugins';
+
+// Shipping products lead; in-development plugins sit in their own labeled row
+// below (conversion pass 2026-08-03) — unbuyable tiles mixed into the main
+// grid read "roadmap company" to a first-time visitor.
+const shipping = plugins.filter((p) => p.status !== 'in-development');
+const roadmap = plugins.filter((p) => p.status === 'in-development');
 ---
 
 <BaseLayout
@@ -23,8 +29,18 @@ import { plugins } from '../../data/plugins';
           an <h2> parent so the document outline doesn't jump h1 → h3. */}
       <h2 class="sr-only">Available plugins</h2>
       <div class="cards">
-        {plugins.map((p) => <PluginCard plugin={p} showCart />)}
+        {shipping.map((p) => <PluginCard plugin={p} showCart />)}
       </div>
+
+      {roadmap.length > 0 && (
+        <div class="bench">
+          <h2 class="bench-title">On the bench</h2>
+          <p class="bench-sub muted">In development now &mdash; join a waitlist and we&rsquo;ll email you at launch.</p>
+          <div class="cards cards-bench">
+            {roadmap.map((p) => <PluginCard plugin={p} showCart />)}
+          </div>
+        </div>
+      )}
     </div>
   </section>
 
@@ -38,7 +54,7 @@ import { plugins } from '../../data/plugins';
         </div>
         <div data-reveal-item>
           <h3>Can I try before I buy?</h3>
-          <p class="muted">Every plugin ships with a free demo build. The demo runs identically to the full plugin but periodically interrupts audio so you can audition without committing.</p>
+          <p class="muted">Yes &mdash; a free 14-day trial. It&rsquo;s the full plugin: every feature, no licence key, and no audio interruptions. Drop your email on the product page and the download link arrives in your inbox.</p>
         </div>
         <div data-reveal-item>
           <h3>Mac and Windows?</h3>
@@ -65,7 +81,7 @@ import { plugins } from '../../data/plugins';
 
   <EmailCapture
     heading="Hear it first"
-    subhead="New plugins and demo codes, straight to your inbox. No spam."
+    subhead="New plugins and demo codes, straight to your inbox. Unsubscribe anytime."
   />
 </BaseLayout>
 
@@ -91,6 +107,25 @@ import { plugins } from '../../data/plugins';
       max-width: 480px;
       margin: 0 auto;
     }
+  }
+
+  /* On the bench — the in-development row. Visibly subordinate to the
+     showroom: a rule above, smaller heading, narrower two-up grid. */
+  .bench { margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
+  .bench-title {
+    font-size: 1.15rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 0.35rem;
+  }
+  .bench-sub { margin: 0 0 1.5rem; font-size: 0.9rem; }
+  .cards.cards-bench {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 760px;
+  }
+  @media (max-width: 1020px) {
+    .cards.cards-bench { grid-template-columns: 1fr; max-width: 480px; margin: 0; }
   }
 
   .faq-grid {

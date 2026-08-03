@@ -87,7 +87,7 @@ const thumbStyle = [
           <span class="now">{fmtPrice(plugin.introPriceUsd)}</span>
           <span class="was">{fmtPrice(plugin.regularPriceUsd)}</span>
           <span class="pct">&minus;{pct}% launch sale</span>
-          {plugin.promoCode && <span class="promo-hint">code {plugin.promoCode}</span>}
+          {plugin.promoCode && <span class="promo-hint">code {plugin.promoCode} applied at checkout</span>}
         </>
       ) : (
         <span class="now">{fmtPrice(plugin.introPriceUsd)}</span>

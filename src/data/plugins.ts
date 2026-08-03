@@ -165,8 +165,11 @@ const baseSystemReq: SystemReq = {
   daws: 'Cubase 12+, Studio One 6+, Reaper 7+, Ableton Live 11+, FL Studio 21+, Logic Pro 11+',
 };
 
-// RevLimiter — Lemon Squeezy hosted checkout URL.
-const REVLIMITER_CHECKOUT_URL: string | null = 'https://revaudiopg.lemonsqueezy.com/checkout/buy/78885904-8a19-4e23-9510-31b50775ada5';
+// RevLimiter — Lemon Squeezy hosted checkout URL. The VROOM discount rides the
+// URL (checkout[discount_code]) so the intro price applies without the buyer
+// typing anything — a visible code field sends buyers coupon-hunting mid-buy.
+// VERIFY on the next test purchase: LS must show $56 pre-applied.
+const REVLIMITER_CHECKOUT_URL: string | null = 'https://revaudiopg.lemonsqueezy.com/checkout/buy/78885904-8a19-4e23-9510-31b50775ada5?checkout[discount_code]=VROOM';
 
 // Radio Roulette — Lemon Squeezy hosted checkout URL. Interim: we're
 // migrating the whole payment system to FastSpring, but this LS variant

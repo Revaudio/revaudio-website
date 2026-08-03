@@ -87,7 +87,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               <span class="rc-now">{fmtPrice(plugin.introPriceUsd)}</span>
               {plugin.regularPriceUsd != null && <span class="rc-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
-            {plugin.promoCode && <div class="rc-ink rc-code">code <b>{plugin.promoCode}</b> at checkout</div>}
+            {plugin.promoCode && <div class="rc-ink rc-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
             {/* plat line removed from the door 2026-07-04 — formats still listed in .crane-under below. .rc-plat CSS kept for bench parity. */}
           </div>
           <div class="rc-imprint"></div>
@@ -231,6 +231,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
     <p class="micro">Secure checkout &middot; instant delivery.</p>
     <ul class="includes">
       <li>VST3 / AU (Windows &amp; macOS)</li>
+      <li>No iLok, no launcher app &mdash; a key in your inbox</li>
       <li>Free updates within v1.x</li>
       <li>Up to 2 machines per licence</li>
       <li>14-day refund</li>

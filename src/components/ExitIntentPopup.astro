@@ -149,14 +149,28 @@ const excluded = path === '/gas' || path === '/thank-you';
       html.style.overflow = '';
       try { localStorage.setItem(KEY, converted ? 'got' : String(Date.now())); } catch (e) {}
     });
+    // CTA click only OPENS the email gate (TrialGateModal) — the visitor can
+    // still abandon the form there, so a click is NOT "got the plugin".
+    // Premature-'got' fix (2026-08-03): the click closes this popup and takes
+    // the normal 7-day dismiss cooldown; the permanent 'got' lands below, on
+    // the gate's real registration event.
     modal.querySelectorAll('[data-eg-cta]').forEach((a) =>
       a.addEventListener('click', () => {
-        converted = true;
-        try { localStorage.setItem(KEY, 'got'); } catch (e) {}
-        // The download streams in the background — close after a beat.
+        // Hand off to the gate modal — close after a beat so the two dialogs
+        // don't stack.
         setTimeout(() => modal.close(), 400);
       })
     );
+    // Fires from TrialGateModal on a successful register POST. Only pages
+    // where this popup rendered hear it — someone registering on /gas itself
+    // (popup excluded there) just falls back to the dismiss cooldown.
+    document.addEventListener('tg:registered', (e) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail && detail.plugin === 'gas') {
+        converted = true;
+        try { localStorage.setItem(KEY, 'got'); } catch (err) {}
+      }
+    });
     modal.querySelectorAll('[data-eg-close]').forEach((b) =>
       b.addEventListener('click', () => modal.close())
     );
