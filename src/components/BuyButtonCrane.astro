@@ -650,12 +650,15 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
   /* ── trial escape hatch — painted mono line in the gap between the BUY NOW
      square (bottom ≈87%) and the code line (top ≈90%). Same worn-code filter
      family as its neighbours; dotted brass underline = "this one's a link".
-     ::after fattens the pointer target without covering the square above. */
+     Padding fattens the pointer target without covering the square above —
+     real padding, not an ::after reach, because WCAG 2.5.8 scanners measure
+     the element's own box (23px text line → 37px target). */
   .rc-trial {
     position: absolute;
     left: 50%;
     top: 88.1%;
     transform: translate(-50%, -50%);
+    padding: 7px;
     rotate: 0.9deg;
     z-index: 5;
     white-space: nowrap;
@@ -680,12 +683,6 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
   .rc-trial:focus-visible {
     outline: 2px solid var(--brass-bright);
     outline-offset: 3px;
-  }
-
-  .rc-trial::after {
-    content: '';
-    position: absolute;
-    inset: -7px;
   }
 
   /* ── BUY NOW square (the add-to-cart) + garage light ────────────────── */
