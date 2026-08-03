@@ -52,8 +52,8 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
   data-tg-names={JSON.stringify(gateNames)}
 >
   <button type="button" class="tg-x" data-tg-close aria-label="Close">&times;</button>
-  <p class="tg-kicker" data-tg-kicker>Checkout&rsquo;s under construction</p>
-  <h2 data-tg-title>Grab the free trial instead</h2>
+  <p class="tg-kicker" data-tg-kicker>Free 14-day trial</p>
+  <h2 data-tg-title>Take the free trial</h2>
   <p class="tg-sub" data-tg-sub>
     Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.
   </p>
@@ -64,6 +64,14 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
     </label>
     <!-- honeypot: real users never fill this; bots do -->
     <input type="text" name="_gotcha" class="tg-hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <!-- Marketing consent: UNCHECKED by default (Soundtoys pattern) — the
+         download never depends on it; ticking it is a real, separate yes.
+         Posted as {marketing} — the worker may ignore it until the list side
+         is wired, the signal is captured either way. -->
+    <label class="tg-consent">
+      <input type="checkbox" data-tg-consent />
+      <span>Also send me new-plugin drops and demo codes (optional)</span>
+    </label>
     <button type="submit" class="tg-submit" data-tg-submit>Send my link</button>
     <p class="tg-err" data-tg-err role="alert" aria-live="polite"></p>
   </form>
@@ -121,10 +129,12 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       registerUrl = trigger.getAttribute('data-register-url') || '';
       var free = trigger.hasAttribute('data-gate-free');
       kicker.hidden = free;
-      kicker.textContent = 'Checkout’s under construction';
+      // "Checkout's under construction" retired 2026-08-03 — checkout is live
+      // again; this modal is now purely the trial/free-download email gate.
+      kicker.textContent = 'Free 14-day trial';
       title.textContent = free
         ? name + ' is free — grab it'
-        : 'Grab the free ' + name + ' trial instead';
+        : 'Take the free ' + name + ' trial';
       sub.textContent = free
         ? 'Free forever. Full version, no trial clock, no credit card. Verify your email and the download link lands in your inbox.'
         : 'Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.';
@@ -193,10 +203,11 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       inFlight = true;
       submit.disabled = true;
       err.textContent = '';
+      var consent = modal.querySelector('[data-tg-consent]');
       fetch(registerUrl, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: v, plugin: pluginSlug }),
+        body: JSON.stringify({ email: v, plugin: pluginSlug, marketing: !!(consent && consent.checked) }),
       })
         .then(function (res) { return res.json(); })
         .then(function (data) {
@@ -204,6 +215,10 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
             form.hidden = true;
             status.textContent = 'Check your inbox — we sent the download link to ' + v + '.';
             status.hidden = false;
+            // Registration really happened — lets listeners (the exit popup's
+            // "already got it" suppression) key off the true success moment
+            // instead of a CTA click that might be abandoned at this form.
+            document.dispatchEvent(new CustomEvent('tg:registered', { detail: { plugin: pluginSlug } }));
           } else {
             err.textContent = (data && data.error) || 'Something went wrong. Try again.';
           }
@@ -373,6 +388,21 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
   .tg-field input:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 0; border-color: var(--brass-dark); }
 
   .tg-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  .tg-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--fg-dim);
+    cursor: pointer;
+  }
+  .tg-consent input {
+    margin: 0.15rem 0 0;
+    accent-color: var(--brass);
+    flex: none;
+  }
+  .tg-consent input:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
 
   .tg-submit {
     display: block;
