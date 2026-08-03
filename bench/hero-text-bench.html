@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hero text bench — copy + type</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Figtree:wght@400;500;600&family=Fjalla+One&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Oswald:wght@400;600&family=Rajdhani:wght@600;700&family=Saira+Condensed:wght@400;600;700&family=Sofia+Sans:wght@400;500;600&family=Special+Elite&family=Teko:wght@400;600&family=VT323&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+/* ────────────────────────────────────────────────────────────────────────────
+   Hero text bench — every text element in the homepage hero, editable two ways:
+   click the type to retype it (copy), drive the panel to restyle it (type).
+
+   The stage below is the REAL hero markup with the REAL production CSS, and
+   the gauge medallion sits behind it because that is what the type has to hold
+   contrast against. The one deliberate departure: production sizes the eyebrow
+   and headline with vw formulas (max()/clamp()), and vw inside this bench would
+   resolve against the browser window rather than the simulated frame. So both
+   viewports seed FIXED rem values resolved at their reference width — desktop
+   at 1568px (where the shipping contrast was measured), mobile at 390px. The
+   CSS export says so on every line it affects.
+
+   Source of truth: src/pages/index.astro (.hh-tag / .hh-h1 / .hh-lede and the
+   860px media query at the bottom of its <style>).
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Lifted verbatim from src/styles/global.css */
+  --bg-0: #0b0a09;
+  --bg-1: #14110f;
+  --bg-2: #1d1916;
+  --bg-3: #2a2420;
+  --fg: #efe9df;
+  --fg-dim: #8a8275;
+  --fg-faint: #827c74;
+  --brass: #c9a35c;
+  --brass-bright: #e8c878;
+  --brass-dark: #8c6f3a;
+  --chrome: #d8d4cc;
+  --chrome-dark: #76726a;
+  --oxide-text: #d4622a;
+  --redline: #c8331f;
+  --border: #2a2420;
+  --border-bright: #3d342c;
+  --font-display: 'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg-0);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { display: grid; grid-template-columns: 1fr 360px; min-height: 100vh; }
+
+/* ── Stage ───────────────────────────────────────────────────────────────── */
+
+.stage {
+  position: relative;
+  overflow: auto;
+  padding: 1rem 1rem 4rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.stage-note {
+  font-size: 0.76rem; color: var(--fg-faint); line-height: 1.5;
+  max-width: 62ch; text-align: center; margin: 0.2rem auto 1rem;
+}
+.stage-note b { color: var(--brass); font-weight: 600; }
+
+.frame-wrap { position: relative; }
+
+/* The simulated viewport. Width is the reference width for the active mode;
+   JS scales the whole thing down to fit and reserves the scaled height. */
+.frame {
+  position: relative;
+  /* top left, not top center: the wrapper is sized to the SCALED width, so
+     scaling about the centre of the unscaled 1568px box throws the frame off
+     to one side. From the left edge the two boxes coincide exactly. */
+  transform-origin: top left;
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+/* Faint ambient warm glow — the page's engine glow at --heat: 0, which is
+   where the hero always sits (scroll depth zero). Mobile leans on it for the
+   lede's background, so it is not decoration. */
+.frame::after {
+  content: '';
+  position: absolute; inset: auto 0 0 0; height: 55%;
+  background: radial-gradient(ellipse at 50% 120%, rgba(200, 90, 40, 0.2), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.frame-label {
+  position: absolute; top: -1.35rem; left: 0;
+  font-family: var(--font-mono); font-size: 0.66rem; color: var(--fg-faint);
+  letter-spacing: 0.08em;
+}
+
+/* ── The real hero, verbatim from index.astro ────────────────────────────── */
+
+.hero-feat {
+  --medallion: 640px; /* clamp(400px, 46vw, 640px) resolved at 1568px */
+  position: relative; padding: 3rem 0; overflow-x: clip;
+}
+.hero-grid {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  min-height: calc(var(--medallion) + 3rem);
+  gap: 5rem;
+  padding: 3rem 4rem 0;
+}
+.hero-head {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  max-width: min(52ch, var(--medallion));
+  flex: 0 1 auto;
+  transform: translate(3px, -10px);
+  text-shadow: 0 0 31px color-mix(in srgb, currentColor 55%, transparent);
+  /* Contrast-tuned scrim knobs — see the long comment in index.astro. Left at
+     shipping values; this bench does not expose them, because they were set by
+     measurement and not by taste. */
+  --scrim: 1.18; --scrim-x: 120%; --scrim-y: 43%; --scrim-fade: 61%;
+}
+.hero-head::before {
+  content: ''; position: absolute;
+  inset: calc(-1 * var(--scrim-y)) calc(-1 * var(--scrim-x));
+  background: radial-gradient(
+    ellipse at center,
+    rgba(8, 7, 6, calc(0.86 * var(--scrim))) 0%,
+    rgba(8, 7, 6, calc(0.66 * var(--scrim))) calc(var(--scrim-fade) * 0.558),
+    rgba(8, 7, 6, calc(0.34 * var(--scrim))) calc(var(--scrim-fade) * 0.814),
+    rgba(8, 7, 6, 0) var(--scrim-fade)
+  );
+  z-index: -1; pointer-events: none;
+}
+.hero-medallion {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  z-index: 1; opacity: 0.8; pointer-events: none;
+}
+.hero-dial { position: relative; }
+.hero-dial-desktop { width: var(--medallion); }
+.hero-dial-mobile { width: min(200px, 50vw); margin-top: calc(0.5rem - 10px); display: none; }
+.hero-dial img { display: block; }
+.g-face { width: 100%; height: auto; }
+.g-needle { position: absolute; }
+.g-needle img { width: 100%; height: auto; }
+.g-hub { position: absolute; }
+
+/* The four properties the panel drives live in custom properties so a slider
+   is a one-line write and the production rule stays readable. */
+.hh-tag {
+  font-family: var(--t-font);
+  font-size: var(--t-size);
+  letter-spacing: var(--t-ls);
+  text-transform: var(--t-tf);
+  font-weight: var(--t-fw);
+  color: var(--t-color);
+  margin-bottom: var(--t-mb);
+}
+.hh-h1 {
+  font-family: var(--h-font);
+  font-size: var(--h-size);
+  line-height: var(--h-lh);
+  letter-spacing: var(--h-ls);
+  text-transform: var(--h-tf);
+  font-weight: var(--h-fw);
+  color: var(--h-color);
+  margin: 0 0 var(--h-mb);
+}
+.hh-h1-line { display: block; white-space: nowrap; }
+.hh-redline {
+  display: block; width: min(300px, 60%); height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--brass-bright), var(--redline));
+  margin: 0 auto 1.25rem;
+}
+.hh-lede {
+  font-family: var(--l-font);
+  font-size: var(--l-size);
+  line-height: var(--l-lh);
+  letter-spacing: var(--l-ls);
+  font-weight: var(--l-fw);
+  color: var(--l-color);
+  max-width: var(--l-maxw);
+  margin: 0 auto;
+}
+
+/* Mobile mode — the 860px media query, applied by class rather than width
+   because the frame is a simulated viewport, not the real one. */
+.frame.m .hero-grid { flex-direction: column; gap: 2rem; min-height: 0; padding: 1.5rem 1.5rem 0; }
+.frame.m .hero-head { max-width: 62ch; transform: none; text-shadow: none; }
+.frame.m .hero-head::before { display: none; }
+.frame.m .hero-medallion { display: none; }
+.frame.m .hh-h1-line { white-space: normal; }
+.frame.m .hh-h1 { margin-top: -10px; }
+.frame.m .hero-dial-mobile { display: block; }
+
+/* ── Editable affordance ─────────────────────────────────────────────────── */
+
+[contenteditable] { outline: none; cursor: text; }
+[contenteditable]:hover { box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.35); }
+[contenteditable]:focus { box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.8); }
+
+/* ── Panel ───────────────────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--bg-1);
+  border-left: 1px solid var(--border);
+  padding: 0.9rem 0.9rem 3rem;
+  overflow: auto;
+  font-size: 0.8rem;
+}
+.panel h2 {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: 1.15rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--brass); margin: 0 0 0.15rem;
+}
+.panel .sub { color: var(--fg-faint); font-size: 0.7rem; line-height: 1.5; margin: 0 0 0.8rem; }
+
+.modes { display: flex; gap: 0.35rem; margin-bottom: 0.9rem; }
+.modes button {
+  flex: 1; padding: 0.42rem 0.3rem;
+  background: var(--bg-2); color: var(--fg-dim);
+  border: 1px solid var(--border-bright); border-radius: 3px;
+  font-family: var(--font-display); font-size: 0.9rem; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer;
+}
+.modes button.on { background: var(--brass-dark); color: #14110f; border-color: var(--brass); }
+
+.grp { border: 1px solid var(--border); border-radius: 4px; padding: 0.5rem 0.55rem 0.6rem; margin-bottom: 0.6rem; background: rgba(0,0,0,0.22); }
+.grp > .ttl {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem;
+  font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--chrome); margin-bottom: 0.45rem;
+}
+.grp > .ttl .sel { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0; color: var(--fg-faint); text-transform: none; }
+
+.row { display: grid; grid-template-columns: 4.6rem 1fr 3.6rem; align-items: center; gap: 0.4rem; margin-bottom: 0.28rem; }
+.row > label { color: var(--fg-dim); font-size: 0.72rem; }
+.pin {
+  display: inline-block; margin-left: 0.2rem; padding: 0 0.22rem;
+  font-family: var(--font-mono); font-size: 0.53rem; letter-spacing: 0;
+  border: 1px solid var(--border-bright); border-radius: 2px;
+  background: none; color: var(--chrome-dark); vertical-align: 1px;
+}
+button.pin { cursor: pointer; }
+button.pin.on { color: var(--brass); border-color: var(--brass-dark); }
+button.pin.on:hover { background: rgba(232, 200, 120, 0.12); }
+.row output { font-family: var(--font-mono); font-size: 0.65rem; color: var(--brass); text-align: right; }
+.row select, .row input[type=text] {
+  width: 100%; background: var(--bg-2); color: var(--fg);
+  border: 1px solid var(--border-bright); border-radius: 3px;
+  padding: 0.2rem 0.25rem; font-size: 0.72rem; font-family: inherit;
+}
+.row input[type=range] { width: 100%; accent-color: var(--brass); }
+.row input[type=color] { width: 100%; height: 1.5rem; padding: 0; background: none; border: 1px solid var(--border-bright); border-radius: 3px; cursor: pointer; }
+.row .two { display: grid; grid-template-columns: 1fr 2.1rem; gap: 0.25rem; }
+
+.meta { margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed var(--border-bright); font-family: var(--font-mono); font-size: 0.63rem; color: var(--fg-faint); line-height: 1.6; }
+.meta .warn { color: var(--oxide-text); }
+.meta .ok { color: var(--fg-faint); }
+
+.acts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; margin-top: 0.9rem; }
+.acts button, .acts .wide {
+  padding: 0.5rem 0.3rem; cursor: pointer;
+  background: transparent; color: var(--brass-bright);
+  border: 1px solid var(--brass-dark); border-radius: 3px;
+  font-family: var(--font-display); font-size: 0.92rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.acts button:hover { background: rgba(232, 200, 120, 0.1); }
+.acts .wide { grid-column: 1 / -1; }
+.acts .danger { color: var(--oxide-text); border-color: #5a2410; }
+.said { min-height: 1rem; margin-top: 0.4rem; font-family: var(--font-mono); font-size: 0.63rem; color: var(--brass); }
+
+.out { width: 100%; height: 9rem; margin-top: 0.5rem; background: #000; color: #cfc6b6; border: 1px solid var(--border-bright); border-radius: 3px; font-family: var(--font-mono); font-size: 0.6rem; line-height: 1.5; padding: 0.4rem; resize: vertical; }
+
+@media (max-width: 900px) {
+  body { grid-template-columns: 1fr; }
+  .panel { border-left: none; border-top: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <p class="stage-note">
+    <b>Click any line to retype it.</b> The gauge, scrim and halo are the real ones — the type has to hold
+    contrast against them, so they stay fixed. Desktop frame is <b>1568px</b> (where the shipping contrast was
+    measured), mobile is <b>390px</b>. Desktop edits the base rules; mobile shows what those rules cascade into,
+    and every row is marked <b>base</b> or <b>pinned</b> — pinned means the 860px media query overrides it. Click a
+    pin to drop the override.
+  </p>
+
+  <div class="frame-wrap" id="wrap">
+    <div class="frame" id="frame">
+      <span class="frame-label" id="flabel">1568 × desktop</span>
+      <section class="hero hero-feat">
+        <div class="hero-grid">
+          <div class="hero-head">
+            <div class="hh-tag" id="e-tag" contenteditable="true" spellcheck="false">Boutique VST plugins</div>
+            <h1 class="hh-h1">
+              <span class="hh-h1-line" id="e-l1" contenteditable="true" spellcheck="false">Engineered,</span>
+              <span class="hh-h1-line" id="e-l2" contenteditable="true" spellcheck="false">Then Tuned.</span>
+            </h1>
+
+            <span class="hh-redline" aria-hidden="true"></span>
+
+            <div class="hero-dial hero-dial-mobile" role="img" aria-label="RevLimiter rev gauge, needle at idle">
+              <img class="g-face" src="../src/assets/hero/rev-gauge-face.png" alt="" />
+              <div class="g-needle" style="left:30.049%; top:16.672%; width:40%; transform-origin:49.877% 83.32%;">
+                <img src="../src/assets/hero/needle-v2.png" alt="" />
+              </div>
+              <img class="g-hub" src="../src/assets/hero/hub-v2.png" alt="" style="left:44.468%; top:44.601%; width:11.207%;" />
+            </div>
+
+            <p class="hh-lede" id="e-lede" contenteditable="true" spellcheck="false">The precision of a machine, the feel of an instrument.</p>
+          </div>
+
+          <div class="hero-medallion">
+            <div class="hero-dial hero-dial-desktop" role="img" aria-label="RevLimiter rev gauge, needle at idle">
+              <img class="g-face" src="../src/assets/hero/rev-gauge-face.png" alt="" />
+              <div class="g-needle" style="left:30.049%; top:16.672%; width:40%; transform-origin:49.877% 83.32%;">
+                <img src="../src/assets/hero/needle-v2.png" alt="" />
+              </div>
+              <img class="g-hub" src="../src/assets/hero/hub-v2.png" alt="" style="left:44.468%; top:44.601%; width:11.207%;" />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Hero text bench</h2>
+  <p class="sub">Copy on the stage, type on the panel. Autosaves per mode.</p>
+
+  <div class="modes">
+    <button id="m-d" class="on" data-mode="d">Desktop</button>
+    <button id="m-m" data-mode="m">Mobile</button>
+  </div>
+
+  <div id="controls"></div>
+
+  <div class="acts">
+    <button id="copy-copy">Copy COPY</button>
+    <button id="copy-css">Copy CSS</button>
+    <button class="wide danger" id="reset">Reset this mode</button>
+  </div>
+  <div class="said" id="said"></div>
+  <textarea class="out" id="out" readonly placeholder="Export lands here as well as on the clipboard."></textarea>
+</div>
+
+<script>
+/* ── Production defaults ──────────────────────────────────────────────────────
+   Desktop sizes are the vw formulas resolved at 1568px:
+     .hh-tag  max(1.0285rem, 1.2705vw) -> 19.92px -> 1.245rem
+     .hh-h1   clamp(3.146rem, 6.776vw, 6.534rem) -> 106.25px, clamped -> 6.534rem
+   Mobile sizes are already fixed rem in the media query, so they carry over 1:1.
+   The lede colour is color-mix(in srgb, --fg-dim 55%, --fg) pre-resolved to hex
+   so a colour input can hold it. ────────────────────────────────────────────── */
+
+const REF = { d: 1568, m: 390 };
+
+/* The base rules — what ships outside any media query. */
+const BASE_DEFAULT = {
+  tag:  { font: 'Bebas Neue', size: 1.245,  ls: 0.30, tf: 'uppercase', fw: 400, color: '#c9a35c', mb: 1.10 },
+  h1:   { font: 'Bebas Neue', size: 6.534,  ls: 0.02, tf: 'none',      fw: 400, color: '#efe9df', mb: 1.15, lh: 1.05 },
+  lede: { font: 'Inter',      size: 1.3068, ls: 0.00,                  fw: 400, color: '#b7b0a5', lh: 1.60, maxw: 52 },
+};
+
+/* Mobile is a SPARSE OVERRIDE MAP, not a second full set of values — because
+   that is what the 860px media query actually is. It overrides three sizes and
+   one measure; everything else cascades down from the base rules.
+
+   Modelling mobile as independent state was this bench's original bug: switch
+   the base lede to a display face and the bench would keep showing mobile in
+   the body face, while the real page inherits the display face at 1.08rem. The
+   bench has to lie about nothing, least of all the viewport nobody checks. */
+const MOBILE_OVERRIDE_DEFAULT = {
+  tag:  { size: 1.4025 },
+  h1:   { size: 4.29 },
+  lede: { size: 1.08, maxw: 58 },
+};
+
+/* The production declaration each bench value replaces — printed into the CSS
+   export so a fixed rem never silently overwrites a formula without saying so. */
+const PROD_NOTE = {
+  d: {
+    'tag.size': 'max(1.0285rem, 1.2705vw)  — fluid; bench value is the 1568px resolve',
+    'h1.size':  'clamp(3.146rem, 6.776vw, 6.534rem)  — fluid; bench value is the 1568px resolve',
+  },
+  m: {},
+};
+
+const COPY_DEFAULT = {
+  tag: 'Boutique VST plugins',
+  l1: 'Engineered,',
+  l2: 'Then Tuned.',
+  lede: 'The precision of a machine, the feel of an instrument.',
+};
+
+const FONTS_DISPLAY = ['Bebas Neue', 'Oswald', 'Anton', 'Teko', 'Fjalla One', 'Saira Condensed', 'Rajdhani'];
+const FONTS_BODY = ['Inter', 'Manrope', 'Work Sans', 'IBM Plex Sans', 'Figtree', 'Sofia Sans'];
+const FONTS_CHAR = ['Special Elite', 'VT323'];
+const ALL_FONTS = [...FONTS_DISPLAY, ...FONTS_BODY, ...FONTS_CHAR];
+
+const TOKENS = {
+  '#c9a35c': 'brass', '#e8c878': 'brass-bright', '#8c6f3a': 'brass-dark',
+  '#efe9df': 'fg', '#8a8275': 'fg-dim', '#827c74': 'fg-faint',
+  '#d8d4cc': 'chrome', '#76726a': 'chrome-dark',
+  '#d4622a': 'oxide-text', '#c8331f': 'redline',
+  '#b7b0a5': 'color-mix(in srgb, var(--fg-dim) 55%, var(--fg))',
+};
+
+/* Which controls each group gets, in panel order. */
+const GROUPS = [
+  { k: 'tag',  label: 'Eyebrow', sel: '.hh-tag',  stack: 'display',
+    ctrl: ['font', 'size', 'ls', 'tf', 'fw', 'color', 'mb'] },
+  { k: 'h1',   label: 'Headline', sel: '.hh-h1',  stack: 'display',
+    ctrl: ['font', 'size', 'lh', 'ls', 'tf', 'fw', 'color', 'mb'] },
+  { k: 'lede', label: 'Lede',    sel: '.hh-lede', stack: 'body',
+    ctrl: ['font', 'size', 'lh', 'ls', 'fw', 'color', 'maxw'] },
+];
+
+const CTRL = {
+  font: { label: 'Font',    type: 'select' },
+  size: { label: 'Size',    type: 'range', min: 40,  max: 1000, step: 1,  scale: 100, unit: 'rem', dp: 3 },
+  lh:   { label: 'Leading', type: 'range', min: 80,  max: 220,  step: 1,  scale: 100, unit: '',    dp: 2 },
+  ls:   { label: 'Tracking',type: 'range', min: -10, max: 60,   step: 1,  scale: 100, unit: 'em',  dp: 2 },
+  fw:   { label: 'Weight',  type: 'range', min: 300, max: 700,  step: 100, scale: 1,  unit: '',    dp: 0 },
+  tf:   { label: 'Case',    type: 'select', opts: ['none', 'uppercase', 'lowercase', 'capitalize'] },
+  color:{ label: 'Colour',  type: 'color' },
+  mb:   { label: 'Gap below', type: 'range', min: 0, max: 400, step: 1, scale: 100, unit: 'rem', dp: 2 },
+  maxw: { label: 'Measure', type: 'range', min: 24, max: 90, step: 1, scale: 1, unit: 'ch', dp: 0 },
+};
+
+/* Custom property prefix per group — mirrors the CSS above. */
+const PREFIX = { tag: 't', h1: 'h', lede: 'l' };
+
+const LS_KEY = 'revaudio.hero-text-bench.v2'; /* v1 held a full second value set */
+
+const $ = (s) => document.querySelector(s);
+const frame = $('#frame');
+const EL = { tag: $('#e-tag'), l1: $('#e-l1'), l2: $('#e-l2'), lede: $('#e-lede') };
+
+let mode = 'd';
+let state = load();
+
+function blank() {
+  return {
+    base: structuredClone(BASE_DEFAULT),
+    mob: structuredClone(MOBILE_OVERRIDE_DEFAULT),
+    copy: { ...COPY_DEFAULT },
+  };
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return blank();
+    const s = JSON.parse(raw);
+    /* Merge over a fresh blank so a bench that gains a control later does not
+       break on an older saved payload. */
+    const out = blank();
+    for (const g in out.base) Object.assign(out.base[g], s.base?.[g] || {});
+    for (const g in out.mob) if (s.mob?.[g]) out.mob[g] = { ...s.mob[g] };
+    Object.assign(out.copy, s.copy || {});
+    return out;
+  } catch { return blank(); }
+}
+
+/* What a group actually computes to in the active mode. Desktop is the base
+   rules; mobile is the base rules with its overrides laid on top — the cascade,
+   not a parallel universe. */
+function eff(gk) {
+  return mode === 'd' ? state.base[gk] : { ...state.base[gk], ...state.mob[gk] };
+}
+/* True when mobile pins this property itself rather than inheriting it. */
+function isOverride(gk, c) { return mode === 'm' && c in state.mob[gk]; }
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch {} }
+
+/* ── Panel build ─────────────────────────────────────────────────────────── */
+
+function fontOpts(stack, current) {
+  const order = stack === 'display'
+    ? [...FONTS_DISPLAY, ...FONTS_BODY, ...FONTS_CHAR]
+    : [...FONTS_BODY, ...FONTS_DISPLAY, ...FONTS_CHAR];
+  return order.map((f) => `<option value="${f}"${f === current ? ' selected' : ''}>${f}</option>`).join('');
+}
+
+function buildPanel() {
+  const wrap = $('#controls');
+  wrap.innerHTML = '';
+  for (const g of GROUPS) {
+    const s = eff(g.k);
+    const box = document.createElement('div');
+    box.className = 'grp';
+    let html = `<div class="ttl"><span>${g.label}</span><span class="sel">${g.sel}</span></div>`;
+
+    for (const c of g.ctrl) {
+      const d = CTRL[c];
+      const v = s[c];
+      /* In mobile mode every row says where its value came from: pinned by the
+         media query, or inherited from the base rule. Clicking a pin drops the
+         override and lets the base cascade through again. */
+      const tagHtml = mode === 'm'
+        ? (isOverride(g.k, c)
+            ? ` <button class="pin on" data-g="${g.k}" data-c="${c}" title="Overridden on mobile — click to inherit from the base rule">pinned</button>`
+            : ` <span class="pin" title="Inherited from the base rule">base</span>`)
+        : '';
+      if (d.type === 'select') {
+        const opts = c === 'font'
+          ? fontOpts(g.stack, v)
+          : d.opts.map((o) => `<option value="${o}"${o === v ? ' selected' : ''}>${o}</option>`).join('');
+        html += `<div class="row"><label>${d.label}${tagHtml}</label><select data-g="${g.k}" data-c="${c}">${opts}</select><output></output></div>`;
+      } else if (d.type === 'color') {
+        html += `<div class="row"><label>${d.label}${tagHtml}</label><div class="two">
+          <input type="text" data-g="${g.k}" data-c="${c}" data-hex value="${v}" spellcheck="false" />
+          <input type="color" data-g="${g.k}" data-c="${c}" value="${v}" />
+        </div><output id="o-${g.k}-${c}"></output></div>`;
+      } else {
+        html += `<div class="row"><label>${d.label}${tagHtml}</label>
+          <input type="range" data-g="${g.k}" data-c="${c}" min="${d.min}" max="${d.max}" step="${d.step}" value="${Math.round(v * d.scale)}" />
+          <output id="o-${g.k}-${c}"></output></div>`;
+      }
+    }
+    html += `<div class="meta" id="meta-${g.k}"></div>`;
+    box.innerHTML = html;
+    wrap.appendChild(box);
+  }
+}
+
+/* ── Apply ───────────────────────────────────────────────────────────────── */
+
+function fmt(c, v) {
+  const d = CTRL[c];
+  if (d.dp === 0) return String(Math.round(v)) + d.unit;
+  return v.toFixed(d.dp).replace(/0+$/, '').replace(/\.$/, '') + d.unit;
+}
+
+function apply() {
+  frame.classList.toggle('m', mode === 'm');
+  const head = frame.querySelector('.hero-head');
+
+  for (const g of GROUPS) {
+    const s = eff(g.k);
+    const p = PREFIX[g.k];
+    head.style.setProperty(`--${p}-font`, `'${s.font}', sans-serif`);
+    head.style.setProperty(`--${p}-size`, `${s.size}rem`);
+    head.style.setProperty(`--${p}-ls`, `${s.ls}em`);
+    head.style.setProperty(`--${p}-fw`, String(s.fw));
+    head.style.setProperty(`--${p}-color`, s.color);
+    if ('lh' in s) head.style.setProperty(`--${p}-lh`, String(s.lh));
+    if ('tf' in s) head.style.setProperty(`--${p}-tf`, s.tf);
+    if ('mb' in s) head.style.setProperty(`--${p}-mb`, `${s.mb}rem`);
+    if ('maxw' in s) head.style.setProperty(`--${p}-maxw`, `${s.maxw}ch`);
+
+    for (const c of g.ctrl) {
+      const o = document.getElementById(`o-${g.k}-${c}`);
+      if (!o) continue;
+      o.textContent = c === 'color' ? (TOKENS[s.color.toLowerCase()] ? '✓ token' : 'custom') : fmt(c, s[c]);
+    }
+  }
+  fit();
+  meta();
+}
+
+/* Scale the simulated viewport down to whatever room the stage has. Measuring
+   code needs the factor back out, because getBoundingClientRect() reports
+   scaled pixels while clientWidth reports layout pixels. */
+let scaleK = 1;
+function fit() {
+  const refW = REF[mode];
+  frame.style.width = refW + 'px';
+  const avail = $('.stage').clientWidth - 32;
+  const k = scaleK = Math.min(1, avail / refW);
+  frame.style.transform = `scale(${k})`;
+  $('#wrap').style.width = refW * k + 'px';
+  $('#wrap').style.height = frame.offsetHeight * k + 'px';
+  $('#flabel').textContent = `${refW} × ${mode === 'd' ? 'desktop' : 'mobile'}${k < 1 ? ` — shown at ${Math.round(k * 100)}%` : ''}`;
+}
+
+/* ── Readouts: length, overflow, contrast ────────────────────────────────── */
+
+function srgb(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function lum(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return 0.2126 * srgb((n >> 16) & 255) + 0.7152 * srgb((n >> 8) & 255) + 0.0722 * srgb(n & 255);
+}
+function ratio(a, b) {
+  const l1 = lum(a), l2 = lum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+function meta() {
+  const head = frame.querySelector('.hero-head');
+  const rows = {
+    tag: [['tag', EL.tag]],
+    h1: [['line 1', EL.l1], ['line 2', EL.l2]],
+    lede: [['lede', EL.lede]],
+  };
+  for (const g of GROUPS) {
+    const s = eff(g.k);
+    const box = document.getElementById(`meta-${g.k}`);
+    let out = '';
+    for (const [name, el] of rows[g.k]) {
+      const txt = el.innerText.replace(/\s+/g, ' ').trim();
+      out += `${name}: ${txt.length} ch`;
+
+      /* Measure the glyph run, not the box. These elements are display: block,
+         so every one of them stretches to the widest sibling's scroll width —
+         scrollWidth would flag "Then Tuned." the moment line 1 got long. A
+         Range over the contents is the actual text extent, scaled back out of
+         the frame's transform. */
+      const rng = document.createRange();
+      rng.selectNodeContents(el);
+      const rects = [...rng.getClientRects()];
+      rng.detach?.();
+
+      if (getComputedStyle(el).whiteSpace === 'nowrap') {
+        /* .hh-h1-line is nowrap on desktop: a long line does not wrap, it runs
+           straight past the medallion, and nothing on screen says so. */
+        const w = rects.length ? Math.max(...rects.map((r) => r.width)) / scaleK : 0;
+        const overBy = Math.round(w - head.clientWidth);
+        if (overBy > 0) out += ` <span class="warn">— overruns the column by ${overBy}px</span>`;
+      } else if (rects.length > 1) {
+        out += ` <span class="ok">— ${rects.length} lines</span>`;
+      }
+      out += '<br>';
+    }
+    const r = ratio(s.color, '#0b0a09');
+    const grade = r >= 4.5 ? 'AA' : r >= 3 ? 'AA large only' : 'fail';
+    const cls = r >= 4.5 ? 'ok' : 'warn';
+    out += `<span class="${cls}">contrast vs base ${r.toFixed(2)}:1 — ${grade}</span>`;
+    out += ` <span class="warn">${g.k === 'lede' ? '(the gauge ring and engine glow behind it are worse — re-measure before shipping a colour change)' : ''}</span>`;
+    box.innerHTML = out;
+  }
+}
+
+/* ── Input wiring ────────────────────────────────────────────────────────── */
+
+/* Writes land on the base rules in desktop mode, and become a mobile override
+   in mobile mode — mirroring which block of CSS you would be editing. */
+function target(g) { return mode === 'd' ? state.base[g] : (state.mob[g] ||= {}); }
+
+$('#controls').addEventListener('input', (e) => {
+  const t = e.target, g = t.dataset.g, c = t.dataset.c;
+  if (!g || !c || t.tagName === 'BUTTON') return;
+  const s = target(g);
+  if (t.type === 'range') s[c] = +t.value / CTRL[c].scale;
+  else if (t.type === 'color') { s[c] = t.value; const hx = $(`input[data-hex][data-g="${g}"][data-c="${c}"]`); if (hx) hx.value = t.value; }
+  else if (t.dataset.hex !== undefined) {
+    if (!/^#[0-9a-f]{6}$/i.test(t.value)) return;
+    s[c] = t.value; const cp = $(`input[type=color][data-g="${g}"][data-c="${c}"]`); if (cp) cp.value = t.value;
+  } else s[c] = t.value;
+  if (mode === 'm') buildPanel(); /* the row just became a pin */
+  apply(); save();
+});
+$('#controls').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.tagName !== 'SELECT') return;
+  target(t.dataset.g)[t.dataset.c] = t.value;
+  if (mode === 'm') buildPanel();
+  apply(); save();
+});
+/* Clicking a pin drops the mobile override so the base rule cascades again. */
+$('#controls').addEventListener('click', (e) => {
+  const b = e.target.closest('button.pin'); if (!b) return;
+  delete state.mob[b.dataset.g][b.dataset.c];
+  buildPanel(); apply(); save();
+});
+
+/* Copy edits. Enter is a newline only in the lede (which shipped with a <br>
+   once and may again); everywhere else it would break the one-line-per-element
+   structure the markup depends on. */
+for (const [k, el] of Object.entries(EL)) {
+  el.addEventListener('input', () => { state.copy[k] = el.innerHTML; save(); meta(); fit(); });
+  el.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (k !== 'lede') { e.preventDefault(); return; }
+    e.preventDefault();
+    document.execCommand('insertHTML', false, '<br>');
+  });
+  /* Paste as plain text — a paste from a doc otherwise drags spans and inline
+     colour into the markup, and the copy export would carry them straight into
+     index.astro. */
+  el.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const t = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, t.replace(/\n/g, ' '));
+  });
+}
+
+$('.modes').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  mode = b.dataset.mode;
+  document.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+  buildPanel(); apply();
+});
+
+window.addEventListener('resize', fit);
+
+/* ── Export ──────────────────────────────────────────────────────────────── */
+
+function say(msg) { $('#said').textContent = msg; setTimeout(() => { if ($('#said').textContent === msg) $('#said').textContent = ''; }, 2600); }
+function put(text) {
+  $('#out').value = text;
+  navigator.clipboard.writeText(text).then(() => say('copied to clipboard'), () => say('clipboard blocked — copy from the box below'));
+}
+
+function esc(html) {
+  /* Keep <br />, drop everything else contenteditable may have left behind. */
+  return html.replace(/<br\s*\/?>/gi, ' BR ').replace(/<[^>]+>/g, '').replace(/ BR /g, '<br />').replace(/&nbsp;/g, ' ').trim();
+}
+
+$('#copy-copy').addEventListener('click', () => {
+  const c = { tag: esc(EL.tag.innerHTML), l1: esc(EL.l1.innerHTML), l2: esc(EL.l2.innerHTML), lede: esc(EL.lede.innerHTML) };
+  put(
+`{/* Hero copy — from bench/hero-text-bench.html. Replace the four TEXT NODES
+    below inside .hero-head in src/pages/index.astro. Do NOT paste this over the
+    whole .hero-head block: the real one also holds .hh-redline and the
+    mobile-only .hero-dial between the h1 and the lede, and neither appears
+    here. Keep the data-* attributes too — the entrance timeline and the RevEdit
+    overlay both key off them. */}
+<div class="hh-tag" data-hero-in data-edit-sub="tag">${c.tag}</div>
+<h1 class="hh-h1">
+  <span class="hh-h1-line" data-edit-sub="line1">${c.l1}</span>
+  <span class="hh-h1-line" data-edit-sub="line2">${c.l2}</span>
+</h1>
+
+<p class="hh-lede" data-hero-in data-edit-sub="lede">
+  ${c.lede}
+</p>`);
+});
+
+const CSS_PROP = {
+  font: (v) => `font-family: '${v}', ${FONTS_BODY.includes(v) ? 'system-ui, sans-serif' : "'Oswald', 'Arial Narrow', sans-serif"};`,
+  size: (v) => `font-size: ${v}rem;`,
+  lh:   (v) => `line-height: ${v};`,
+  ls:   (v) => `letter-spacing: ${v}em;`,
+  fw:   (v) => `font-weight: ${v};`,
+  tf:   (v) => `text-transform: ${v};`,
+  color:(v) => `color: ${TOKENS[v.toLowerCase()] ? (TOKENS[v.toLowerCase()].startsWith('color-mix') ? TOKENS[v.toLowerCase()] : `var(--${TOKENS[v.toLowerCase()]})`) : v};`,
+  mb:   (v) => `margin-bottom: ${v}rem;`,
+  maxw: (v) => `max-width: ${v}ch;`,
+};
+
+/* `pad` is the leading indent: none for the top-level desktop rules, one level
+   for the mobile rules that land inside the media query. */
+function cssFor(m, pad) {
+  let out = '';
+  for (const g of GROUPS) {
+    /* Desktop diffs the base rules against what ships. Mobile diffs only its
+       own override map — a property the media query does not pin is not a
+       mobile declaration at all, it is the base rule cascading down, and
+       emitting it here would silently freeze the two viewports apart. */
+    const s = m === 'd' ? state.base[g.k] : state.mob[g.k];
+    const d = m === 'd' ? BASE_DEFAULT[g.k] : MOBILE_OVERRIDE_DEFAULT[g.k];
+    const lines = [];
+    for (const c of g.ctrl) {
+      if (!(c in s)) continue;
+      if (s[c] === d[c]) continue;
+      const note = PROD_NOTE[m][`${g.k}.${c}`];
+      if (note) lines.push(`${pad}  /* was ${note} */`);
+      lines.push(`${pad}  ` + CSS_PROP[c](s[c]));
+    }
+    /* A property production pins on mobile but the bench no longer does has to
+       be deleted by hand — nothing in an emitted block can express a removal. */
+    for (const c of Object.keys(d)) {
+      if (!(c in s)) lines.push(`${pad}  /* DELETE the production ${CSS_PROP[c](d[c])} — now inherits the base rule */`);
+    }
+    if (lines.length) out += `${pad}${g.sel} {\n${lines.join('\n')}\n${pad}}\n`;
+  }
+  return out;
+}
+
+$('#copy-css').addEventListener('click', () => {
+  const d = cssFor('d', ''), m = cssFor('m', '  ');
+  if (!d && !m) { put('/* Nothing changed from production yet. */'); return; }
+  let out = `/* Hero type — from bench/hero-text-bench.html.
+   Merge into the <style> block of src/pages/index.astro: desktop rules over the
+   existing .hh-* rules, mobile rules inside the @media (max-width: 860px) block.
+   Only properties that differ from what ships are listed. */\n\n`;
+  if (d) out += `/* ── desktop ── */\n${d}`;
+  if (m) out += `\n@media (max-width: 860px) {\n${m}}\n`;
+  put(out);
+});
+
+$('#reset').addEventListener('click', () => {
+  if (!confirm(`Reset ${mode === 'd' ? 'the base rules' : 'the mobile overrides'} to production? Copy is kept.`)) return;
+  if (mode === 'd') state.base = structuredClone(BASE_DEFAULT);
+  else state.mob = structuredClone(MOBILE_OVERRIDE_DEFAULT);
+  buildPanel(); apply(); save(); say('reset to production');
+});
+
+/* ── Boot ────────────────────────────────────────────────────────────────── */
+
+for (const [k, el] of Object.entries(EL)) el.innerHTML = state.copy[k] ?? COPY_DEFAULT[k];
+buildPanel();
+apply();
+/* Webfonts land after first paint and change every measurement in meta(). */
+if (document.fonts) document.fonts.ready.then(() => { fit(); meta(); });
+</script>
+</body>
+</html>
