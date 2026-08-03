@@ -24,7 +24,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
           <span class="price-now">{fmtPrice(plugin.introPriceUsd)}</span>
         )}
       </div>
-      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU</p>
+      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU / AAX</p>
       <button
         type="button"
         class="btn primary"
@@ -47,7 +47,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
       <div class="prices">
         <span class="price-now">Free</span>
       </div>
-      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU</p>
+      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU / AAX</p>
       {plugin.downloadUrl ? (
         <a class="btn primary" href={plugin.downloadUrl}>Download</a>
       ) : (
@@ -73,7 +73,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
           Save {pct}% &middot; enter code <strong class="code-pill">{plugin.promoCode}</strong> at checkout
         </p>
       )}
-      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU</p>
+      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU / AAX</p>
       <button
         class="btn primary"
         data-add-to-cart
@@ -99,7 +99,7 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
           <span class="price-tag">&minus;{pct}% launch</span>
         )}
       </div>
-      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU</p>
+      <p class="platform-note">Windows &amp; macOS &middot; VST3 / AU / AAX</p>
       <a class="btn primary" href={`/${plugin.slug}#waitlist`}>Notify me when checkout opens</a>
       <p class="micro muted">We&rsquo;ll email you the moment checkout goes live.</p>
     </>

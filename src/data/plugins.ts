@@ -162,7 +162,7 @@ const baseSystemReq: SystemReq = {
   os: 'Windows 10/11 64-bit, macOS 12+',
   cpu: '2 GHz dual-core (Intel/AMD)',
   ram: '8 GB minimum, 16 GB recommended',
-  formats: 'VST3, AU',
+  formats: 'VST3, AU, AAX',
   daws: 'Cubase 12+, Studio One 6+, Reaper 7+, Ableton Live 11+, FL Studio 21+, Logic Pro 11+',
 };
 

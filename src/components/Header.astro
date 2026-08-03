@@ -11,34 +11,19 @@ const onProductPage = plugins.some((pl) => isActive(`/${pl.slug}`));
 <nav class="site-nav" data-site-nav aria-label="Main navigation">
   <div class="nav-inner">
     <a href="/" class="logo" aria-label="RevAudio home">
-      {/* Spinning 3D brand plate. Animated WebP (alpha) plays in Safari/Chrome/FF
-          and clicks pass through to the home link; reduced-motion gets a still. */}
-      <picture>
-        <source srcset="/brand/revaudio-plate-3d-static.webp" media="(prefers-reduced-motion: reduce)" />
-        {/* Mobile (≤900px) serves the 13KB static plate — <source media> is
-            picked at parse time so the 264KB animated webp is never fetched on
-            phones. Wider screens fall through to the animated <img> below. */}
-        <source srcset="/brand/revaudio-plate-3d-static.webp" media="(max-width: 900px)" />
-        {/* Desktop ships the 13KB static plate in the critical path and swaps
-            in the 264KB animated file on idle (script below). */}
-        <img
-          src="/brand/revaudio-plate-3d-static.webp"
-          data-logo-anim="/brand/revaudio-plate-3d.webp"
-          alt="RevAudio"
-          width="660"
-          height="216"
-          class="logo-anim"
-          loading="eager"
-          decoding="async"
-        />
-      </picture>
+      {/* Text wordmark — same two-tone REV/AUDIO treatment as the footer,
+          set in the display face. */}
+      <span class="logo-word">REV<span class="logo-accent">AUDIO</span></span>
     </a>
     <div class="nav-right">
       <ul id="nav-menu" class="nav-links">
         {/* Task nav only — the logo is the home link, and legal lives in the
             footer's Legal column. Keep this list at ~6; past that, Store
             becomes a dropdown rather than the bar growing. */}
-        <li><a href="/store" aria-current={isActive('/store') || onProductPage ? 'page' : undefined}>Store</a></li>
+        {/* Store is the one non-plain nav item — the site's "action channel"
+            (one lit treatment reserved for revenue actions; everything else
+            stays plain text so the isolation actually isolates). */}
+        <li><a href="/store" class="nav-store" aria-current={isActive('/store') || onProductPage ? 'page' : undefined}>Store</a></li>
         <li><a href="https://revlimiter-license.revaudio.workers.dev/download" target="_blank" rel="noopener noreferrer">Downloads</a></li>
         <li><a href="/about" aria-current={isActive('/about') ? 'page' : undefined}>About</a></li>
         <li><a href="/support" aria-current={isActive('/support') ? 'page' : undefined}>Support</a></li>
@@ -96,25 +81,46 @@ const onProductPage = plugins.some((pl) => isActive(`/${pl.slug}`));
     (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(function (ev) {
       if (ev.matches) setOpen(false);
     });
-
-    // Idle-swap the animated brand plate on desktop: keeps 264KB off the
-    // critical path. <source media> already keeps phones/reduced-motion on
-    // the static file, so the swap only ever takes effect on wide screens.
-    var logo = nav.querySelector('[data-logo-anim]');
-    if (logo && window.matchMedia('(min-width: 901px)').matches
-        && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      var swap = function () {
-        var pre = new Image();
-        pre.onload = function () { logo.src = logo.dataset.logoAnim; };
-        pre.src = logo.dataset.logoAnim;
-      };
-      ('requestIdleCallback' in window) ? requestIdleCallback(swap, { timeout: 4000 }) : setTimeout(swap, 1500);
-    }
   })();
 </script>
 
 <style>
   .nav-right { display: flex; align-items: center; gap: 1.75rem; }
+
+  /* ---- Text wordmark ---- */
+  .logo-word {
+    font-family: var(--font-display);
+    font-size: 1.55rem;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    color: var(--fg);
+    transition: filter 0.2s var(--ease), transform 0.12s var(--ease);
+  }
+  .logo-word .logo-accent { color: var(--brass-bright); }
+  .logo:hover .logo-word { filter: brightness(1.12); transform: translateY(-1px); }
+
+  /* ---- Store — the lit slot ----
+     The one non-plain nav item (see the markup comment): a small brass-lit
+     chip against the plain-text row. Desktop-only; the mobile menu keeps its
+     full-width rows and marks Store by colour alone. */
+  @media (min-width: 701px) {
+    .nav-links a.nav-store {
+      color: var(--brass-bright);
+      border: 1px solid var(--brass-dark);
+      border-radius: 3px;
+      padding: 0.3rem 0.8rem;
+      background: var(--bg-1);
+      transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+    }
+    .nav-links a.nav-store:hover {
+      background: var(--brass);
+      border-color: var(--brass);
+      color: var(--bg-0);
+    }
+  }
+  @media (max-width: 700px) {
+    .nav-links a.nav-store { color: var(--brass-bright); }
+  }
 
   .cart-toggle {
     position: relative;

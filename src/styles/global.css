@@ -412,22 +412,10 @@ nav.site-nav {
   line-height: 0;
 }
 
-/* Touch tap-target: give the header brand link a ≥44px hit box (image stays
-   36px, centered). Mobile-scoped so the desktop nav height is pixel-identical. */
+/* Touch tap-target: give the header brand link a ≥44px hit box (wordmark stays
+   centered). Mobile-scoped so the desktop nav height is pixel-identical. */
 @media (max-width: 700px) {
   a.logo { min-height: 44px; }
-}
-
-.logo img {
-  height: 36px;
-  width: auto;
-  display: block;
-  transition: filter 0.2s, transform 0.2s;
-}
-
-.logo:hover img {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
 }
 
 nav ul {

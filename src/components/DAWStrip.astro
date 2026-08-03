@@ -9,7 +9,7 @@ interface Props {
   heading?: string;
 }
 
-const { heading = 'Tested in your DAW' } = Astro.props;
+const { heading = 'Goes with every vehicle' } = Astro.props;
 
 // Mobile-only brand marks. Desktop keeps the original text chips untouched
 // (these marks are hidden above 900px). Only DAWs with a genuine, sourceable
@@ -29,6 +29,7 @@ const wordmarks = new Set(['cubase', 'fl-studio']);
 <section class="daw-strip">
   <div class="container">
     <h2 class="center">{heading}</h2>
+    <p class="formats center">VST3 · AU · AAX</p>
     <ul class="daws" data-drift="4">
       {daws.map((d) => {
         const mark = marks[d.slug];
@@ -57,7 +58,19 @@ const wordmarks = new Set(['cubase', 'fl-studio']);
 
   .daw-strip h2 {
     color: var(--fg-dim);
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Formats line under the heading — mono, letter-spaced, brass.
+     (auto inline margins: the global p max-width would otherwise pin the
+     box left of center) */
+  .formats {
+    margin: 0 auto 2rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    color: var(--brass);
   }
 
   .daws {
