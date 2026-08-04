@@ -71,6 +71,10 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               {plugin.regularPriceUsd != null && <span class="dz-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
             {plugin.promoCode && <div class="dz-ink dz-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
+            {/* .rc-policy twin — same slot/values as the hanging door, minus
+                the #rc-worn-* filter (nothing filtered may translate in
+                Safari). Non-interactive paint, so it stays inside .dz-copy. */}
+            {!plugin.promoCode && plugin.pricePolicy && <div class="dz-ink dz-policy">{plugin.pricePolicy}</div>}
           </div>
           <div class="dz-imprint"></div>
           <!-- Free-trial call, UPPER slot — mirrors BuyButtonCrane's
@@ -336,6 +340,19 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
   .dz-code b {
     letter-spacing: 0.15em;
     color: #e32400;
+  }
+
+  /* forever-price line — .rc-policy's values exactly, filter dropped */
+  .dz-policy {
+    left: 50.4%;
+    top: 91.1%;
+    rotate: 0.9deg;
+    font-family: var(--font-mono);
+    font-size: 3.4cqw;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #f4e8cf;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
   }
 
   /* door scratches print through the paint — sibling of the masked wrapper */

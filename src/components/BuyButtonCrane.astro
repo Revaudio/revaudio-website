@@ -88,6 +88,11 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               {plugin.regularPriceUsd != null && <span class="rc-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
             {plugin.promoCode && <div class="rc-ink rc-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
+            {/* Forever-price posture line (2026-08-04) — takes over the old
+                promo-code slot; a plugin has a promoCode OR a pricePolicy,
+                never both, so the slot can't double-book. Needs its .dz-policy
+                twin in CraneDropZone (parity invariant). */}
+            {!plugin.promoCode && plugin.pricePolicy && <div class="rc-ink rc-policy">{plugin.pricePolicy}</div>}
             {/* plat line removed from the door 2026-07-04 — formats still listed in .crane-under below. .rc-plat CSS kept for bench parity. */}
           </div>
           <div class="rc-imprint"></div>
@@ -229,6 +234,11 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
 
   <div class="crane-under">
     <p class="micro">Secure checkout &middot; instant delivery.</p>
+    {/* External anchor for the forever-price posture (2026-08-04) — spec
+        register, plain text, never VT323/display type for a claim. */}
+    {plugin.pricePolicy && (
+      <p class="micro anchor-note">Forever price &mdash; no coupons, no countdowns. FabFilter&rsquo;s Pro-L&nbsp;2 is $169.</p>
+    )}
     <ul class="includes">
       <li>VST3 / AU / AAX (Windows &amp; macOS)</li>
       <li>No iLok, no launcher app &mdash; a key in your inbox</li>
@@ -547,6 +557,22 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
   .rc-code b {
     letter-spacing: 0.15em;
     color: #e32400;                      /* lightlab ref 2026-07-03b */
+  }
+
+  /* Forever-price line — inherits the code line's slot and paint register;
+     smaller cqw because the sentence runs ~38 chars vs the code line's ~29. */
+  .rc-policy {
+    left: 50.4%;
+    top: 91.1%;
+    rotate: 0.9deg;
+    font-family: var(--font-mono);
+    font-size: 3.4cqw;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #f4e8cf;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+    -webkit-text-stroke: 0px currentColor;
+    filter: url(#rc-worn-code);
   }
 
   .rc-plat {
@@ -958,6 +984,8 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
     color: var(--fg-dim);
     margin: 0;
   }
+
+  .anchor-note { margin-top: 0.35rem; }
 
   .includes {
     list-style: none;

@@ -10,9 +10,9 @@
  * CTA is trial-first (Dan 2026-07-24): plugins WITH a trialUrl show a single
  * full-width "Start your 14-day free trial" anchor (no price — it scrolls to
  * the on-page #trial capture); plugins without one keep the price column +
- * add-to-cart BUY NOW. Cart dedupes by slug and the LS checkout applies VROOM,
- * so data-price is the REGULAR price ($93) to match the crane + PluginCard
- * buttons; $56 is display-only until VROOM is typed.
+ * add-to-cart BUY NOW. Cart dedupes by slug; data-price is the flat forever
+ * price (no discount code rides the checkout URL — posture ratified
+ * 2026-08-04), matching the crane + PluginCard buttons.
  */
 import type { Plugin } from '../data/plugins';
 import { fmtPrice, discountPct, dlGateId } from '../data/plugins';
