@@ -296,7 +296,7 @@ export const plugins: Plugin[] = [
     statusLabel: 'Available now',
     hideStatusPill: true,
     cardThumbBare: true,
-    introPriceUsd: 20,
+    introPriceUsd: 19,
     regularPriceUsd: null,
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
     fastspringPath: 'radio-roulette',
