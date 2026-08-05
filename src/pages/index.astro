@@ -65,29 +65,11 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
           The precision of a machine, the feel of an instrument.
         </p>
 
-        {/* Conversion pass stop B (2026-08-03): the hero is the most-viewed
-            block on the site and offered nothing to click. Primary = the
-            trial (the $0 ask), same wording as MobileBuyBar / rc-freetrial —
-            one name for the action wherever it appears. Desktop-only: the
-            07-22 mobile pass killed a mobile hero CTA (call stands), and the
-            mobile trial path is TrialStamp's. Own entrance tween, NOT part of
-            the 3s [data-hero-in] cascade — the sweep's end delivers it, then
-            it holds still (onset only, never looped). */}
-        <div class="hh-cta" data-hero-cta>
-          <button
-            type="button"
-            class="trial-cta"
-            data-trial-gate-open
-            data-plugin-name={revlimiter.name}
-            data-plugin-slug={trialGateId}
-            data-register-url={trialRegisterUrl}
-            aria-label="Start the free 14-day trial of RevLimiter, full version, no credit card"
-          >
-            <span class="tc-verb">Start your 14-day free trial</span>
-            <span class="tc-micro">RevLimiter &middot; full version &middot; no credit card</span>
-          </button>
-          <a class="hh-cta-alt" href="#plugins">See the plugins</a>
-        </div>
+        {/* No CTA in the hero (2026-08-05, Dan's call): stop B's trial button
+            and its "See the plugins" secondary both came out. The hero is
+            atmosphere only — tag, headline, sweep, lede, gauge. The trial ask
+            still lives in .closing-cta at the page end, on the product pages,
+            and in TrialStamp on mobile. */}
 
       </div>
 
@@ -288,18 +270,6 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       // stalled font or image can only delay the entrance, never strand the
       // pre-hide (GSAP's inline styles take over the moment the timeline is
       // built).
-      // ── The CTA is NOT gated on the readiness race below ──
-      // Stop B rule: clickable within ~800ms — the atmosphere assembles
-      // around a live button, never the reverse. One onset transient
-      // immediately (module scripts run post-parse), then it holds still.
-      // The main timeline's fonts/dial gate can add up to 2.65s on a cold
-      // cache; the CTA must never inherit that wait.
-      gsap.fromTo(
-        '[data-hero-cta]',
-        { y: 18, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out', delay: 0.25 },
-      );
-
       const faces = dials
         .filter((dial) => dial.offsetParent !== null)
         .map((dial) => dial.querySelector<HTMLImageElement>('img.g-face'))
@@ -328,7 +298,6 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
   :global(html.motion-ok) [data-hero-in],
   :global(html.motion-ok) [data-dial],
   :global(html.motion-ok) .hh-h1,
-  :global(html.motion-ok) [data-hero-cta],
   :global(html.motion-ok) [data-hero-sweep] { opacity: 0; }
   /* border-bottom: none overrides the global .hero divider — the hero should
      flow straight into the plugin showcase. */
@@ -510,11 +479,10 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     margin: 0 auto;
   }
 
-  /* ── The trial CTA — the salience system's one "action channel" spend per
-     viewport (hero, and again at the page close): clean flat brass against
-     the worn textured world, dark label, no texture, no glow. Brass-bright,
-     NOT race-red — red-on-red is camouflage on this site. Shared by the hero
-     and .closing-cta below (both live in this file). ── */
+  /* ── The trial CTA — the salience system's one "action channel" spend on
+     this page, now only at the page close (the hero CTA came out 2026-08-05):
+     clean flat brass against the worn textured world, dark label, no texture,
+     no glow. Brass-bright, NOT race-red — red-on-red is camouflage here. ── */
   .trial-cta {
     display: inline-flex;
     flex-direction: column;
@@ -544,24 +512,6 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     text-transform: uppercase;
     opacity: 0.85;
   }
-
-  .hh-cta {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.9rem;
-    margin-top: 1.7rem;
-  }
-  /* Secondary stays plain text — it must not compete with the one lit slot. */
-  .hh-cta-alt {
-    font-family: var(--font-display);
-    font-size: 1.05rem;
-    letter-spacing: 0.1em;
-    color: var(--fg-dim);
-    text-shadow: none;
-    transition: color 0.2s var(--ease);
-  }
-  .hh-cta-alt:hover { color: var(--brass-bright); }
 
   /* ── Page terminus: end on the decision, not on a form. Same seam style as
      every other section boundary. ── */
@@ -656,11 +606,5 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
     /* Mobile keeps only its own small under-headline dial. */
     .hero-dial-desktop { display: none; }
     .hero-dial-mobile { display: block; }
-
-    /* No hero CTA on mobile — the 07-22 pass killed it there (that call
-       stands until revisited with real analytics). The mobile trial paths
-       are the product pages' TrialStamp and the closing-cta below, which is
-       normal page flow and shows at all widths. */
-    .hh-cta { display: none; }
   }
 </style>
