@@ -71,10 +71,9 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               {plugin.regularPriceUsd != null && <span class="dz-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
             {plugin.promoCode && <div class="dz-ink dz-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
-            {/* .rc-policy twin — same slot/values as the hanging door, minus
-                the #rc-worn-* filter (nothing filtered may translate in
-                Safari). Non-interactive paint, so it stays inside .dz-copy. */}
-            {!plugin.promoCode && plugin.pricePolicy && <div class="dz-ink dz-policy">{plugin.pricePolicy}</div>}
+            {/* .rc-policy twin removed alongside the hanging door's painted
+                posture line (Dan 2026-08-05). PARITY INVARIANT holds: neither
+                door paints it. .dz-policy CSS kept for bench parity. */}
           </div>
           <div class="dz-imprint"></div>
           <!-- Free-trial call, UPPER slot — mirrors BuyButtonCrane's

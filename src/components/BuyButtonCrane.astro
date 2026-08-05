@@ -88,11 +88,10 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
               {plugin.regularPriceUsd != null && <span class="rc-was">{fmtPrice(plugin.regularPriceUsd)}</span>}
             </div>
             {plugin.promoCode && <div class="rc-ink rc-code">code <b>{plugin.promoCode}</b> applied at checkout</div>}
-            {/* Forever-price posture line (2026-08-04) — takes over the old
-                promo-code slot; a plugin has a promoCode OR a pricePolicy,
-                never both, so the slot can't double-book. Needs its .dz-policy
-                twin in CraneDropZone (parity invariant). */}
-            {!plugin.promoCode && plugin.pricePolicy && <div class="rc-ink rc-policy">{plugin.pricePolicy}</div>}
+            {/* Painted forever-price posture line removed from the door
+                (Dan 2026-08-05) — the price stands on its own. .rc-policy CSS
+                and its .dz-policy twin in CraneDropZone are kept for bench
+                parity; the posture now lives only in .anchor-note below. */}
             {/* plat line removed from the door 2026-07-04 — formats still listed in .crane-under below. .rc-plat CSS kept for bench parity. */}
           </div>
           <div class="rc-imprint"></div>

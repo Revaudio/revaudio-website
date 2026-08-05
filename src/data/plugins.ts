@@ -119,9 +119,10 @@ export interface Plugin {
   checkoutPaused: boolean;
   /** Discount code the buyer must enter at checkout to get the intro price. */
   promoCode?: string;
-  /** Forever-price posture line painted by the price wherever the door sells
-   *  (crane door + its fallen .dz twin). Line-wide rule (ratified 2026-08-04):
-   *  every plugin launches at its forever price — $49/$69/$99 tiers. */
+  /** Forever-price posture. Line-wide rule (ratified 2026-08-04): every plugin
+   *  launches at its forever price — $49/$69/$99 tiers. The painted door line
+   *  was removed 2026-08-05 (Dan); the string now only flags the posture, which
+   *  renders as the .anchor-note under the crane. */
   pricePolicy?: string;
   /** True for no-cost plugins — product page shows FREE + a Download CTA
    *  instead of pricing/checkout, and skips serial/licence-key copy. */
