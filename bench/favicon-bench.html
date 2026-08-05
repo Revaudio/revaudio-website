@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RevAudio — Favicon Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #0b0a09; --bg-1: #14110f; --bg-2: #1d1916; --bg-3: #2a2420;
+    --brass: #c9a35c; --brass-bright: #e8c878; --brass-dark: #8c6f3a;
+    --chrome: #d8d4cc; --chrome-dark: #76726a; --redline: #c8331f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg-0); color: var(--chrome); font-family: Inter, sans-serif; padding: 48px 40px 80px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 42px; letter-spacing: 2px; color: var(--brass-bright); }
+  .sub { color: var(--chrome-dark); margin: 6px 0 40px; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 24px; }
+  .card { background: var(--bg-1); border: 1px solid var(--bg-3); border-radius: 10px; padding: 24px; }
+  .card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.5px; color: var(--brass-bright); }
+  .card .note { font-size: 13px; color: var(--chrome-dark); margin: 4px 0 18px; line-height: 1.45; }
+  .sizes { display: flex; align-items: flex-end; gap: 28px; margin-bottom: 20px; }
+  .size-slot { text-align: center; }
+  .size-slot .label { font-size: 11px; color: var(--chrome-dark); margin-top: 8px; }
+  .size-slot svg, .size-slot img { display: block; image-rendering: auto; }
+  /* fake Chrome tab strip */
+  .tabstrip { background: #202124; border-radius: 8px 8px 0 0; padding: 8px 10px 0; display: flex; align-items: flex-end; }
+  .tab { background: #35363a; border-radius: 8px 8px 0 0; padding: 7px 14px 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 230px; }
+  .tab .fav { width: 16px; height: 16px; flex: 0 0 16px; }
+  .tab .fav svg, .tab .fav img { width: 16px; height: 16px; display: block; }
+  .tab .title { font-size: 12px; color: #e8eaed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+  .tab .x { color: #9aa0a6; font-size: 13px; margin-left: auto; }
+  .toolbar { background: #35363a; height: 14px; border-radius: 0 0 8px 8px; opacity: .6; }
+  .baseline { border-color: var(--brass-dark); }
+  .tag { display: inline-block; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--bg-0); background: var(--brass); border-radius: 3px; padding: 2px 7px; margin-left: 10px; vertical-align: middle; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Favicon Bench — RevAudio</h1>
+<p class="sub">Each option shown at 64 / 32 / 16 px + inside a real-size Chrome tab. Judge the 16px + tab row — that's what people actually see.</p>
+
+<!-- ══════════ SVG mark definitions ══════════ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="brassEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c878"/><stop offset="1" stop-color="#8c6f3a"/>
+    </linearGradient>
+    <linearGradient id="splitRA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c8331f"/><stop offset=".52" stop-color="#c8331f"/>
+      <stop offset=".52" stop-color="#e8c878"/><stop offset="1" stop-color="#c9a35c"/>
+    </linearGradient>
+
+    <!-- A · RA PLATE -->
+    <symbol id="optA" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="10" fill="#0b0a09"/>
+      <rect x="4" y="13" width="56" height="38" rx="6" fill="#171310" stroke="url(#brassEdge)" stroke-width="3"/>
+      <rect x="14" y="17.5" width="7" height="2.6" rx="1.3" fill="#0b0a09"/>
+      <rect x="43" y="17.5" width="7" height="2.6" rx="1.3" fill="#0b0a09"/>
+      <text x="23" y="47" font-family="'Bebas Neue',sans-serif" font-size="27" fill="#c8331f" text-anchor="middle">R</text>
+      <text x="41" y="47" font-family="'Bebas Neue',sans-serif" font-size="27" fill="#e8c878" text-anchor="middle">A</text>
+    </symbol>
+
+    <!-- B · TACH GAUGE -->
+    <symbol id="optB" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="10" fill="#0b0a09"/>
+      <circle cx="32" cy="32" r="26" fill="#14110f" stroke="url(#brassEdge)" stroke-width="3.5"/>
+      <!-- sweep ticks: 225° → -45° -->
+      <g stroke="#c9a35c" stroke-width="2.4" stroke-linecap="round">
+        <line x1="17.2" y1="46.8" x2="20.8" y2="43.2"/>
+        <line x1="11.5" y1="32"   x2="16.5" y2="32"/>
+        <line x1="17.2" y1="17.2" x2="20.8" y2="20.8"/>
+        <line x1="32"   y1="11.5" x2="32"   y2="16.5"/>
+      </g>
+      <!-- redline zone ticks -->
+      <g stroke="#c8331f" stroke-width="2.8" stroke-linecap="round">
+        <line x1="46.8" y1="17.2" x2="43.2" y2="20.8"/>
+        <line x1="52.5" y1="32"   x2="47.5" y2="32"/>
+      </g>
+      <!-- redline arc -->
+      <path d="M 46.4 17.6 A 20.4 20.4 0 0 1 52.4 32" fill="none" stroke="#c8331f" stroke-width="4" stroke-linecap="round"/>
+      <!-- needle buried in the red -->
+      <line x1="32" y1="32" x2="47" y2="19" stroke="#d8d4cc" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="32" cy="32" r="4.6" fill="#e8c878"/>
+    </symbol>
+
+    <!-- C · SPLIT-TONE R -->
+    <symbol id="optC" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="10" fill="#0b0a09"/>
+      <rect x="2" y="2" width="60" height="60" rx="8.5" fill="none" stroke="#8c6f3a" stroke-width="2.4"/>
+      <text x="32" y="55" font-family="'Bebas Neue',sans-serif" font-size="58" fill="url(#splitRA)" text-anchor="middle">R</text>
+    </symbol>
+
+    <!-- D · STACKED PLATE -->
+    <symbol id="optD" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="10" fill="#0b0a09"/>
+      <rect x="3.5" y="3.5" width="57" height="57" rx="7" fill="#171310" stroke="url(#brassEdge)" stroke-width="3"/>
+      <text x="32" y="33" font-family="'Bebas Neue',sans-serif" font-size="28" fill="#c8331f" text-anchor="middle" letter-spacing="1">REV</text>
+      <text x="32" y="54" font-family="'Bebas Neue',sans-serif" font-size="19" fill="#e8c878" text-anchor="middle" letter-spacing="1">AUDIO</text>
+    </symbol>
+
+    <!-- E · RACE BADGE R -->
+    <symbol id="optE" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="12" fill="#c8331f"/>
+      <rect x="2.5" y="2.5" width="59" height="59" rx="10" fill="none" stroke="#e8c878" stroke-width="3"/>
+      <text x="32" y="54" font-family="'Bebas Neue',sans-serif" font-size="52" fill="#f2e9d8" text-anchor="middle">R</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="grid">
+
+  <!-- baseline -->
+  <div class="card baseline">
+    <h2>Current<span class="tag">baseline</span></h2>
+    <p class="note">The full license plate, shipped today. Great identity, thin at 16px.</p>
+    <div class="sizes">
+      <div class="size-slot"><img src="../public/favicon.png" width="64" height="64" alt=""><div class="label">64</div></div>
+      <div class="size-slot"><img src="../public/favicon.png" width="32" height="32" alt=""><div class="label">32</div></div>
+      <div class="size-slot"><img src="../public/favicon.png" width="16" height="16" alt=""><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><img src="../public/favicon.png" alt=""></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+  <!-- A -->
+  <div class="card">
+    <h2>A · RA Plate</h2>
+    <p class="note">The license plate, remade square for the tab: brass frame, slot holes, two-tone "RA" initials. Closest child of the real logo.</p>
+    <div class="sizes">
+      <div class="size-slot"><svg width="64" height="64"><use href="#optA"/></svg><div class="label">64</div></div>
+      <div class="size-slot"><svg width="32" height="32"><use href="#optA"/></svg><div class="label">32</div></div>
+      <div class="size-slot"><svg width="16" height="16"><use href="#optA"/></svg><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><svg width="16" height="16"><use href="#optA"/></svg></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+  <!-- B -->
+  <div class="card">
+    <h2>B · Tach Gauge</h2>
+    <p class="note">Rev gauge with the needle buried in the redline — the RevLimiter metaphor, no letters needed. Reads as "gauge" even at 16px.</p>
+    <div class="sizes">
+      <div class="size-slot"><svg width="64" height="64"><use href="#optB"/></svg><div class="label">64</div></div>
+      <div class="size-slot"><svg width="32" height="32"><use href="#optB"/></svg><div class="label">32</div></div>
+      <div class="size-slot"><svg width="16" height="16"><use href="#optB"/></svg><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><svg width="16" height="16"><use href="#optB"/></svg></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+  <!-- C -->
+  <div class="card">
+    <h2>C · Split-Tone R</h2>
+    <p class="note">One giant Bebas R, hard-split red-over-brass — the REV/AUDIO two-tone folded into a single letter. Max legibility at 16px.</p>
+    <div class="sizes">
+      <div class="size-slot"><svg width="64" height="64"><use href="#optC"/></svg><div class="label">64</div></div>
+      <div class="size-slot"><svg width="32" height="32"><use href="#optC"/></svg><div class="label">32</div></div>
+      <div class="size-slot"><svg width="16" height="16"><use href="#optC"/></svg><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><svg width="16" height="16"><use href="#optC"/></svg></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+  <!-- D -->
+  <div class="card">
+    <h2>D · Stacked Plate</h2>
+    <p class="note">Square plate, full wordmark stacked REV over AUDIO. Richest at 32px+; at 16px the words become texture.</p>
+    <div class="sizes">
+      <div class="size-slot"><svg width="64" height="64"><use href="#optD"/></svg><div class="label">64</div></div>
+      <div class="size-slot"><svg width="32" height="32"><use href="#optD"/></svg><div class="label">32</div></div>
+      <div class="size-slot"><svg width="16" height="16"><use href="#optD"/></svg><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><svg width="16" height="16"><use href="#optD"/></svg></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+  <!-- E -->
+  <div class="card">
+    <h2>E · Race Badge R</h2>
+    <p class="note">Race-red number-plate badge, cream R, brass pinstripe. Loudest color pop in a tab strip full of dark icons.</p>
+    <div class="sizes">
+      <div class="size-slot"><svg width="64" height="64"><use href="#optE"/></svg><div class="label">64</div></div>
+      <div class="size-slot"><svg width="32" height="32"><use href="#optE"/></svg><div class="label">32</div></div>
+      <div class="size-slot"><svg width="16" height="16"><use href="#optE"/></svg><div class="label">16</div></div>
+    </div>
+    <div class="tabstrip"><div class="tab"><span class="fav"><svg width="16" height="16"><use href="#optE"/></svg></span><span class="title">RevAudio: Plugins built for the…</span><span class="x">✕</span></div></div>
+    <div class="toolbar"></div>
+  </div>
+
+</div>
+
+</body>
+</html>
