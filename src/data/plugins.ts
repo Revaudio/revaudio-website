@@ -310,7 +310,7 @@ export const plugins: Plugin[] = [
     heroImage: 'radioroulette-hero.png',
     galleryImages: [],
     features: [
-      { name: 'One station, one sound', desc: 'A station is a single number from 0 to 1,000,000, and that number configures all ten stages at once. The same station always plays back the same result, on any machine, forever.', part: 'station' },
+      { name: 'One station, one sound', desc: 'A station is a single number from 0 to 1,000,000, and that number configures all ten stages at once. Ten effects you never have to learn.', part: 'station' },
       { name: 'Tune it, or let it scan', desc: 'Drag TUNE to walk the dial station by station. Double-click and it sweeps like a scanner, then lands somewhere you would never have picked yourself.', part: 'tune' },
       { name: 'Ten effects on one dial', desc: 'Filter, EQ, fuzz, pitch, chorus, delay, reverb, gate, stereo and pan. The names lit on the glass are the ones this station is running. Click a lit name to mute that stage, click again to bring it back.', part: 'chain' },
       { name: 'Five station keys', desc: 'Click a key to recall its station, double-click to store the one you are on. The keys keep their stations on your machine, so your five favourites are always one press away.', part: 'keys' },
