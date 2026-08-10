@@ -249,7 +249,7 @@ export const plugins: Plugin[] = [
     craneBuy: true,
     tutorialVideo: {
       title: "Driver's Manual",
-      youtubeId: 'Og4PRlBFco8',
+      youtubeId: 'FpfADJeny2g',
       blurb: 'Everything under the hood: the full RevLimiter tutorial, from first insert to redline.',
     },
     // Part rects for the v3.1.9 panel shot (2600x1256 source). Measured from
@@ -327,7 +327,7 @@ export const plugins: Plugin[] = [
     craneBuy: true,
     tutorialVideo: {
       title: "Driver's Manual",
-      youtubeId: '610pUxqBSks',
+      youtubeId: 'qN0hMYFQAik',
       blurb: 'Everything under the hood: the full Radio Roulette tutorial, station by station.',
     },
     /* Part rects measured off the live v1.9.1 WebView UI (served over http,
