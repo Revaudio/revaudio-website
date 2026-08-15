@@ -169,6 +169,15 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       // ✕ is the first thing a verified visitor sees.
       var first = ready.querySelector('[data-tg-dl]');
       if (first) first.focus();
+      // openReady has exactly one caller (the return-leg block below, itself
+      // gated on dlToken+dlPlugin and run once per page load), so this fires
+      // once per genuine verify-link redirect — never on a plain page load,
+      // never on re-toggling the modal. Guarded: gtag only exists once cookie
+      // consent has been granted (CookieBanner.astro), same pattern as the
+      // trial-start conversions in TrialPlates.astro / TrialStamp.astro.
+      if (pluginId === 'radioroulette' && window.gtag) {
+        window.gtag('event', 'conversion', { send_to: 'AW-18334323184/0IbICJaOgeEcEPCjvqZE' });
+      }
     }
     function close() {
       if (typeof modal.close === 'function') modal.close(); else modal.removeAttribute('open');
