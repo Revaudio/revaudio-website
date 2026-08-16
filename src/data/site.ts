@@ -23,7 +23,7 @@ export const site = {
    * TrialPlates) are separate actions and unaffected. Only ever fires when
    * the visitor accepted cookies (window.gtag exists).
    */
-  gadsPurchaseSendTo: '',
+  gadsPurchaseSendTo: 'AW-18334323184/dnFDCP3mxOIcEPCjvqZE',
 
   /**
    * Cloudflare Web Analytics beacon token (free, cookieless, privacy-friendly).
@@ -35,7 +35,7 @@ export const site = {
    * it here is fine. While this is empty, NO analytics script loads. Analytics
    * also only loads in production builds, never in `astro dev`.
    */
-  cfBeaconToken: '',
+  cfBeaconToken: '5d066ad6e2f04d18b87dafcbcb5e8d33',
 
   /**
    * Formspree endpoint for newsletter capture (bottom EmailCapture section +
