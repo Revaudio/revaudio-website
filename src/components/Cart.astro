@@ -34,7 +34,7 @@ for (const p of plugins) {
 }
 ---
 
-<script is:inline type="application/json" data-checkout-map data-engine={engine} set:html={JSON.stringify(checkoutMap)}></script>
+<script is:inline type="application/json" data-checkout-map data-engine={engine} data-gads-purchase={site.gadsPurchaseSendTo} set:html={JSON.stringify(checkoutMap)}></script>
 
 {/* Lemon Squeezy overlay checkout — renders the payment screen in a modal over
     the site. No SRI: LS rotates lemon.js and ships it unversioned, so an
@@ -132,11 +132,27 @@ for (const p of plugins) {
             if (ev && ev.event === 'Checkout.Success') {
               write([]); sync();
               // Client-side Purchase is best-effort: it undercounts consent-declines
-              // and races the redirect. If an LS-webhook → CAPI Purchase is added
-              // later it MUST carry the LS order id as eventID and this call must be
-              // deduped or removed. Not fired on /thank-you load (would re-fire on refresh).
+              // and races the redirect. The LS webhook now carries a server-side
+              // CAPI Purchase (worker fireMetaPurchase, event_id "ls-<order id>",
+              // live once META_CAPI_TOKEN is set) — this call has no order id so
+              // Meta CANNOT dedupe the pair: REMOVE this line in the same deploy
+              // window that the CAPI token goes live, or every sale counts twice.
               track('Purchase', { value: lastCheckoutValue, currency: 'USD' });
-              window.location.href = '/thank-you';
+              // Google Ads purchase conversion — no-op until site.ts sets
+              // gadsPurchaseSendTo. Redirect waits for the hit (or 500 ms, the
+              // documented gtag event_callback pattern) so it isn't lost mid-nav.
+              var mapEl = document.querySelector('[data-checkout-map]');
+              var gadsSendTo = (mapEl && mapEl.getAttribute('data-gads-purchase')) || '';
+              var redirected = false;
+              var go = function () { if (!redirected) { redirected = true; window.location.href = '/thank-you'; } };
+              if (gadsSendTo && window.gtag) {
+                try {
+                  window.gtag('event', 'conversion', {
+                    send_to: gadsSendTo, value: lastCheckoutValue, currency: 'USD', event_callback: go
+                  });
+                } catch (e) { go(); }
+                setTimeout(go, 500);
+              } else { go(); }
             }
           }
         });

@@ -15,6 +15,17 @@ export const site = {
   checkoutEngine: 'ls' as 'ls' | 'fastspring',
 
   /**
+   * Google Ads PURCHASE conversion (fired by Cart.astro on Checkout.Success).
+   * GO-LIVE: Google Ads → Tools → Conversions → New conversion action →
+   * Website → category "Purchase", then paste the full send_to value here,
+   * e.g. 'AW-18334323184/AbCdEfGhIjK'. While empty, no purchase conversion
+   * fires — the trial-start conversions (TrialGateModal / TrialStamp /
+   * TrialPlates) are separate actions and unaffected. Only ever fires when
+   * the visitor accepted cookies (window.gtag exists).
+   */
+  gadsPurchaseSendTo: '',
+
+  /**
    * Cloudflare Web Analytics beacon token (free, cookieless, privacy-friendly).
    * How to get it: Cloudflare dashboard → Analytics & Logs → Web Analytics →
    * "Add a site" → enter revaudio.net → copy the token from the JS snippet
