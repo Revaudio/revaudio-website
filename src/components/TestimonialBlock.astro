@@ -1,84 +1,231 @@
 ---
 import { testimonials } from '../data/testimonials';
+import StarRating from './StarRating.astro';
 
 interface Props {
   /** filter to a specific plugin slug; null shows all */
   plugin?: string;
   heading?: string;
+  /** optional conversion CTA under the quotes (homepage use) */
+  ctaHref?: string;
+  ctaLabel?: string;
+  ctaSub?: string;
 }
 
-const { plugin, heading = 'What producers say' } = Astro.props;
+const { plugin, heading = 'Producers running RevAudio', ctaHref, ctaLabel, ctaSub } = Astro.props;
 const items = plugin
   ? testimonials.filter((t) => t.plugin === plugin)
   : testimonials;
 
 if (items.length === 0) return null;
+
+const fmtDate = (iso?: string) =>
+  iso
+    ? new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    : null;
 ---
 
-<section class="testimonial-block">
+<section class="testimonial-block" id="testimonials">
   <div class="container">
+    <p class="kicker">From the driver&rsquo;s seat</p>
     <h2 class="center" data-split>{heading}</h2>
+
     <div class="quotes" data-reveal-group>
       {items.map((t) => (
         <figure class="quote" data-reveal-item>
-          <blockquote>
-            &ldquo;{t.quote}&rdquo;
-          </blockquote>
+          <blockquote>&ldquo;{t.quote}&rdquo;</blockquote>
           <figcaption>
-            <span class="who">{t.name}</span>
-            <span class="credits muted">{t.credits}</span>
-            {t.date && <span class="date muted">{t.date}</span>}
+            <span class="plate">{t.name}</span>
+            {typeof t.rating === 'number' && <StarRating rating={t.rating} scale={0.8} />}
+            <span class="credits muted">{t.credits}{t.date && ` · ${fmtDate(t.date)}`}</span>
           </figcaption>
         </figure>
       ))}
     </div>
+
+    {ctaHref && ctaLabel && (
+      <div class="cta-row" data-reveal="fade">
+        <a class="btn quote-cta" href={ctaHref}>{ctaLabel}</a>
+        {ctaSub && <span class="cta-sub muted">{ctaSub}</span>}
+      </div>
+    )}
   </div>
 </section>
 
 <style>
   .testimonial-block {
-    padding: 5rem 0;
+    padding: var(--space-6) 0;
     border-top: 1px solid var(--border);
-    background: var(--bg-1);
+    /* garage lighting law: ONE light source, upper-left (~35% 25%) — the
+       brass spill falls across the wall from there, wall darkens away from it */
+    background:
+      radial-gradient(90% 70% at 35% 25%, rgba(201, 163, 92, 0.08), transparent 62%),
+      linear-gradient(155deg, var(--bg-2) 0%, var(--bg-1) 45%, var(--bg-0) 100%);
   }
 
+  .kicker {
+    margin: 0 auto var(--space-2);
+    width: fit-content;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--brass);
+    /* stamped into the wall, not printed on it */
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.7), 0 1px 0 rgba(239, 233, 223, 0.06);
+  }
+
+  /* ---- quote cards: every testimonial in the same box ---- */
   .quotes {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-    margin-top: 2.5rem;
+    gap: var(--space-4);
+    margin: var(--space-5) auto 0;
+    max-width: 64rem;
   }
 
   .quote {
     margin: 0;
-    padding: 1.75rem;
-    background: var(--bg-0);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--brass);
+    padding: var(--space-4);
+    /* sharp corners — .sc-slide has none; a radius reads generic web card */
+    border-radius: 0;
+    /* same card frame as the plugin carousel (.sc-slide): machined-brass edge
+       + faint textured face. Face gradient clipped to padding-box, brass
+       gradient clipped to border-box showing through the transparent 1px
+       border. Brighter at the top (light catch), darkening down. */
+    border: 1px solid transparent;
+    background:
+      repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 6px) padding-box,
+      linear-gradient(180deg, #17130d 0%, var(--bg-1) 42%, #0d0b08 100%) padding-box,
+      linear-gradient(180deg, #d9b36a 0%, #8a6a33 28%, #453518 62%, #6e5527 100%) border-box;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
   }
 
-  blockquote {
-    margin: 0 0 1rem;
-    font-size: 1.05rem;
+  /* hover = the hand approaching the panel: 1px lift, snap curve; the brass
+     edge is a border-box gradient so border-color can't respond — glow
+     instead, same trick as the carousel's is-current hover */
+  @media (prefers-reduced-motion: no-preference) {
+    .quote {
+      transition:
+        transform 0.14s cubic-bezier(0.2, 0.9, 0.25, 1.25),
+        box-shadow 0.14s cubic-bezier(0.2, 0.9, 0.25, 1.25);
+    }
+    .quote:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), 0 0 20px rgba(255, 170, 60, 0.14);
+    }
+  }
+
+  /* a single quote centers at reading width instead of stretching across
+     the whole grid row */
+  .quote:only-child {
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  .quote blockquote {
+    margin: 0 0 var(--space-3);
+    font-size: 1rem;
     color: var(--fg);
     line-height: 1.55;
   }
 
-  figcaption {
+  .quote figcaption {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.85rem;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
 
-  .who {
-    color: var(--brass-bright);
+  /* ---- license-plate name chip: stamped metal, not a UI chip ---- */
+  .plate {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.26rem 1rem;
     font-family: var(--font-display);
-    letter-spacing: 0.05em;
-    font-size: 1rem;
+    font-size: 0.9rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--chrome);
+    /* lettering pressed INTO the plate — dark bites above, catchlight below */
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.65), 0 1px 0 rgba(239, 233, 223, 0.08);
+    /* 3-stop metal body (no flat fills on visible surfaces) */
+    background: linear-gradient(180deg, #241e19 0%, #191512 55%, #121010 100%);
+    border: 1px solid var(--chrome-dark);
+    border-radius: 5px;
+    /* chrome law: cool reflection on top (sky), warm below (dash) */
+    box-shadow:
+      inset 0 1px 0 rgba(216, 212, 204, 0.1),
+      inset 0 -1px 0 rgba(201, 163, 92, 0.08),
+      inset 0 -2px 5px rgba(0, 0, 0, 0.55);
   }
 
-  .credits, .date {
+  /* plate screws — each catches the light at its own angle (aligned = CGI) */
+  .plate::before,
+  .plate::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    background: radial-gradient(circle at 32% 28%, #b9b4aa, #4d483f);
+  }
+  .plate::before { left: 5px; }
+  .plate::after { right: 5px; background: radial-gradient(circle at 58% 38%, #b0aba1, #47423a); }
+  .quote:nth-child(odd) .plate::before { background: radial-gradient(circle at 44% 55%, #b5b0a6, #4a453d); }
+  .quote:nth-child(3n) .plate::after { background: radial-gradient(circle at 36% 62%, #beb9af, #514c43); }
+
+  .credits {
     font-size: 0.8rem;
+    color: var(--fg-dim);
+  }
+
+  /* ---- conversion CTA under the proof ---- */
+  .cta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  .quote-cta {
+    display: inline-block;
+    padding: 0.7rem 2rem;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--bg-1);
+    background: linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 55%, var(--brass-dark) 100%);
+    border-radius: 4px;
+    box-shadow: 0 2px 0 var(--brass-dark), 0 10px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  .quote-cta:focus-visible {
+    outline: 2px solid var(--brass-bright);
+    outline-offset: 3px;
+  }
+
+  /* house snap: ~140ms with slight overshoot, ≤2px travel; hover lamps the
+     brass like light responding to the hand, press seats it back down */
+  @media (prefers-reduced-motion: no-preference) {
+    .quote-cta {
+      transition:
+        transform 0.14s cubic-bezier(0.2, 0.9, 0.25, 1.25),
+        filter 0.14s var(--ease);
+    }
+    .quote-cta:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .quote-cta:active { transform: translateY(1px); }
+  }
+
+  .cta-sub {
+    font-size: var(--text-sm);
+    color: var(--fg-dim);
   }
 </style>

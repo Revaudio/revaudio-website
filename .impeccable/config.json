@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.3, 0.35, 1)",
+        "createdAt": "2026-08-05T11:26:43.666Z",
+        "reason": "User confirmed cubic-bezier(0.34, 1.3, 0.35, 1) is intentional"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.25, 1.25)",
+        "createdAt": "2026-08-17T09:05:00.000Z",
+        "reason": "RevAudio house motion standard — design-language.md §3 switch-lever snap (crane door canon); Dan invoked the garage language for this section"
+      }
+    ]
+  }
+}

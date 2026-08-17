@@ -8,6 +8,7 @@
  *   credits: 2-3 max, biggest names first
  *   plugin:  optional — links the quote to a specific plugin page
  *   date:    YYYY-MM-DD, helps trust signal stay fresh
+ *   rating:  0-5, ONLY if the person actually gave a star score — never invent
  */
 
 export interface Testimonial {
@@ -16,6 +17,7 @@ export interface Testimonial {
   quote: string;
   plugin?: string;
   date?: string;
+  rating?: number;
 }
 
 export const testimonials: Testimonial[] = [
@@ -26,5 +28,6 @@ export const testimonials: Testimonial[] = [
   //   quote: 'RevLimiter became the first stage I reach for on every master.',
   //   plugin: 'revlimiter',
   //   date: '2026-09-15',
+  //   rating: 5,
   // },
 ];
