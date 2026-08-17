@@ -12,7 +12,7 @@
    revlimiter on anything it doesn't recognise), so dlGateId(plugin) is
    mandatory here, not the raw slug.
 
-   Mobile: hidden — the door's own "or try it free for 14 days" link
+   Mobile: hidden — the door's own "or try it free for 30 days" link
    (BuyButtonCrane's .rc-trial) and MobileBuyBar already carry the trial
    funnel on phones. */
 import { dlGateId, type Plugin } from '../data/plugins';
@@ -32,7 +32,7 @@ const registerUrl = new URL(plugin.trialUrl!).origin + '/download/register';
   data-plugin-id={dlGateId(plugin)}
   data-portal-url={plugin.trialUrl}
 >
-  <p class="tc-label">Get your <em>free</em> 14-day trial</p>
+  <p class="tc-label">Get your <em>free</em> 30-day trial</p>
   <form class="tc-form" data-trial-cta-form novalidate>
     <label for="trial-cta-email" class="sr-only">Your email</label>
     <input

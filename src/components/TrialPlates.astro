@@ -56,13 +56,13 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
   data-portal-url={plugin.trialUrl}
   style={`--plate-url:url(${plate.src});`}
 >
-  <h2 data-split>14 days test drive</h2>
+  <h2 data-split>30 days test drive</h2>
 
   <form class="plate-wrap" id="tp-form" data-tp-wrap novalidate>
     <div class="sway">
       {/* Both printed lines are nowrap and carry the product name, so a name
           longer than RevLimiter's runs past the eyelets (top strip) and gets
-          clipped by .plate-fields' overflow ("Term: 14 day"). Tighten the
+          clipped by .plate-fields' overflow ("Term: 30 day"). Tighten the
           tracking for long names instead of shrinking the type, which would
           drop the terms line below its legibility floor. */}
       <div class:list={['plate', plugin.name.length > 11 && 'plate--long-name']} data-tp-plate>
@@ -79,8 +79,8 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
           placeholder="your@email.com"
           aria-label="Your email, we send the download link here"
         >
-        <div class="plate-fields" aria-hidden="true">Issued by: Revaudio garage &middot; Model: {plugin.name} &middot; Term: 14 days</div>
-        <div class="plate-strip plate-strip--bot">Valid 14 days from first start &middot; full version</div>
+        <div class="plate-fields" aria-hidden="true">Issued by: Revaudio garage &middot; Model: {plugin.name} &middot; Term: 30 days</div>
+        <div class="plate-strip plate-strip--bot">Valid 30 days from first start &middot; full version</div>
         <span class="screw screw--l" style={`background-image:url(${screw.src});`}></span>
         <span class="screw screw--r" style={`background-image:url(${screw.src});`}></span>
         <div class="stamp-issued">Plates issued</div>
@@ -264,7 +264,7 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
     opacity: 0.82;
   }
   .plate-strip--top { top: 9.8%; }
-  /* the bottom strip carries the actual terms of the offer (14 days, full
+  /* the bottom strip carries the actual terms of the offer (30 days, full
      version) — it is not decoration, so it prints closer to AA than the faux
      record line does */
   .plate-strip--bot { bottom: 11.6%; opacity: 0.8; letter-spacing: 0.14em; }
@@ -641,7 +641,7 @@ const screw = await getImage({ src: screwImg, width: 96, format: 'webp' });
          may not look broken. */
       font-size: max(4.5px, 1.85cqw);
       letter-spacing: 0.02em;
-      left: 13%; right: 13%;   /* its TERM: 14 DAYS tail was landing ~2px off the frame rule */
+      left: 13%; right: 13%;   /* its TERM: 30 DAYS tail was landing ~2px off the frame rule */
       top: 66%;   /* the email glyphs run relatively taller at phone widths */
     }
     /* A long product name pushes this line past the 62 chars the sizes above

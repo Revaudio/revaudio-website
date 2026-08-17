@@ -8,7 +8,7 @@
  * is on screen, so the two never compete.
  *
  * CTA is trial-first (Dan 2026-07-24): plugins WITH a trialUrl show a single
- * full-width "Start your 14-day free trial" anchor (no price — it scrolls to
+ * full-width "Start your 30-day free trial" anchor (no price — it scrolls to
  * the on-page #trial capture); plugins without one keep the price column +
  * add-to-cart BUY NOW. Cart dedupes by slug; data-price is the flat forever
  * price (no discount code rides the checkout URL — posture ratified
@@ -54,8 +54,8 @@ const registerUrl = site.downloadGate.workerUrl + '/download/register';
        get native #trial nav, same as the header's "Free trial" link. */
     <Fragment>
       <a class="mbb-buy mbb-buy--trial" href="#trial"
-        aria-label={`Start the free 14-day trial of ${plugin.name}, full version, no credit card`}>
-        Start your 14-day free trial
+        aria-label={`Start the free 30-day trial of ${plugin.name}, full version, no credit card`}>
+        Start your 30-day free trial
       </a>
       <span class="mbb-micro">Full version &middot; no credit card</span>
     </Fragment>

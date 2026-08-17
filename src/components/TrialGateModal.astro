@@ -52,10 +52,10 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
   data-tg-names={JSON.stringify(gateNames)}
 >
   <button type="button" class="tg-x" data-tg-close aria-label="Close">&times;</button>
-  <p class="tg-kicker" data-tg-kicker>Free 14-day trial</p>
+  <p class="tg-kicker" data-tg-kicker>Free 30-day trial</p>
   <h2 data-tg-title>Take the free trial</h2>
   <p class="tg-sub" data-tg-sub>
-    Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.
+    Download 30 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.
   </p>
   <form class="tg-form" data-tg-form novalidate>
     <label class="tg-field">
@@ -131,13 +131,13 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       kicker.hidden = free;
       // "Checkout's under construction" retired 2026-08-03 — checkout is live
       // again; this modal is now purely the trial/free-download email gate.
-      kicker.textContent = 'Free 14-day trial';
+      kicker.textContent = 'Free 30-day trial';
       title.textContent = free
         ? name + ' is free — grab it'
         : 'Take the free ' + name + ' trial';
       sub.textContent = free
         ? 'Free forever. Full version, no trial clock, no credit card. Verify your email and the download link lands in your inbox.'
-        : 'Download 14 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.';
+        : 'Download 30 days free first, full version, no credit card. Verify your email and the download link lands in your inbox.';
       form.hidden = false;
       status.hidden = true;
       ready.hidden = true;
