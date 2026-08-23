@@ -113,8 +113,9 @@ for (const p of plugins) {
     function track(ev, params) {
       try { if (window.fbq) window.fbq('track', ev, params || {}); } catch (e) {}
     }
-    // Cart total captured at checkout start, replayed onto Purchase after the
-    // LS redirect has cleared the cart.
+    // Cart total captured at checkout start, replayed onto the Google Ads
+    // conversion after the LS redirect has cleared the cart. (Meta's Purchase
+    // is server-side and reads the real total off the LS webhook, not this.)
     var lastCheckoutValue = 0;
 
     // ---- Lemon Squeezy overlay (engine 'ls') ----
@@ -243,7 +244,7 @@ for (const p of plugins) {
       if (agree && !agree.checked) { setAgreeError(true); agree.focus(); return; }
       setAgreeError(false);
       // Funnel: InitiateCheckout once consent is given; stash the total so the
-      // post-redirect Purchase event can report it.
+      // post-redirect Google Ads conversion can report it.
       var cart = read();
       lastCheckoutValue = cart.reduce(function (s, i) { return s + (i.price || 0) * (i.qty || 1); }, 0);
       track('InitiateCheckout', { value: lastCheckoutValue, currency: 'USD', num_items: count(cart) });
