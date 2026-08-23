@@ -131,13 +131,12 @@ for (const p of plugins) {
           eventHandler: function (ev) {
             if (ev && ev.event === 'Checkout.Success') {
               write([]); sync();
-              // Client-side Purchase is best-effort: it undercounts consent-declines
-              // and races the redirect. The LS webhook now carries a server-side
-              // CAPI Purchase (worker fireMetaPurchase, event_id "ls-<order id>",
-              // live once META_CAPI_TOKEN is set) — this call has no order id so
-              // Meta CANNOT dedupe the pair: REMOVE this line in the same deploy
-              // window that the CAPI token goes live, or every sale counts twice.
-              track('Purchase', { value: lastCheckoutValue, currency: 'USD' });
+              // NO client-side Purchase here, deliberately. Meta Purchase is
+              // server-side only: the LS webhook fires it from the worker
+              // (fireMetaPurchase, event_id "ls-<order id>"), which catches every
+              // real order regardless of cookie consent or redirect races. A
+              // client replay here would carry no order id, so Meta could not
+              // dedupe the pair and every sale would count twice. Don't re-add it.
               // Google Ads purchase conversion — no-op until site.ts sets
               // gadsPurchaseSendTo. Redirect waits for the hit (or 500 ms, the
               // documented gtag event_callback pattern) so it isn't lost mid-nav.
