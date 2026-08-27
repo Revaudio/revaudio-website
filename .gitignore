@@ -28,3 +28,7 @@ revedit.overrides.json
 
 # Editor / agent local config
 .claude/
+
+# Playwright
+test-results/
+playwright-report/
