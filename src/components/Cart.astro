@@ -13,13 +13,14 @@ import { TERMS_LAST_UPDATED } from '../data/legal';
  * - the header cart icon ([data-cart-toggle]) + badge ([data-cart-badge]) open the drawer
  * - A required consent checkbox gates Checkout; its links open the legal-reader
  *   modal (Terms / Licence / Privacy) IN A POPUP — no page navigation.
- * - Checkout runs on site.checkoutEngine (2026-08-03: 'ls' — Lemon Squeezy
- *   re-activated as the interim engine while FastSpring onboarding finishes):
- *   'ls' opens the LS hosted-overlay checkout (lemon.js + ?embed=1), one
- *   hosted URL per order (LS can't sum a multi-item cart — first item wins,
- *   same as the original LS era). 'fastspring' is dormant until the FS
- *   cutover (SBL tag re-added to BaseLayout then). Flip the engine in
- *   src/data/site.ts only.
+ * - Checkout runs on site.checkoutEngine (2026-08-31: 'paddle' — Paddle
+ *   Billing overlay checkout, live). 'ls' and 'fastspring' are dormant
+ *   (kept only as an instant rollback — flip the value in src/data/site.ts,
+ *   nothing else to undo). 'paddle' opens the Paddle.js overlay
+ *   (paddle.js + Paddle.Checkout.open), summing the full cart natively; on
+ *   checkout.completed it redirects to site.paddle.purchaseUrl with
+ *   ?_ptxn=<transaction id> instead of /thank-you — the revlimiter-license
+ *   worker's own webhook (not this page) does the actual key minting/emailing.
  * Rendered once in BaseLayout. No framework — vanilla JS, progressive.
  *
  * Checkout URLs are resolved fresh from this catalog map by slug at checkout
@@ -29,18 +30,36 @@ import { site } from '../data/site';
 const engine = site.checkoutEngine;
 const checkoutMap: Record<string, string> = {};
 for (const p of plugins) {
-  const target = engine === 'ls' ? p.checkoutUrl : p.fastspringPath;
+  const target = engine === 'ls' ? p.checkoutUrl : engine === 'fastspring' ? p.fastspringPath : p.paddlePriceId;
   if (target) checkoutMap[p.slug] = target;
 }
 ---
 
-<script is:inline type="application/json" data-checkout-map data-engine={engine} data-gads-purchase={site.gadsPurchaseSendTo} set:html={JSON.stringify(checkoutMap)}></script>
+<script
+  is:inline
+  type="application/json"
+  data-checkout-map
+  data-engine={engine}
+  data-gads-purchase={site.gadsPurchaseSendTo}
+  data-paddle-token={site.paddle.clientToken}
+  data-paddle-purchase-url={site.paddle.purchaseUrl}
+  set:html={JSON.stringify(checkoutMap)}
+></script>
 
 {/* Lemon Squeezy overlay checkout — renders the payment screen in a modal over
     the site. No SRI: LS rotates lemon.js and ships it unversioned, so an
     integrity pin would hard-break checkout on their next deploy (same call as
     the CF beacon in BaseLayout). The CSP transform rule scopes what can load. */}
 {engine === 'ls' && <script is:inline src="https://assets.lemonsqueezy.com/lemon.js" defer></script>}
+
+{/* Paddle.js overlay checkout. Same no-SRI reasoning as lemon.js above — Paddle
+    serves this unversioned from their own CDN, so pinning integrity would
+    hard-break checkout on their next release. Requires https://cdn.paddle.com
+    on the Cloudflare CSP transform rule's script-src (dashboard-only edit —
+    see revaudio-edge-csp-transform-rule reference); the overlay itself may
+    need its own frame-src/connect-src entries too, discoverable via the
+    browser console's CSP violation messages if checkout doesn't fully open. */}
+{engine === 'paddle' && <script is:inline src="https://cdn.paddle.com/paddle/v2/paddle.js" defer></script>}
 
 <!-- Empty-cart tooltip: shown on hover of the cart icon when there's nothing in it yet. -->
 <div class="cart-tip" data-cart-tip role="status" aria-live="polite" hidden>No items to show right now — your cart's empty.</div>
@@ -165,6 +184,51 @@ for (const p of plugins) {
       return (el && el.getAttribute('data-engine')) || 'fastspring';
     }
 
+    // ---- Paddle overlay (engine 'paddle') ----
+    // paddle.js is included above only when the engine is 'paddle'. Paddle's
+    // eventCallback is set once at Initialize() time (unlike LS's per-call
+    // Setup handler) — checkout.completed both clears the cart and redirects
+    // to the license worker's /purchase page with the transaction id, instead
+    // of /thank-you. No client-side Purchase pixel here either, same reasoning
+    // as the LS block below: server-side only, fired from the worker's webhook.
+    var paddleReady = false;
+    function ensurePaddle() {
+      if (paddleReady) return !!(window.Paddle && window.Paddle.Checkout);
+      if (typeof window.Paddle === 'undefined') return false;
+      var mapEl = document.querySelector('[data-checkout-map]');
+      var token = mapEl && mapEl.getAttribute('data-paddle-token');
+      var purchaseUrl = mapEl && mapEl.getAttribute('data-paddle-purchase-url');
+      if (!token || !purchaseUrl) return false;
+      try {
+        window.Paddle.Initialize({
+          token: token,
+          eventCallback: function (ev) {
+            if (ev && ev.name === 'checkout.completed') {
+              write([]); sync();
+              var txnId = ev.data && ev.data.transaction_id;
+              var gadsSendTo = (mapEl && mapEl.getAttribute('data-gads-purchase')) || '';
+              var redirected = false;
+              var go = function () {
+                if (redirected) return;
+                redirected = true;
+                window.location.href = txnId ? (purchaseUrl + '?_ptxn=' + encodeURIComponent(txnId)) : '/thank-you';
+              };
+              if (gadsSendTo && window.gtag) {
+                try {
+                  window.gtag('event', 'conversion', {
+                    send_to: gadsSendTo, value: lastCheckoutValue, currency: 'USD', event_callback: go
+                  });
+                } catch (e) { go(); }
+                setTimeout(go, 500);
+              } else { go(); }
+            }
+          }
+        });
+        paddleReady = true;
+      } catch (e) {}
+      return paddleReady;
+    }
+
     function lock() { html.style.overflow = anyModalOpen() ? 'hidden' : ''; }
     function anyModalOpen() {
       return (drawer && drawer.open) || (lModal && lModal.open);
@@ -265,9 +329,26 @@ for (const p of plugins) {
         window.location.href = url;
         return;
       }
-      // Engine 'fastspring' — dormant until the FS cutover (the SBL script tag
-      // was removed from BaseLayout with the LS reopen; restore it at flip
-      // time). Fail closed: no plain-URL fallback exists for SBL.
+      // Engine 'paddle' — live. Fail closed: if paddle.js hasn't loaded/init'd
+      // (e.g. the CSP transform rule doesn't yet allow cdn.paddle.com), do
+      // nothing rather than send the buyer somewhere half-configured.
+      if (engineName() === 'paddle') {
+        if (!ensurePaddle()) return;
+        if (drawer && drawer.open) drawer.close();
+        window.Paddle.Checkout.open({
+          // Full cart, not just the first item — Paddle sums multiple line
+          // items natively (unlike LS's single hosted-checkout URL).
+          items: items.map(function (i) { return { priceId: checkoutUrlFor(i), quantity: i.qty || 1 }; }),
+          // Consent record: stamp the accepted legal-bundle version onto the
+          // transaction via Paddle's custom_data passthrough (mirrors the LS
+          // custom[] fields / FastSpring tags above).
+          customData: { terms_accepted: 'true', terms_version: ver }
+        });
+        return;
+      }
+      // Engine 'fastspring' — dormant, kept only as a rollback option
+      // alongside 'ls' (see the file-header comment). Fail closed: no
+      // plain-URL fallback exists for SBL.
       if (!(window.fastspring && window.fastspring.builder)) return;
       window.fastspring.builder.push({
         reset: true,
