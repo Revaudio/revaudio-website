@@ -1,0 +1,39 @@
+---
+/* Throwaway, unlinked page to satisfy Paddle's checkout domain check while
+ * testing the Paddle fulfillment worker (revlimiter-license) before the real
+ * checkout button is wired into Cart.astro. Not part of the site nav, not
+ * indexed. Safe to delete once the manual Paddle test is done — the live
+ * client-side token embedded below is meant to be public (Paddle's own
+ * convention: it ships in every checkout page's browser JS).
+ */
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Paddle checkout test</title>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+</head>
+<body style="font-family:system-ui,sans-serif;max-width:520px;margin:60px auto;text-align:center">
+  <h1>Paddle checkout test</h1>
+  <p>Transaction: <code id="txn"></code></p>
+  <p><small>Pass the transaction id as <code>?txn=txn_...</code> in the URL.</small></p>
+  <button id="pay" style="font-size:18px;padding:14px 28px;cursor:pointer">Open checkout</button>
+  <p id="status" style="color:#a00"></p>
+  <script>
+    var txnId = new URLSearchParams(location.search).get('txn') || '';
+    document.getElementById('txn').textContent = txnId || '(none provided)';
+    Paddle.Initialize({ token: 'live_a9cf17fde62d1195468c886f910' });
+    document.getElementById('pay').addEventListener('click', function () {
+      if (!txnId) { document.getElementById('status').textContent = 'Add ?txn=txn_... to the URL first.'; return; }
+      try {
+        Paddle.Checkout.open({ transactionId: txnId });
+      } catch (e) {
+        document.getElementById('status').textContent = 'Error: ' + e;
+      }
+    });
+  </script>
+</body>
+</html>
