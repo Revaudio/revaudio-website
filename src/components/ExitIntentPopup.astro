@@ -16,7 +16,9 @@
  * Frequency: once per session (sessionStorage), 7-day cooldown after a
  * dismiss, permanently off after the CTA click (localStorage 'ra-exit-gas' =
  * 'got' | dismiss epoch-ms). Not rendered on the GAS page or /thank-you —
- * pitching the offer on the offer's own page is noise.
+ * pitching the offer on the offer's own page is noise. Shares a session flag
+ * ('ra-popup-shown-s') with WelcomeDiscountPopup so the two never both fire
+ * in one visit — whichever triggers first wins.
  *
  * Close: × button, backdrop click, Escape, "I'll walk" link. Scroll locks
  * while open (SubscribeModal pattern). Entrance is motion-ok-gated CSS —
@@ -66,6 +68,7 @@ const excluded = path === '/gas' || path === '/thank-you';
   if (modal && !window.matchMedia('(pointer: coarse)').matches) {
     const KEY = 'ra-exit-gas';
     const SESSION_KEY = 'ra-exit-gas-s';
+    const SHARED_SESSION_KEY = 'ra-popup-shown-s'; // coordinates with WelcomeDiscountPopup
     const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
     const EDGE = 20; // px tolerance — fast exits report the crossing inside the page
     const html = document.documentElement;
@@ -76,6 +79,7 @@ const excluded = path === '/gas' || path === '/thank-you';
     const suppressed = () => {
       try {
         if (sessionStorage.getItem(SESSION_KEY) === '1') return true;
+        if (sessionStorage.getItem(SHARED_SESSION_KEY) === '1') return true;
         const v = localStorage.getItem(KEY);
         if (v === 'got') return true; // already took the offer
         if (v && Date.now() - Number(v) < COOLDOWN_MS) return true; // recent dismiss
@@ -134,7 +138,10 @@ const excluded = path === '/gas' || path === '/thank-you';
         html.removeEventListener('mouseleave', onLeave);
         html.removeEventListener('mouseenter', onEnter);
         document.removeEventListener('mousemove', onMove);
-        try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (err) {}
+        try {
+          sessionStorage.setItem(SESSION_KEY, '1');
+          sessionStorage.setItem(SHARED_SESSION_KEY, '1');
+        } catch (err) {}
         modal.showModal();
         html.style.overflow = 'hidden';
         modal.focus(); // focus the dialog, not the CTA — no aggressive focus grab

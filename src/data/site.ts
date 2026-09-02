@@ -109,4 +109,8 @@ export const site = {
     workerUrl: 'https://revlimiter-license.revaudio.workers.dev',
     portalUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
   },
+
+  // Same `downloadGate.workerUrl` above also serves WelcomeDiscountPopup.astro's
+  // POST `${workerUrl}/popup-signup` (the scroll-triggered "10% off your first
+  // order" popup) — no separate config needed, it's the same license Worker.
 };
