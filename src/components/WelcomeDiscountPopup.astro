@@ -40,7 +40,7 @@ const excluded = path === '/thank-you';
     <form class="wd-form" data-wd-form>
       <label class="sr-only" for="wd-email">Email address</label>
       <input id="wd-email" type="email" name="email" placeholder="you@studio.com" required autocomplete="email" />
-      <button type="submit" class="wd-cta">Claim my code</button>
+      <button type="submit" class="wd-cta"><span class="wd-btn-label">Claim my code</span></button>
     </form>
     <p class="wd-status" role="status" aria-live="polite" hidden></p>
   </div>
@@ -142,7 +142,15 @@ const excluded = path === '/thank-you';
       const emailInput = form.querySelector<HTMLInputElement>('#wd-email');
       const email = emailInput?.value.trim() || '';
       const btn = form.querySelector<HTMLButtonElement>('.wd-cta');
-      if (btn) btn.disabled = true;
+      const label = btn?.querySelector<HTMLElement>('.wd-btn-label');
+      // The worker does a real customer-lookup scan (and, for a new lead, a
+      // live Paddle API call + email send) before answering — commonly a few
+      // seconds, including for the "you're already a customer" path, which
+      // still has to run the same lookup to know that. Without this the
+      // button just sits there looking frozen (Gil's report, 2026-09-02).
+      if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+      if (label) label.textContent = 'Generating…';
+      if (emailInput) emailInput.disabled = true;
       try {
         const res = await fetch(signupUrl, {
           method: 'POST',
@@ -177,7 +185,11 @@ const excluded = path === '/thank-you';
       } catch {
         showStatus('Network hiccup. Please try again in a moment.', false);
       } finally {
-        if (btn) btn.disabled = false;
+        // Only the error path ever sees this — both success branches above
+        // hide formWrap and return early, so there's nothing left to restore.
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        if (label) label.textContent = 'Claim my code';
+        if (emailInput) emailInput.disabled = false;
       }
     });
 
@@ -291,6 +303,18 @@ const excluded = path === '/thank-you';
   :global(html.motion-ok) .wd-cta:hover { box-shadow: 0 0 24px rgba(232, 200, 120, 0.35); }
   .wd-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
   .wd-cta:disabled { opacity: 0.65; cursor: default; }
+
+  .wd-btn-label { display: inline-flex; align-items: center; gap: 0.55rem; justify-content: center; }
+  .wd-cta.loading .wd-btn-label::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(11, 10, 9, 0.35);
+    border-top-color: var(--bg-0);
+    border-radius: 50%;
+    animation: wd-spin 0.7s linear infinite;
+  }
+  @keyframes wd-spin { to { transform: rotate(360deg); } }
 
   .wd-status { margin: 1rem 0 0; font-size: 0.9rem; }
   .wd-status.ok { color: var(--brass-bright); }

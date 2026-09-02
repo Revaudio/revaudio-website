@@ -117,6 +117,42 @@ test('a backend error is shown inline and the form stays usable', async ({ page 
   await expect(page.locator('[data-wd-form]')).toBeVisible();
 });
 
+test('shows a generating state while the request is in flight, and resets it on error', async ({ page }) => {
+  // The worker does a real customer-lookup scan (and, for a new lead, a live
+  // Paddle call + email send) before answering, which can take a few real
+  // seconds — this delay stands in for that so the loading state is
+  // observable rather than racing past in a headless browser.
+  await page.route('**/popup-signup', async (route) => {
+    if (route.request().method() === 'OPTIONS') {
+      return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' } });
+    }
+    await new Promise((r) => setTimeout(r, 600));
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ ok: false, error: 'boom' }),
+    });
+  });
+  await primePage(page);
+  await scrollPastThreshold(page);
+  const cta = page.locator('[data-wd-form] .wd-cta');
+  const emailInput = page.locator('#wd-email');
+  await emailInput.fill('lead@example.com');
+  await cta.click();
+
+  await expect(cta).toBeDisabled();
+  await expect(cta).toHaveClass(/loading/);
+  await expect(cta.locator('.wd-btn-label')).toHaveText('Generating…');
+  await expect(emailInput).toBeDisabled();
+
+  await expect(page.locator('.wd-status')).toBeVisible();
+  await expect(cta).toBeEnabled();
+  await expect(cta).not.toHaveClass(/loading/);
+  await expect(cta.locator('.wd-btn-label')).toHaveText('Claim my code');
+  await expect(emailInput).toBeEnabled();
+});
+
 test('never stacks on top of an already-open dialog', async ({ page }) => {
   await primePage(page);
   // Force a different dialog (the newsletter subscribe modal) open before the
