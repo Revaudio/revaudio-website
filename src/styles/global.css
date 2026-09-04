@@ -641,12 +641,30 @@ footer.site-footer {
   background: var(--bg-0);
 }
 
-/* Site map in labelled columns. auto-fit reflows 4 → 2 → 1 on its own, so
-   no per-column breakpoints are needed. */
+/* Site map in two labelled clusters (2026-09-04): Products+Support anchored
+   left, Company+Legal right, pushed to the container edges so the empty middle
+   reads as the divider. space-between is what creates that gap; the
+   --space-10 column-gap is only the FLOOR, so the two never touch on the
+   narrow widths where the clusters have already shrunk to their content. */
 footer .footer-cols {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--space-5) var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-6) var(--space-10);
+}
+
+/* Each cluster is its own 2-up row. min-width on the column (not the group)
+   keeps the two headings inside a cluster aligned to the same rhythm as
+   before, and lets a cluster wrap to 1-up on its own when the phone is too
+   narrow to hold both. */
+footer .footer-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5) var(--space-6);
+}
+
+footer .footer-col {
+  min-width: 150px;
 }
 
 /* Headings outrank their links by size and colour — brass is the same token as
@@ -740,6 +758,11 @@ footer .footer-social svg { width: 20px; height: 20px; display: block; }
 
 @media (max-width: 560px) {
   footer .footer-bar { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+  /* Below this the two clusters can't sit side by side without one of their
+     columns wrapping, so stack them flush left instead of leaving
+     space-between to strand them at opposite edges. */
+  footer .footer-cols { justify-content: flex-start; }
+  footer .footer-col { min-width: 130px; }
 }
 
 /* plugin detail page */

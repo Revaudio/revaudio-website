@@ -5,8 +5,11 @@ const year = new Date().getFullYear();
    repeating Store/Support/About here is the convention, and the column
    headings are what stop the repetition reading as a duplicate nav bar.
    `legal` links open the in-page modal (delegated handler in Cart.astro);
-   the href stays a real page so no-JS and new-tab still work. */
-const columns = [
+   the href stays a real page so no-JS and new-tab still work.
+   Two clusters (2026-09-04, Dan): Products+Support anchor the left edge,
+   Company+Legal the right. The space between them IS the separation — no
+   divider rule, and the clusters stay side-by-side down to phone widths. */
+const leftColumns = [
   {
     title: 'Products',
     links: [
@@ -26,6 +29,9 @@ const columns = [
       { label: 'Contact', href: '/contact' },
     ],
   },
+];
+
+const rightColumns = [
   {
     title: 'Company',
     links: [
@@ -78,21 +84,25 @@ const socials = [
 <footer class="site-footer" role="contentinfo">
   <div class="container">
     <nav class="footer-cols" aria-label="Footer navigation">
-      {columns.map((col) => (
-        <div class="footer-col">
-          <h2 class="footer-col-title">{col.title}</h2>
-          <ul>
-            {col.links.map((link) => (
-              <li>
-                <a
-                  href={link.href}
-                  data-open-legal={link.legal}
-                  target={link.external ? '_blank' : undefined}
-                  rel={link.external ? 'noopener noreferrer' : undefined}
-                >{link.label}</a>
-              </li>
-            ))}
-          </ul>
+      {[leftColumns, rightColumns].map((group) => (
+        <div class="footer-group">
+          {group.map((col) => (
+            <div class="footer-col">
+              <h2 class="footer-col-title">{col.title}</h2>
+              <ul>
+                {col.links.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      data-open-legal={link.legal}
+                      target={link.external ? '_blank' : undefined}
+                      rel={link.external ? 'noopener noreferrer' : undefined}
+                    >{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       ))}
     </nav>
