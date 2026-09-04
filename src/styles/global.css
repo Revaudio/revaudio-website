@@ -757,7 +757,15 @@ footer .footer-social svg { width: 20px; height: 20px; display: block; }
 }
 
 @media (max-width: 560px) {
-  footer .footer-bar { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+  /* Phone only: the bar sat 12px under its rule, which read as the wordmark
+     being stuck to the line rather than as a separate closing block. Drop it
+     to 24px so the rule has air beneath it. Desktop keeps --space-3. */
+  footer .footer-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+  }
   /* Below this the two clusters can't sit side by side without one of their
      columns wrapping, so stack them flush left instead of leaving
      space-between to strand them at opposite edges. */
