@@ -115,6 +115,10 @@ export interface Plugin {
    *  checkoutUrl (LS) so the checkout engine can roll back by just switching
    *  which one Cart.astro reads. */
   fastspringPath?: string | null;
+  /** Paddle Billing price id (pri_...) for this plugin's checkout item.
+   *  Read by Cart.astro when site.checkoutEngine is 'paddle'. Null/absent for
+   *  free plugins (no checkout at all). */
+  paddlePriceId?: string | null;
   /** True while a live product has no working checkout yet (checkoutUrl not set). */
   checkoutPaused: boolean;
   /** Discount code the buyer must enter at checkout to get the intro price. */
@@ -168,7 +172,10 @@ const baseSystemReq: SystemReq = {
   cpu: '2 GHz dual-core (Intel/AMD)',
   ram: '8 GB minimum, 16 GB recommended',
   formats: 'VST3, AU, AAX',
-  daws: 'Cubase 12+, Studio One 6+, Reaper 7+, Ableton Live 11+, FL Studio 21+, Logic Pro 11+',
+  // Pro Tools was missing here while the homepage DAW strip (src/data/daws.ts)
+  // has always listed it as tested — the AAX build ships and is tested, so the
+  // spec row said less than the truth. Kept in the same order as daws.ts.
+  daws: 'Cubase 12+, Studio One 6+, Reaper 7+, Ableton Live 11+, FL Studio 21+, Pro Tools 2023+, Logic Pro 11+',
 };
 
 // RevLimiter — Lemon Squeezy hosted checkout URL. Forever-price posture
@@ -211,6 +218,7 @@ export const plugins: Plugin[] = [
     pricePolicy: "We don't do sales. This is the price.",
     checkoutUrl: REVLIMITER_CHECKOUT_URL,
     fastspringPath: 'revlimiter',
+    paddlePriceId: 'pri_01m18vcv5f42cdbv5bzxhm94n1',
     checkoutPaused: !REVLIMITER_CHECKOUT_URL,
     // Gate lifted 2026-08-03: checkout re-opened on the LS interim engine
     // (site.checkoutEngine) — BUY is a real add-to-cart again and the door's
@@ -301,6 +309,7 @@ export const plugins: Plugin[] = [
     regularPriceUsd: null,
     checkoutUrl: RADIOROULETTE_CHECKOUT_URL,
     fastspringPath: 'radio-roulette',
+    paddlePriceId: 'pri_01m18vmkdae9kqqcrxc02ka753',
     checkoutPaused: !RADIOROULETTE_CHECKOUT_URL,
     // Gate lifted 2026-08-03 with RevLimiter's — see that entry. Re-set to
     // true only if checkout pauses again.

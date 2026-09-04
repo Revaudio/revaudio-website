@@ -1,0 +1,346 @@
+---
+/**
+ * Scroll-triggered "10% off your first order" popup (Gil's ask, 2026-09-02 —
+ * modeled on a competitor's popup: fires once the visitor starts reading the
+ * page, not on exit). Render once per page (BaseLayout).
+ *
+ * Trigger: armed 2s after load, fires the first time scroll progress passes
+ * SCROLL_THRESHOLD of the page's scrollable height. Coarse-pointer (touch)
+ * devices still get it — scroll, unlike exit-intent, works fine on mobile.
+ *
+ * Frequency: once per session (sessionStorage), 7-day cooldown after a
+ * dismiss, permanently off after claiming a code or being told they're
+ * already a customer (localStorage 'ra-welcome10' = 'got' | 'customer' |
+ * dismiss epoch-ms). Also shares a session flag with ExitIntentPopup so the
+ * two marketing popups never both fire in the same visit.
+ *
+ * Backend: POST {email} to `${workerUrl}/popup-signup` (revlimiter-license
+ * Worker). The worker mints a PER-LEAD, single-use Paddle discount (not a
+ * shared code) and returns it directly — no email round-trip needed to see
+ * it, though the worker also emails it as a backup. An email that's already
+ * a paying customer gets `alreadyCustomer:true` back, no code.
+ *
+ * Not rendered on /thank-you — a just-completed purchase is the wrong moment
+ * to pitch a first-order discount.
+ */
+import { site } from '../data/site';
+const signupUrl = site.downloadGate.workerUrl + '/popup-signup';
+const path = Astro.url.pathname.replace(/\/$/, '');
+const excluded = path === '/thank-you';
+---
+
+{!excluded && (
+<dialog class="wd-modal" data-welcome10 data-signup-url={signupUrl} aria-label="10% off your first order" tabindex="-1">
+  <button type="button" class="wd-x" data-wd-close aria-label="Close">&times;</button>
+
+  <div data-wd-form-wrap>
+    <p class="wd-kicker">Before you go browsing&hellip;</p>
+    <h2>Get <span class="wd-red">10% off</span> your first order</h2>
+    <p class="wd-sub">Drop your email and we'll send you a one-time code &mdash; 10% off whatever's in your cart.</p>
+    <form class="wd-form" data-wd-form>
+      <label class="sr-only" for="wd-email">Email address</label>
+      <input id="wd-email" type="email" name="email" placeholder="you@studio.com" required autocomplete="email" />
+      <button type="submit" class="wd-cta"><span class="wd-btn-label">Claim my code</span></button>
+    </form>
+    <p class="wd-status" role="status" aria-live="polite" hidden></p>
+  </div>
+
+  <div data-wd-success hidden>
+    <p class="wd-kicker">You're in</p>
+    <h2>Here's your code</h2>
+    <p class="wd-sub" data-wd-success-sub>Good for 10% off your first order, whatever's in your cart. It's yours alone &mdash; one-time use. We also emailed it to you.</p>
+    <div class="wd-code" data-wd-code></div>
+    <button type="button" class="wd-cta" data-wd-close>Start shopping</button>
+  </div>
+</dialog>
+)}
+
+<script>
+  const modal = document.querySelector<HTMLDialogElement>('[data-welcome10]');
+  if (modal) {
+    const KEY = 'ra-welcome10';
+    const SESSION_KEY = 'ra-welcome10-s';
+    const SHARED_SESSION_KEY = 'ra-popup-shown-s'; // coordinates with ExitIntentPopup
+    const COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+    const SCROLL_THRESHOLD = 0.35; // 35% down the scrollable page
+    const html = document.documentElement;
+    // Frontmatter consts aren't visible to this client script — Astro only
+    // ships this DOM, not the component's server-side scope (registerUrl in
+    // ExitIntentPopup.astro/TrialGateModal.astro use the same data-* pattern).
+    const signupUrl = modal.dataset.signupUrl || '';
+
+    const formWrap = modal.querySelector<HTMLElement>('[data-wd-form-wrap]');
+    const successWrap = modal.querySelector<HTMLElement>('[data-wd-success]');
+    const form = modal.querySelector<HTMLFormElement>('[data-wd-form]');
+    const status = modal.querySelector<HTMLElement>('.wd-status');
+    const codeEl = modal.querySelector<HTMLElement>('[data-wd-code]');
+    const successSub = modal.querySelector<HTMLElement>('[data-wd-success-sub]');
+
+    let fired = false;
+    let claimed = false; // 'got' or 'customer' — either way, permanent suppression
+
+    const suppressed = () => {
+      try {
+        if (sessionStorage.getItem(SESSION_KEY) === '1') return true;
+        if (sessionStorage.getItem(SHARED_SESSION_KEY) === '1') return true;
+        const v = localStorage.getItem(KEY);
+        if (v === 'got' || v === 'customer') return true;
+        if (v && Date.now() - Number(v) < COOLDOWN_MS) return true;
+      } catch (e) {}
+      return false;
+    };
+
+    let armed = false;
+    setTimeout(() => { armed = true; }, 2000);
+
+    const scrollProgress = () => {
+      const doc = document.documentElement;
+      const scrollable = doc.scrollHeight - doc.clientHeight;
+      return scrollable > 0 ? doc.scrollTop / scrollable : 0;
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (fired || !armed || suppressed()) return;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        if (fired || suppressed()) return;
+        if (document.querySelector('dialog[open]')) return; // never stack dialogs
+        if (scrollProgress() < SCROLL_THRESHOLD) return;
+        fired = true;
+        window.removeEventListener('scroll', onScroll);
+        try {
+          sessionStorage.setItem(SESSION_KEY, '1');
+          sessionStorage.setItem(SHARED_SESSION_KEY, '1');
+        } catch (e) {}
+        modal.showModal();
+        html.style.overflow = 'hidden';
+        modal.focus();
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    modal.addEventListener('close', () => {
+      html.style.overflow = '';
+      if (!claimed) {
+        try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+      }
+    });
+
+    const showStatus = (msg: string, ok: boolean) => {
+      if (!status) return;
+      status.textContent = msg;
+      status.hidden = false;
+      status.classList.toggle('ok', ok);
+      status.classList.toggle('err', !ok);
+    };
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const emailInput = form.querySelector<HTMLInputElement>('#wd-email');
+      const email = emailInput?.value.trim() || '';
+      const btn = form.querySelector<HTMLButtonElement>('.wd-cta');
+      const label = btn?.querySelector<HTMLElement>('.wd-btn-label');
+      // The worker does a real customer-lookup scan (and, for a new lead, a
+      // live Paddle API call + email send) before answering — commonly a few
+      // seconds, including for the "you're already a customer" path, which
+      // still has to run the same lookup to know that. Without this the
+      // button just sits there looking frozen (Gil's report, 2026-09-02).
+      if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+      if (label) label.textContent = 'Generating…';
+      if (emailInput) emailInput.disabled = true;
+      try {
+        const res = await fetch(signupUrl, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const j = await res.json().catch(() => ({ ok: false }));
+        if (!j.ok) {
+          showStatus(j.error || 'Something went wrong. Please try again.', false);
+          return;
+        }
+        if (j.alreadyCustomer) {
+          claimed = true;
+          try { localStorage.setItem(KEY, 'customer'); } catch (err) {}
+          if (formWrap) formWrap.hidden = true;
+          if (successWrap) {
+            successWrap.hidden = false;
+            const h2 = successWrap.querySelector('h2');
+            if (h2) h2.textContent = 'Already one of ours';
+            if (successSub) successSub.textContent = "Looks like you've already got a RevAudio plugin — thanks for being a customer!";
+            if (codeEl) codeEl.remove();
+          }
+          modal.setAttribute('aria-label', 'Already one of ours');
+          return;
+        }
+        claimed = true;
+        try { localStorage.setItem(KEY, 'got'); } catch (err) {}
+        if (formWrap) formWrap.hidden = true;
+        if (successWrap) successWrap.hidden = false;
+        if (codeEl) codeEl.textContent = j.code;
+        modal.setAttribute('aria-label', 'Here is your 10% off code');
+      } catch {
+        showStatus('Network hiccup. Please try again in a moment.', false);
+      } finally {
+        // Only the error path ever sees this — both success branches above
+        // hide formWrap and return early, so there's nothing left to restore.
+        if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+        if (label) label.textContent = 'Claim my code';
+        if (emailInput) emailInput.disabled = false;
+      }
+    });
+
+    modal.querySelectorAll('[data-wd-close]').forEach((b) =>
+      b.addEventListener('click', () => modal.close())
+    );
+    // Backdrop click: a click landing on the dialog element itself (not children).
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.close(); });
+  }
+
+  // ExitIntentPopup coordination: if it fired first, don't also fire this one.
+  // (ExitIntentPopup sets ra-exit-gas-s on fire; this module never reads it —
+  // the shared SHARED_SESSION_KEY above is the actual coordination point.)
+</script>
+
+<style>
+  .wd-modal {
+    margin: auto;
+    width: min(440px, calc(100vw - 2.5rem));
+    padding: 2.25rem 2rem 1.75rem;
+    text-align: center;
+    background: var(--bg-1);
+    color: var(--fg);
+    border: 1px solid var(--border-bright);
+    border-top: 3px solid var(--brass);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+  }
+  .wd-modal::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+  .wd-modal:focus-visible { outline: 2px solid var(--brass-bright); }
+
+  :global(html.motion-ok) .wd-modal[open] {
+    animation: wd-in 0.55s var(--ease-settle) both;
+  }
+  :global(html.motion-ok) .wd-modal[open]::backdrop {
+    animation: wd-fade 0.3s var(--ease) both;
+  }
+  @keyframes wd-in { from { opacity: 0; transform: scale(0.94) translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes wd-fade { from { opacity: 0; } to { opacity: 1; } }
+
+  .wd-x {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.75rem;
+    border: 0;
+    background: transparent;
+    color: var(--fg-dim);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .wd-x:hover { color: var(--brass-bright); }
+
+  .wd-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--brass);
+    margin: 0 0 0.75rem;
+  }
+
+  .wd-modal h2 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--brass-bright);
+    font-size: 2.1rem;
+    line-height: 1.1;
+    margin: 0 0 0.6rem;
+  }
+  .wd-red { color: var(--redline); }
+
+  .wd-sub {
+    color: var(--fg-dim);
+    font-size: 0.95rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .wd-form { display: flex; flex-direction: column; gap: 0.75rem; }
+  .wd-form input {
+    background: var(--bg-0);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.8rem 0.95rem;
+    text-align: center;
+  }
+  .wd-form input:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 0; border-color: var(--brass-dark); }
+
+  .wd-cta {
+    display: block;
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: var(--brass);
+    color: var(--bg-0);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), box-shadow 0.2s var(--ease);
+  }
+  .wd-cta:hover { background: var(--brass-bright); color: var(--bg-0); }
+  :global(html.motion-ok) .wd-cta:hover { box-shadow: 0 0 24px rgba(232, 200, 120, 0.35); }
+  .wd-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 2px; }
+  .wd-cta:disabled { opacity: 0.65; cursor: default; }
+
+  .wd-btn-label { display: inline-flex; align-items: center; gap: 0.55rem; justify-content: center; }
+  .wd-cta.loading .wd-btn-label::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(11, 10, 9, 0.35);
+    border-top-color: var(--bg-0);
+    border-radius: 50%;
+    animation: wd-spin 0.7s linear infinite;
+  }
+  @keyframes wd-spin { to { transform: rotate(360deg); } }
+
+  .wd-status { margin: 1rem 0 0; font-size: 0.9rem; }
+  .wd-status.ok { color: var(--brass-bright); }
+  .wd-status.err { color: var(--fg-dim); }
+
+  .wd-code {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    letter-spacing: 0.25em;
+    color: var(--fg);
+    background: var(--bg-0);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

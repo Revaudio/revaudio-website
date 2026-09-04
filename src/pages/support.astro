@@ -1,58 +1,111 @@
 ---
+/* /support — install + activation + troubleshooting for the WHOLE line.
+   Data-driven off plugins.ts on purpose: this page used to say "everything
+   here is for RevLimiter, the only plugin shipping today", which went stale
+   the moment Radio Roulette and GAS shipped. Names, links and the paid/free
+   split now come from the catalog, so a new plugin appears here by itself. */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { bySlug } from '../data/plugins';
+import { plugins } from '../data/plugins';
+import type { Plugin } from '../data/plugins';
 
-const revlimiter = bySlug('revlimiter');
+const shipping = plugins.filter((p) => p.status !== 'in-development');
+const paid = shipping.filter((p) => !p.isFree);
+const free = shipping.filter((p) => p.isFree);
+
+// Every plugin shares baseSystemReq today; read it off the first shipping one
+// rather than hardcoding a single product's specs.
+const req = shipping[0]?.systemReq;
+
+/** "A, B and C" */
+const names = (list: Plugin[]) =>
+  list
+    .map((p) => p.name)
+    .reduce((acc, n, i) => (i === 0 ? n : i === list.length - 1 ? `${acc} and ${n}` : `${acc}, ${n}`), '');
+
+const DOWNLOADS_URL = 'https://revlimiter-license.revaudio.workers.dev/download';
 ---
 
 <BaseLayout
   title="Support"
-  description="Install help, activation, troubleshooting, and contact for RevLimiter and RevAudio plugins."
+  description="Install help, activation, troubleshooting, and contact for every RevAudio plugin."
 >
   <section class="plugin-detail">
     <div class="container" style="max-width: 760px;" data-reveal>
       <h1>Support &amp; install</h1>
       <p class="pitch">
         Quick install, activation, common fixes, and how to reach us when things go sideways.
-        Everything here is for <strong>RevLimiter</strong> &mdash; the only plugin shipping today.
+        Everything here applies to <strong>every RevAudio plugin</strong> &mdash; {names(shipping)}.
+        The steps are the same for all of them.
       </p>
 
       <h2>What you need</h2>
       <ul class="reqs">
-        <li><strong>OS:</strong> {revlimiter?.systemReq.os ?? 'Windows 10/11 64-bit, macOS 12+'}</li>
-        <li><strong>Formats:</strong> VST3, AU (macOS), AAX</li>
-        <li><strong>CPU / RAM:</strong> {revlimiter?.systemReq.cpu} &middot; {revlimiter?.systemReq.ram}</li>
+        <li><strong>OS:</strong> {req?.os ?? 'Windows 10/11 64-bit, macOS 12+'}</li>
+        <li><strong>Formats:</strong> {req?.formats ?? 'VST3, AU, AAX'} &mdash; Windows and macOS, every plugin</li>
+        <li><strong>CPU / RAM:</strong> {req?.cpu} &middot; {req?.ram}</li>
       </ul>
-      <p class="micro muted">Full specs and tested DAWs on the <a href="/revlimiter">RevLimiter page</a>.</p>
+      <p class="micro muted">
+        Full specs and tested DAWs on each product page:
+        {shipping.map((p, i) => (
+          <>
+            {i > 0 && <span> &middot; </span>}
+            <a href={p.slug === 'gas' ? '/gas' : `/${p.slug}`}>{p.name}</a>
+          </>
+        ))}
+      </p>
+
+      <h2>Where your download comes from</h2>
+      <ul class="reqs">
+        <li><strong>Bought it:</strong> the installer link is in the confirmation email sent right after checkout.</li>
+        <li><strong>Trial or free plugin:</strong> grab it from the <a href={DOWNLOADS_URL} target="_blank" rel="noopener noreferrer">Downloads portal</a> &mdash; drop your email and the link lands in your inbox.</li>
+      </ul>
 
       <h2>Install (Windows)</h2>
       <ol>
-        <li>Download the installer from the confirmation email sent to you after checkout.</li>
+        <li>Download the Windows installer (confirmation email, or the Downloads portal).</li>
         <li>Run the installer and accept the licence terms.</li>
         <li>
           The installer places the plugin in the standard Windows locations:<br />
           VST3: <code>C:\Program Files\Common Files\VST3\</code>
         </li>
-        <li>Open your DAW and rescan for plugins. RevLimiter appears under the <strong>RevAudio</strong> manufacturer.</li>
+        <li>Open your DAW and rescan for plugins. Every RevAudio plugin appears under the <strong>RevAudio</strong> manufacturer.</li>
       </ol>
 
       <h2>Install (macOS)</h2>
       <ol>
-        <li>Download the macOS installer from the confirmation email sent to you after checkout.</li>
+        <li>Download the macOS installer (confirmation email, or the Downloads portal).</li>
         <li>Open the .pkg file and follow the installer steps.</li>
         <li>
           The installer places the plugin in the standard macOS locations:<br />
           VST3: <code>/Library/Audio/Plug-Ins/VST3/</code><br />
           AU: <code>/Library/Audio/Plug-Ins/Components/</code>
         </li>
-        <li>Open your DAW and rescan for plugins. RevLimiter appears under the <strong>RevAudio</strong> manufacturer.</li>
+        <li>Open your DAW and rescan for plugins. Every RevAudio plugin appears under the <strong>RevAudio</strong> manufacturer.</li>
       </ol>
+
+      <h2>Updating to a new version</h2>
+      <p>
+        Run the new installer over the old one &mdash; it replaces the plugin in place, and your licence stays
+        activated. If your DAW still loads the old build, restart it and trigger a plugin rescan so it drops the
+        cached copy.
+      </p>
 
       <h2>Activate your licence</h2>
       <p>
-        On first launch, RevLimiter asks for your licence key (the serial emailed to you right after
-        checkout). Paste it in once &mdash; it&rsquo;s validated and stored locally, then reused on every
-        subsequent launch.
+        On first launch, a paid plugin ({names(paid)}) asks for your licence key &mdash; the serial emailed to you
+        right after checkout. Paste it in once: it&rsquo;s validated and stored locally, then reused on every
+        subsequent launch. <strong>Each plugin has its own key</strong>, so use the serial from that plugin&rsquo;s
+        purchase email.
+      </p>
+      {free.length > 0 && (
+        <p>
+          {names(free)} {free.length === 1 ? 'is' : 'are'} <strong>free</strong> &mdash; no licence key, no
+          activation. Download, install, play.
+        </p>
+      )}
+      <p>
+        A trial runs the <strong>full version for 30 days</strong> with no key and no audio interruptions. When it
+        ends, buying and pasting the key unlocks the same install &mdash; nothing to reinstall.
       </p>
       <p>
         One licence covers <strong>up to 2 machines</strong> &mdash; your studio desktop and a laptop, say.
@@ -79,17 +132,27 @@ const revlimiter = bySlug('revlimiter');
       <details>
         <summary>The licence key won&rsquo;t activate</summary>
         <p>
-          Copy the key straight from your purchase email &mdash; no spaces before or after. Activation needs a
-          live internet connection on first launch. If you&rsquo;ve already activated two machines, free one up
-          or email <a href="mailto:support@revaudio.net">support@revaudio.net</a> and we&rsquo;ll reset your seats.
+          Copy the key straight from your purchase email &mdash; no spaces before or after, and make sure it is the
+          key for <em>that</em> plugin. Activation needs a live internet connection on first launch. If you&rsquo;ve
+          already activated two machines, free one up or email
+          <a href="mailto:support@revaudio.net">support@revaudio.net</a> and we&rsquo;ll reset your seats.
+        </p>
+      </details>
+      <details>
+        <summary>My download link or trial email never arrived</summary>
+        <p>
+          Check spam and the promotions tab first. Still nothing? Request it again from the
+          <a href={DOWNLOADS_URL} target="_blank" rel="noopener noreferrer">Downloads portal</a>, or email
+          <a href="mailto:support@revaudio.net">support@revaudio.net</a> with the address you used and we&rsquo;ll
+          send it by hand.
         </p>
       </details>
       <details>
         <summary>Crash or audio dropout</summary>
         <p>
-          Send a brief email to <a href="mailto:support@revaudio.net">support@revaudio.net</a> with: DAW + version,
-          OS version, sample rate + buffer size, and a description of what you were doing when it happened.
-          We respond within one business day.
+          Send a brief email to <a href="mailto:support@revaudio.net">support@revaudio.net</a> with: which plugin
+          and version, DAW + version, OS version, sample rate + buffer size, and a description of what you were
+          doing when it happened. We respond within one business day.
         </p>
       </details>
 

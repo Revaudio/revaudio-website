@@ -6,13 +6,31 @@ export const site = {
   /**
    * Which engine the cart's Checkout button drives.
    * 'ls'         — Lemon Squeezy hosted-overlay checkout (plugins.ts checkoutUrl).
-   *                Interim while FastSpring onboarding completes (partner
-   *                re-activated LS 2026-08-03).
-   * 'fastspring' — FastSpring SBL popup (plugins.ts fastspringPath). Flip this
-   *                single value when FastSpring is verified — then make a real
-   *                test purchase on the live site before calling it done.
+   *                Dormant since the 2026-08-31 Paddle cutover; kept as an
+   *                instant rollback (flip this value back, nothing else to undo).
+   * 'fastspring' — FastSpring SBL popup (plugins.ts fastspringPath). Dormant —
+   *                superseded by the Paddle migration before this ever went live.
+   * 'paddle'     — Paddle Billing overlay checkout (plugins.ts paddlePriceId,
+   *                site.paddle below). LIVE as of 2026-08-31. On
+   *                checkout.completed, redirects to site.paddle.purchaseUrl
+   *                with ?_ptxn=<transaction id> — the revlimiter-license
+   *                worker's /purchase page picks up from there (mints/emails
+   *                license keys via its own webhook, entirely separate from
+   *                this redirect).
    */
-  checkoutEngine: 'ls' as 'ls' | 'fastspring',
+  checkoutEngine: 'paddle' as 'ls' | 'fastspring' | 'paddle',
+
+  /**
+   * Paddle Billing (see checkoutEngine above).
+   * `clientToken` is the PUBLIC client-side token (Paddle → Developer tools →
+   * Authentication → Client-side tokens) — safe to ship in browser JS, that's
+   * its whole purpose, unlike the secret API key the license worker uses.
+   * `purchaseUrl` is the license worker's post-purchase downloads page.
+   */
+  paddle: {
+    clientToken: 'live_a9cf17fde62d1195468c886f910',
+    purchaseUrl: 'https://revlimiter-license.revaudio.workers.dev/purchase',
+  },
 
   /**
    * Google Ads PURCHASE conversion (fired by Cart.astro on Checkout.Success).
@@ -91,4 +109,8 @@ export const site = {
     workerUrl: 'https://revlimiter-license.revaudio.workers.dev',
     portalUrl: 'https://revlimiter-license.revaudio.workers.dev/download',
   },
+
+  // Same `downloadGate.workerUrl` above also serves WelcomeDiscountPopup.astro's
+  // POST `${workerUrl}/popup-signup` (the scroll-triggered "10% off your first
+  // order" popup) — no separate config needed, it's the same license Worker.
 };
