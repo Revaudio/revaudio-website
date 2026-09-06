@@ -23,7 +23,10 @@
  * Three states, one dialog:
  *   1. form  — email capture (the trigger path above).
  *   2. sent  — "check your inbox".
- *   3. ready — Mac + Windows buttons. Reached WITHOUT a trigger: the emailed
+ *   3. ready — Mac + Windows buttons. Remembered per plugin in localStorage
+ *              for the token's 24h life, so closing the dialog / reloading /
+ *              re-clicking the CTA reopens the buttons, not the email form.
+ *              First reached WITHOUT a trigger: the emailed
  *              verify link bounces back to this page as #dl=<gate token>&p=<gate
  *              id> (license worker handleDownloadVerify) — a fragment, so the
  *              token never reaches a server log — and the params are stripped
@@ -128,6 +131,28 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
     var inFlight = false;
     var dlInFlight = false;
 
+    // Verified state survives the modal closing and the page reloading.
+    // The return leg scrubs #dl= out of the address bar, so without this the
+    // gate token lived only in this closure: close the dialog, click
+    // "Download free" again → email form → "verify again" loop (GAS bug,
+    // 2026-09-06). The token is the worker's 24h DL_RETURN_TTL envelope, so it
+    // is remembered for the same 24h per plugin; a `locked` answer from the
+    // worker wipes it. localStorage, guarded — private mode may throw.
+    var GATE_TTL_MS = 24 * 3600 * 1000;
+    function gateKey(id) { return 'tg:gate:' + id; }
+    function saveGate(id, gate) {
+      try { localStorage.setItem(gateKey(id), JSON.stringify({ gate: gate, exp: Date.now() + GATE_TTL_MS })); } catch (e) {}
+    }
+    function loadGate(id) {
+      try {
+        var rec = JSON.parse(localStorage.getItem(gateKey(id)) || 'null');
+        if (rec && rec.gate && rec.exp > Date.now()) return rec.gate;
+        if (rec) localStorage.removeItem(gateKey(id));
+      } catch (e) {}
+      return '';
+    }
+    function clearGate(id) { try { localStorage.removeItem(gateKey(id)); } catch (e) {} }
+
     function show() {
       if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', '');
       html.style.overflow = 'hidden';
@@ -137,6 +162,10 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       var name = trigger.getAttribute('data-plugin-name') || 'RevAudio';
       pluginSlug = trigger.getAttribute('data-plugin-slug') || '';
       registerUrl = trigger.getAttribute('data-register-url') || '';
+      // Already verified this plugin (this session or within 24h) — straight
+      // to the platform buttons; never ask for the email a second time.
+      var saved = loadGate(pluginSlug);
+      if (saved) { openReady(pluginSlug, saved); return; }
       var free = trigger.hasAttribute('data-gate-free');
       kicker.hidden = free;
       // "Checkout's under construction" retired 2026-08-03 — checkout is live
@@ -325,6 +354,8 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
           } else if (data && data.locked) {
             // 24h gate token aged out — fall back to the email form so they can
             // mint a fresh link instead of hitting a dead end.
+            clearGate(pluginSlug);
+            gateToken = '';
             btn.disabled = false;
             ready.hidden = true;
             form.hidden = false;
@@ -374,6 +405,7 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       history.replaceState(null, '', window.location.pathname
         + (restSearch ? '?' + restSearch : '')
         + (restHash ? '#' + restHash : ''));
+      saveGate(dlPlugin, dlToken);
       openReady(dlPlugin, dlToken);
     }
   })();
