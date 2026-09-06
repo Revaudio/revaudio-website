@@ -93,7 +93,7 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
     <p class="tg-dl-note" data-tg-dl-note role="status" aria-live="polite" hidden></p>
     <button type="button" class="tg-dl-again" data-tg-dl-again hidden>Didn&rsquo;t start? Try again</button>
     <p class="tg-mobile-note" data-tg-mobile hidden>
-      These are desktop installers. Open the link from your email on your Mac or PC &mdash; it&rsquo;s good for 24 hours.
+      These are desktop installers. Save one here and move it to your Mac or PC, or open the link from your email there &mdash; it&rsquo;s good for 24 hours.
     </p>
     <p class="tg-err" data-tg-dl-err role="alert" aria-live="polite"></p>
   </div>
@@ -204,20 +204,19 @@ const gateNames = Object.fromEntries(plugins.map((p) => [dlGateId(p), p.name]));
       dlErr.textContent = '';
       dlNote.hidden = true;
       dlAgain.hidden = true;
-      // Phones/tablets can't run a .pkg/.exe — hide the buttons and say why
-      // instead of serving a guaranteed-wasted download. The emailed link
-      // carries the gate token, so “open it on your computer” really works.
-      // The sub swaps too: “pick your platform” reads as broken with no buttons.
+      // Phones/tablets: the download buttons STAY live (2026-09-06, Dan's call —
+      // people save the installer on the phone and move it over, or grab it for
+      // a friend). We only add a note that these are desktop installers and that
+      // the emailed link also works on their computer for 24h.
       var coarse = false;
       try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
-      sub.textContent = coarse
-        ? 'Full version, no key needed \u2014 this one just needs a computer.'
-        : 'Full version, no key needed. Pick your platform \u2014 the installer lands in your browser\u2019s Downloads folder. Grab both if you work on two machines.';
-      dlRow.hidden = coarse;
+      sub.textContent = 'Full version, no key needed. Pick your platform — the installer lands in your browser’s Downloads folder. Grab both if you work on two machines.';
+      dlRow.hidden = false;
       mobileNote.hidden = !coarse;
       show();
       // Otherwise the dialog autofocuses the close button — a focus ring on the
-      // ✕ is the first thing a verified visitor sees.
+      // ✕ is the first thing a verified visitor sees. Skipped on touch: no ring
+      // to justify the scroll jump.
       var first = ready.querySelector('[data-tg-dl]');
       if (first && !coarse) first.focus();
       // openReady has exactly one caller (the return-leg block below, itself
