@@ -1,7 +1,40 @@
 # Website handoff
 
-Updated: 2026-07-30 (/gas is now a bespoke one-screen page; committed, NOT pushed)
+Updated: 2026-09-06 (enginebg removed + garage homepage pass in progress — Claude Code)
 
+## 2026-09-06 — garage homepage pass: /garage preview READY FOR DAN (owner: Claude Code, main)
+Request (Dan): remove the ambient background that hue-shifts to red, then "give us your best shot
+... make the vibe like the garage" (reference: kaelalden.com/products/vibe-rewind — depth,
+photographic plates bleeding into the dark, restraint).
+- Step 1 shipped `c3fc068`: enginebg layer gone (BaseLayout .ebg markup, global.css .ebg* block,
+  src/lib/enginebg.ts, public/bg/enginebg-*.webp). body paints --bg-0 again; footer opaque.
+- Step 2 = PREVIEW ROUTE, not live on `/`: **https://revaudio.net/garage** (noindex). index.astro
+  is untouched. garage.astro is index.astro plus three marked lines (two imports + `<WordWall />`
+  `<GarageStory />` right after `<PluginShowcase />`). Promotion = move those lines into
+  index.astro and delete garage.astro. Dan decides after looking.
+- New files: `DESIGN.md` (repo root, the design-language §6 spec for the site — read it before
+  any visual work here; §10 lists the open questions), `src/components/GarageWall.astro` (wood +
+  brass rails wrapper, same tokens as the product-page wall, exposes --engrave/--engrave-fine),
+  `src/components/WordWall.astro` (LOUD / WARM / PUNCHY / GLUED / DEEP stencil beside the
+  RevLimiter UI), `src/components/GarageStory.astro` (car plate + copy, copy + unit plate captioned
+  "Concept render", crane door painted "30 DAYS / FULL VERSION" + trial button on the wall),
+  `src/assets/garage/car-lamps.jpg` + `unit-floor.jpg`.
+- Plates: gpt-image-1 is OUT OF CREDITS on this laptop ("credit_balance_exhausted"). Car = a
+  frame of teasers/cuts/revlimiter-teaser-v1.mp4 upscaled x4 with Real-ESRGAN, cropped 2:3.
+  Unit = _design_assets instagram carousel _ref/clean-01.png (older panel labels, hence the
+  caption). Neither is a product screenshot; every sentence of copy traces to PRODUCT.md/CLAUDE.md.
+- Checks (actual): `npm run build` 20 pages clean; `/garage/` 200 with noindex meta; full-page
+  screenshots 1280 + 1600 (headless Edge) and 390 (page inside a 390px iframe — headless Edge
+  clamps bare windows to ~500px, so its <500px shots are NOT the phone layout). 390: one column,
+  plate first, door centred, button full width. One race-red element (hero sweep). No new
+  external hosts, CSP untouched. Trial button reuses the delegated [data-trial-gate-open] hook.
+- Risks: the unit plate shows an older RevLimiter panel (kept as mood, captioned); the car plate
+  is an upscaled video frame (soft at 1600+). Both swappable in place once image credits return.
+- Concurrent writer noticed: `5c24738` (high-contrast switch into footer) landed during this pass
+  from another session; rebased cleanly, no overlap.
+- Next action (Dan): open /garage next to /, answer DESIGN.md §10 (keep the concept-render plate?
+  car plate good enough? which stencil word is the filled one? promote?). Then whoever promotes:
+  move the three marked lines, delete garage.astro, build, push.
 ## 2026-07-30 (later) — /gas left the shared product layout for a one-screen page
 Dan, after seeing the walkthrough below: "ditch this revlimiter layout idea, make it a one pager
 short like the size of a regular laptop." So GAS is off `[slug].astro` entirely.

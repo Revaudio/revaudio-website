@@ -1,0 +1,624 @@
+---
+/* /garage — PREVIEW of the garage homepage pass (2026-09-06). index.astro plus
+   WordWall + GarageStory between the showcase and the DAW strip. noindex until
+   Dan reviews; promote by moving the three marked lines into index.astro. */
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PluginShowcase from '../components/PluginShowcase.astro';
+import TestimonialBlock from '../components/TestimonialBlock.astro';
+import DAWStrip from '../components/DAWStrip.astro';
+import PressLogos from '../components/PressLogos.astro';
+import EmailCapture from '../components/EmailCapture.astro';
+import SubscribeModal from '../components/SubscribeModal.astro';
+import WordWall from '../components/WordWall.astro';      // garage pass
+import GarageStory from '../components/GarageStory.astro'; // garage pass
+import faceImg from '../assets/hero/rev-gauge-face.png';
+import needleImg from '../assets/hero/needle-v2.png';
+import hubImg from '../assets/hero/hub-v2.png';
+import { plugins, dlGateId } from '../data/plugins';
+import { site } from '../data/site';
+
+// Hero + closing trial CTAs open the TrialGateModal (mounted in BaseLayout)
+// in place — same trigger contract as PluginCard / the crane door. The gate
+// id MUST be dlGateId(), never the slug (the worker silently falls back to
+// revlimiter on unknown ids — wiki gotcha).
+const revlimiter = plugins.find((p) => p.slug === 'revlimiter')!;
+const trialGateId = dlGateId(revlimiter);
+const trialRegisterUrl = site.downloadGate.workerUrl + '/download/register';
+
+/* Gauge geometry — the plugin's 406-viewBox units as % of the square dial box:
+   needle <image> x122 y67.69 w162.4, pivot (203,203); hub x180.54 y181.08 w45.5.
+   Reused at both dial sizes below — all child positioning is %-based, so it
+   scales as one regardless of the dial's own width. */
+const N = { left: '30.049%', top: '16.672%', w: '40%', ox: '49.877%', oy: '83.32%' };
+const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
+---
+
+<BaseLayout title="RevAudio" index={false}>
+  {/* Hero — desktop: centered text column over the REV gauge medallion. No
+      store CTA lives here any more (the brass STORE button, then the hanging
+      wooden STORE sign, were both removed) — the header nav carries it.
+      Mobile keeps its own stacked layout: centered text, small gauge under
+      the headline. Entrance: text cascade → dial settle → needle rev-blip →
+      idle. Scroll revs toward the redline; pointer micro-deflects (lerp).
+      Reduced motion: static needle at idle. */}
+  <section class="hero hero-feat" data-hero>
+    <div class="hero-grid">
+      <div class="hero-head" data-edit="hero.text">
+        {/* Plain-English line before the metaphor (stop B): what we sell, in
+            words a first visit parses instantly — fluency reads as lower
+            risk. The identity stays loud in the headline below. */}
+        <div class="hh-tag" data-hero-in data-edit-sub="tag">Boutique plugins</div>
+        <h1 class="hh-h1">
+          <span class="hh-h1-line" data-edit-sub="line1">Engineered,</span>
+          <span class="hh-h1-line" data-edit-sub="line2">Then Tuned.</span>
+        </h1>
+
+        <span class="hh-redline" data-hero-sweep data-edit-sub="redline" aria-hidden="true"></span>
+
+        {/* Mobile-only: small gauge under the headline (desktop uses the
+            original full-size gauge, to the right of this text column). */}
+        <div class="hero-dial hero-dial-mobile" data-dial data-hero-in role="img" aria-label="RevLimiter rev gauge, needle at idle">
+          <Image class="g-face" src={faceImg} alt="" width={360} format="webp" loading="eager" />
+          <div class="g-needle" data-needle style={`left:${N.left}; top:${N.top}; width:${N.w}; transform-origin:${N.ox} ${N.oy};`}>
+            <Image src={needleImg} alt="" width={170} format="webp" loading="eager" />
+          </div>
+          <Image class="g-hub" src={hubImg} alt="" width={60} format="webp" loading="eager" style={`left:${H.left}; top:${H.top}; width:${H.w};`} />
+        </div>
+
+        <p class="hh-lede" data-hero-in data-edit-sub="lede">
+          EASY, LIKE DRIVING A CAR.
+        </p>
+
+        {/* No CTA in the hero (2026-08-05, Dan's call): stop B's trial button
+            and its "See the plugins" secondary both came out. The hero is
+            atmosphere only — tag, headline, sweep, lede, gauge. The trial ask
+            still lives in .closing-cta at the page end, on the product pages,
+            and in TrialStamp on mobile. */}
+
+      </div>
+
+      {/* Desktop-only: the gauge as a centred backdrop medallion behind the
+          headline. The wrapper — not the dial — owns the placement and the
+          dimming, on purpose: the entrance timeline animates the dial's own
+          opacity to 1 and its y/scale transform, so anything set on the dial
+          itself gets overwritten the moment GSAP runs. Wrapping keeps the two
+          concerns apart (wrapper = where + how dim, dial = how it animates)
+          and means the motion script needs no changes at all. */}
+      <div class="hero-medallion" data-edit="hero.gauge">
+        <div class="hero-dial hero-dial-desktop" data-dial role="img" aria-label="RevLimiter rev gauge, needle at idle">
+          <Image class="g-face" src={faceImg} alt="" width={1173} widths={[400, 640, 900, 1173]} sizes="(max-width: 860px) 300px, (min-width: 1392px) 640px, 46vw" format="webp" loading="eager" />
+          <div class="g-needle" data-needle style={`left:${N.left}; top:${N.top}; width:${N.w}; transform-origin:${N.ox} ${N.oy};`}>
+            <Image src={needleImg} alt="" width={500} format="webp" loading="eager" />
+          </div>
+          <Image class="g-hub" src={hubImg} alt="" width={200} format="webp" loading="eager" style={`left:${H.left}; top:${H.top}; width:${H.w};`} />
+        </div>
+      </div>
+    </div>
+
+    {/* Same seam style as every other section boundary on the page (e.g.
+        DAWStrip's border-top below the carousel) — sits right under the
+        headline/gauge content, closing the hero. */}
+    <div class="hero-divider" aria-hidden="true"></div>
+  </section>
+
+  <PluginShowcase />
+
+  {/* garage pass: the stencil wall + three windows into the shop */}
+  <WordWall />
+  <GarageStory pluginName={revlimiter.name} trialGateId={trialGateId} trialRegisterUrl={trialRegisterUrl} />
+
+  <DAWStrip />
+  <TestimonialBlock
+    heading="Producers on RevAudio"
+    ctaHref="/revlimiter"
+    ctaLabel="Take RevLimiter for a spin"
+    ctaSub="14-day free trial · no credit card"
+  />
+  <PressLogos />
+  <EmailCapture id="subscribe" />
+
+  {/* Peak-end (conversion pass stop B, 2026-08-03): the page used to end on
+      the newsletter form — a fallback, not a decision. Close on the primary
+      action instead; EmailCapture above stays as the true fallback. All
+      widths on purpose: this section is normal page flow, not the killed
+      mobile hero CTA / buy bar. */}
+  <section class="closing-cta" aria-label="Start a free trial">
+    <h2 class="cc-head">Hear it on your own mix</h2>
+    <button
+      type="button"
+      class="trial-cta"
+      data-trial-gate-open
+      data-plugin-name={revlimiter.name}
+      data-plugin-slug={trialGateId}
+      data-register-url={trialRegisterUrl}
+      aria-label="Start the free 30-day trial of RevLimiter, full version, no credit card"
+    >
+      <span class="tc-verb">Start your 30-day free trial</span>
+      <span class="tc-micro">RevLimiter &middot; full version &middot; no credit card</span>
+    </button>
+    <a class="cc-alt" href="/store">Browse the store &rarr;</a>
+  </section>
+
+  <SubscribeModal />
+</BaseLayout>
+
+<script>
+  import { gsap, ScrollTrigger, reducedMotion } from '../lib/motion';
+
+  // Plugin scale: dB −60…0 maps to −135°…+135°. Idle ≈ −50 dB, redline ≈ −10 dB.
+  const A_MIN = -135, A_IDLE = -90, A_RED = 90, A_MAX = 135;
+  const root = document.querySelector<HTMLElement>('[data-hero]');
+  const dials = root ? Array.from(root.querySelectorAll<HTMLElement>('[data-dial]')) : [];
+
+  if (root) {
+    if (reducedMotion()) {
+      dials.forEach((dial) => {
+        const needle = dial.querySelector<HTMLElement>('[data-needle]');
+        if (needle) gsap.set(needle, { rotation: A_IDLE });
+      });
+    } else {
+      // ── Entrance: text cascade + redline sweep + dial settle ──
+      // Desktop arrives slowly (tuned in RevEdit against the backdrop
+      // medallion, where a long fade reads as the disc lighting up). Mobile
+      // keeps the original snap: there the hero IS the whole first screen and
+      // a ~3.6s arrival reads as the page hanging, not as atmosphere.
+      // Matched once at load — the entrance is a one-shot, so resizing across
+      // the breakpoint afterwards has nothing left to re-time. Breakpoint is
+      // the same 860px the layout switches on, below.
+      const slowIn = !matchMedia('(max-width: 860px)').matches;
+      const textDur = slowIn ? 3 : 0.6;
+      const dialDur = slowIn ? 2.65 : 0.8;
+
+      const startEntrance = () => {
+        const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
+        // Dev-only handle for the RevEdit overlay (entrance scrubber + needle
+        // controls). Tree-shaken out of prod builds.
+        if (import.meta.env.DEV) (window as any).__reveditHero = { tl, dials: [] as object[] };
+        tl.fromTo('[data-hero-in]', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: textDur, stagger: 0.12 }, 0.05)
+          .fromTo('[data-hero-sweep]', { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.7, ease: 'power3.out' }, 0.75);
+
+        // ── Headline: rides the rev, lands with the settle ──
+        // Desktop beat (Dan's call): enter at 1.3s — a touch before the
+        // needle crosses the redline (~1.7s, near the end of the power3.in
+        // floor-it sweep) — with a long 1.8s rise that finishes ~3.1s, right
+        // as the settle parks the needle back at idle. Mobile keeps the early
+        // snap arrival: no medallion there, and a late headline on the only
+        // first-screen content reads as a hang, not a payoff.
+        // The two authored line spans rise and fade as-is — no SplitText
+        // masks here, on purpose: the 31px halo bled through the word
+        // clip-boxes as stripes of light before arrival, and split.revert()
+        // snapped the clipped halo to full bloom in one frame. Opacity
+        // carries the glow in smoothly instead, and with no revert there is
+        // nothing left to snap.
+        const h1 = root.querySelector<HTMLElement>('.hh-h1');
+        if (h1) {
+          const h1At = slowIn ? 1.3 : 0.15;
+          const h1Dur = slowIn ? 1.8 : 0.7;
+          const lines = h1.querySelectorAll<HTMLElement>('.hh-h1-line');
+          const h1Targets: gsap.TweenTarget = lines.length ? Array.from(lines) : h1;
+          gsap.set(h1, { opacity: 1 }); // release the pre-hide; the lines carry the reveal
+          // Standalone tween + tl.add so the RevEdit hook below can rebuild it
+          // in place; ease is explicit because add() doesn't inherit the
+          // timeline's defaults the way tl.fromTo does.
+          const buildH1 = (at: number, dur: number, stag: number) => {
+            const tw = gsap.fromTo(
+              h1Targets,
+              { y: 26, opacity: 0 },
+              { y: 0, opacity: 1, duration: dur, ease: 'expo.out', stagger: stag },
+            );
+            tl.add(tw, at);
+            return tw;
+          };
+          let h1Tween = buildH1(h1At, h1Dur, 0.12);
+
+          if (import.meta.env.DEV) {
+            // RevEdit hook: the manifest's h1At/h1Dur/h1Stag sliders land here
+            // (via the `js` prop branch in applyManifest). Rebuilds the tween
+            // at the new beat, then replays from just before it so the new
+            // rate is felt immediately — debounced so a slider drag replays
+            // once, not per tick.
+            const cfg = { h1At, h1Dur, h1Stag: 0.12 };
+            let replayT: ReturnType<typeof setTimeout> | undefined;
+            (window as any).__reveditHero.retime = (patch: Record<string, number>) => {
+              const changed = Object.entries(patch).some(([k, v]) => cfg[k as keyof typeof cfg] !== v);
+              Object.assign(cfg, patch);
+              if (!changed) return;
+              h1Tween.kill();
+              tl.remove(h1Tween);
+              h1Tween = buildH1(cfg.h1At, cfg.h1Dur, cfg.h1Stag);
+              clearTimeout(replayT);
+              replayT = setTimeout(() => { tl.pause().seek(Math.max(0, cfg.h1At - 0.4)); tl.play(); }, 250);
+            };
+          }
+        }
+
+        // One render path per dial, three signals each — base (load sweep →
+        // idle), scroll deflection, pointer micro-deflection (lerped). Only
+        // one of the two dials is ever visible at a time (desktop vs mobile
+        // breakpoint), but both animate the same way regardless.
+        dials.forEach((dial) => {
+          const needle = dial.querySelector<HTMLElement>('[data-needle]');
+          if (!needle) return;
+
+          const state = { base: A_MIN, scroll: 0, pointer: 0, pointerTarget: 0 };
+          if (import.meta.env.DEV) (window as any).__reveditHero?.dials.push(state);
+          gsap.ticker.add(() => {
+            state.pointer += (state.pointerTarget - state.pointer) * 0.08;
+            gsap.set(needle, { rotation: Math.min(state.base + state.scroll + state.pointer, A_MAX) });
+          });
+
+          tl.fromTo(dial, { y: 40, scale: 0.88, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: dialDur }, 0.35)
+            .to(state, { base: A_MAX, duration: 0.85, ease: 'power3.in' }, 0.9) // floor it
+            .to(state, { base: A_IDLE, duration: 1.1, ease: 'back.out(1.05)' }, '>'); // settle to idle
+
+          // ── Scroll: rev toward the redline as the hero leaves the viewport ──
+          ScrollTrigger.create({
+            trigger: root,
+            start: 'top top',
+            end: 'bottom 20%',
+            scrub: true,
+            onUpdate: (self) => { state.scroll = self.progress * (A_RED - A_IDLE); },
+          });
+
+          // ── Pointer: micro-deflection (desktop only) ──
+          if (matchMedia('(pointer: fine)').matches) {
+            root.addEventListener('pointermove', (e) => {
+              const r = dial.getBoundingClientRect();
+              state.pointerTarget = ((e.clientX - (r.left + r.width / 2)) / r.width) * 6; // ±3° feel
+            });
+            root.addEventListener('pointerleave', () => { state.pointerTarget = 0; });
+          }
+        });
+      };
+
+      // ── First-load readiness gate ──
+      // The hero pieces are pre-hidden in CSS (html.motion-ok rules below —
+      // the same pattern the data-split h1 already rides), and the entrance
+      // waits for the display fonts plus the visible dial face to finish
+      // decoding. Without the gate a cold cache plays the fade against a
+      // mid-swap fallback font and a still-decoding medallion — and worse,
+      // the markup paints, vanishes when GSAP's from-state lands, then fades
+      // back in. The 150ms floor gives warm-cache visits one settled painted
+      // frame before motion starts; the 2.5s race bounds the wait, so a
+      // stalled font or image can only delay the entrance, never strand the
+      // pre-hide (GSAP's inline styles take over the moment the timeline is
+      // built).
+      const faces = dials
+        .filter((dial) => dial.offsetParent !== null)
+        .map((dial) => dial.querySelector<HTMLImageElement>('img.g-face'))
+        .filter((img): img is HTMLImageElement => img !== null);
+      const settled = Promise.all([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 150)),
+        ...faces.map((img) => img.decode().catch(() => {})),
+      ]);
+      Promise.race([settled, new Promise((resolve) => setTimeout(resolve, 2500))]).then(startEntrance);
+    }
+  }
+</script>
+
+<style>
+  /* ── Hero — centered text column over the REV gauge medallion. ── */
+  /* First-load pre-hide for the entrance pieces, released by the readiness
+     gate in the script above (GSAP's inline from-state takes over the moment
+     the timeline is built, so no release class is needed). Gated on
+     html.motion-ok so no-JS and reduced-motion visitors get the static hero —
+     the same pattern the data-split h1 rides in global.css. */
+  /* All pre-hides ride opacity — never transform. RevEdit's override
+     re-apply rewrites inline opacity (releasing these) but CLEARS inline
+     transforms, so a transform-based pre-hide would swallow the element the
+     moment the editor re-applies after the entrance. */
+  :global(html.motion-ok) [data-hero-in],
+  :global(html.motion-ok) [data-dial],
+  :global(html.motion-ok) .hh-h1,
+  :global(html.motion-ok) [data-hero-sweep] { opacity: 0; }
+  /* border-bottom: none overrides the global .hero divider — the hero should
+     flow straight into the plugin showcase. */
+  /* Bottom padding is the whole hero→showcase gap: the seam below the gauge
+     used to sit 148px above the carousel (3rem + a +100px block added for
+     Gil), which read as dead air on a page whose first two beats are the
+     gauge and "Our Plugins". Tightened to 2rem — the showcase heading's own
+     top padding carries the rest, and every section below rises as one unit. */
+  /* One source of truth for the medallion's size — the gauge's width and the
+     row's min-height both derive from it, so the backdrop can never outgrow
+     the box that has to contain it. */
+  .hero-feat { --medallion: clamp(400px, 46vw, 640px); position: relative; padding: var(--space-6) 0; overflow-x: clip; border-bottom: none; }
+
+  /* Reintroduces a seam here (same style as every other section boundary,
+     e.g. DAWStrip's border-top) — full width, sitting right under the
+     headline/gauge content. */
+  .hero-divider { border-top: 1px solid var(--border); margin-top: clamp(2rem, 5vh, 3rem); }
+
+  /* Desktop: one centred text column with the gauge as a backdrop medallion
+     centred behind it (picked in /balancelab, option D). The old side-by-side
+     row leaned +46px right, because the head box was sized by the lede (58ch)
+     while the eye tracks the narrower headline — on a single centre axis that
+     mismatch can't express itself at all. Mobile (below) collapses this back
+     to its own centred stack with the small in-flow gauge. */
+  .hero-grid {
+    position: relative; /* containing block for .hero-medallion */
+    max-width: var(--maxw);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* Holds the medallion inside the row so it can't bleed into the header
+       above or the divider below — vertical overflow isn't clipped here. */
+    min-height: calc(var(--medallion) + 3rem);
+    gap: clamp(2.5rem, 6vw, 5rem);
+    padding: clamp(1.5rem, 4vh, 3rem) clamp(1.5rem, 4vw, 4rem) 0;
+  }
+
+  .hero-head {
+    position: relative;
+    z-index: 2; /* over the medallion */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Never wider than the disc behind it. Above ~1200px the 52ch measure wins
+       and nothing changes; in the narrow desktop band the medallion is the
+       smaller of the two, and without this the lede overhangs it either side
+       and the "medallion" reading falls apart. */
+    max-width: min(52ch, var(--medallion));
+    flex: 0 1 auto;
+    /* Optical centring nudge: the disc's visual centre sits a hair left of and
+       below the box centre, so the type is pushed back the other way. Desktop
+       only — reset at the mobile breakpoint, where there is no disc to centre
+       against. */
+    transform: translate(3px, -10px);
+    /* Soft halo, tuned against the medallion. Does NOT count toward the
+       contrast ratios below (WCAG scores glyph vs background, and a shadow is
+       neither) — it is there to separate the type from the dial's engraving,
+       not to carry legibility. Reset on mobile with the transform. */
+    text-shadow: 0 0 31px color-mix(in srgb, currentColor 55%, transparent);
+  }
+
+  /* Scrim: holds type contrast where the brass ring and the lit redline would
+     otherwise sit directly behind the letterforms. Sized off the text block,
+     not the gauge, so it tracks the copy if the headline ever changes. */
+  /* --scrim / --glow are knobs for the RevEdit overlay (npm run edit). Both
+     default to exactly what ships, so the page is byte-identical until a
+     slider moves — a pseudo-element can't be selected in the editor, and a
+     custom property on the parent is the only way to reach one. */
+  .hero-head {
+    /* These four are set by CONTRAST, not by taste. Measured from rendered
+       pixels at 1568px, worst-case background behind the eyebrow (the dial's
+       12-o'clock tick), against a 4.5:1 AA requirement:
+         1.02 / 12% / 22% / 66%  ->  3.25:1  FAIL
+         1.30 / 70% / 27% / 86%  ->  7.09:1  pass
+         1.18 / 120% / 43% / 61% ->  5.16:1  pass   <- shipping
+       Strength and feather trade against reach: this set is weaker and fades
+       sooner than the 1.3/86% one, but spreads far enough sideways and down to
+       cover more of the disc, which nets out safe. That coupling means you
+       cannot reason about one knob alone — re-measure after ANY change here. */
+    --scrim: 1.18;   /* strength  — multiplies every stop's alpha */
+    --scrim-x: 120%; /* how far it spreads past the text sideways */
+    --scrim-y: 43%;  /* ...and vertically (the lede needs the reach) */
+    --scrim-fade: 61%; /* where it finishes fading to nothing */
+  }
+  .hero-head::before {
+    content: '';
+    position: absolute;
+    /* Deliberately restrained. The lede sits at the bottom of the block, right
+       where the gauge's lit brass ring passes behind it, and a scrim heavy
+       enough to fix that on its own flattened the medallion into a dark disc —
+       which defeats the point of this layout. So the scrim only knocks the
+       ring back, and .hh-lede's own colour carries the rest. */
+    inset: calc(-1 * var(--scrim-y)) calc(-1 * var(--scrim-x));
+    /* Inner stops ride --scrim-fade as fractions of it (0.558 / 0.814), so
+       widening the feather stretches the whole falloff instead of just moving
+       the last stop and kinking the curve. The fractions come from the 48% /
+       70% the curve was originally tuned at against an 86% fade; at today's
+       61% they resolve to ~34% / ~50%. */
+    background: radial-gradient(
+      ellipse at center,
+      rgba(8, 7, 6, calc(0.86 * var(--scrim))) 0%,
+      rgba(8, 7, 6, calc(0.66 * var(--scrim))) calc(var(--scrim-fade) * 0.558),
+      rgba(8, 7, 6, calc(0.34 * var(--scrim))) calc(var(--scrim-fade) * 0.814),
+      rgba(8, 7, 6, 0) var(--scrim-fade)
+    );
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* The medallion frame. Centres via grid rather than a transform so the
+     entrance timeline's y/scale on the dial inside stays untouched, and
+     carries the dimming so GSAP's opacity:1 on the dial can't undo it. */
+  .hero-medallion {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    z-index: 1;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  /* Desktop hero text sized up another 10% (tag/headline/lede/fastbuy) —
+     mobile pins its own sizes back in the media query below, unaffected. */
+  .hh-tag {
+    font-family: var(--font-display);
+    font-size: max(1.0285rem, 1.2705vw); /* was max(0.935rem, 1.155vw) */
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 1.1rem;
+  }
+
+  /* Two-line headline: "Engineered," / "Then Tuned." — each line its own
+     block so it stacks regardless of container width. */
+  .hh-h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3.146rem, 6.776vw, 6.534rem); /* was clamp(2.86rem, 6.16vw, 5.94rem) */
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    color: var(--fg);
+    margin: 0 0 1.15rem;
+  }
+  .hh-h1-line { display: block; white-space: nowrap; }
+
+  .hh-redline {
+    display: block;
+    width: min(300px, 60%);
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--brass-bright), var(--redline));
+    transform-origin: center;
+    margin: 0 auto 1.25rem;
+  }
+
+  .hh-lede {
+    /* Display face, not body — benched in bench/hero-text-bench.html. Bebas has
+       no lowercase, so this line sets all-caps regardless of how the copy is
+       typed; the extra leading and the negative tracking are there to hold it
+       together at that width. */
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.75;
+    letter-spacing: -0.01em;
+    /* Lifted off plain --fg-dim, which never had the contrast this lede needs:
+       2.95:1 over the medallion's brass ring on desktop, and 3.62:1 over the
+       engine-glow backdrop on mobile (worse as --heat rises with scroll). Both
+       are AA failures, so the lift is unconditional — it is NOT reset at the
+       mobile breakpoint. Mixed from the two existing tokens rather than a new
+       hex, so it still moves with a theme change. */
+    color: color-mix(in srgb, var(--fg-dim) 55%, var(--fg));
+    /* Inert on desktop — .hero-head above caps the column at
+       min(52ch, var(--medallion)), so the lede can never reach this. Kept
+       because it is what the mobile override below overrides. */
+    max-width: 90ch;
+    margin: 0 auto;
+  }
+
+  /* ── The trial CTA — the salience system's one "action channel" spend on
+     this page, now only at the page close (the hero CTA came out 2026-08-05):
+     clean flat brass against the worn textured world, dark label, no texture,
+     no glow. Brass-bright, NOT race-red — red-on-red is camouflage here. ── */
+  .trial-cta {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.95rem 2.1rem;
+    border: 0; /* it's a <button> now (opens the trial gate) — reset the UA chrome */
+    border-radius: 4px;
+    background: var(--brass-bright);
+    color: var(--bg-0);
+    text-shadow: none; /* cancel .hero-head's halo — enamel doesn't glow */
+    cursor: pointer;
+    transition: filter 0.2s var(--ease), transform 0.12s var(--ease);
+  }
+  .trial-cta:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .trial-cta:active { filter: brightness(0.95); transform: translateY(0); }
+  .tc-verb {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .tc-micro {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  /* ── Page terminus: end on the decision, not on a form. Same seam style as
+     every other section boundary. ── */
+  .closing-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.1rem;
+    padding: clamp(3rem, 8vh, 5rem) 1.5rem clamp(3.5rem, 9vh, 5.5rem);
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+  .cc-head {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    letter-spacing: 0.04em;
+    color: var(--fg);
+    margin: 0 0 0.4rem;
+  }
+  .cc-alt {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    color: var(--fg-dim);
+    transition: color 0.2s var(--ease);
+  }
+  .cc-alt:hover { color: var(--brass-bright); }
+
+  /* ── The gauge: face capture masked round; needle + hub overlay per the
+     plugin's geometry (see N/H above). All children positioned in % so each
+     size below scales as one. Desktop dial = original full size
+     (clamp(280px,30vw,400px)); mobile dial = 1/2 of it, under the headline. ── */
+  .hero-dial {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), 0 6px 18px rgba(0, 0, 0, 0.4);
+    flex: 0 0 auto;
+  }
+
+  /* Backdrop medallion: no drop shadow — it reads as a lit panel behind the
+     type, not an object floating in front of it. */
+  .hero-dial-desktop { width: var(--medallion); box-shadow: none; }
+
+  .hero-dial-mobile { display: none; width: min(160px, 40vw); margin: 0.5rem 0 0; }
+
+  .hero-dial :global(img.g-face) {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 50%; /* masks the panel-leather corners of the capture */
+  }
+
+  .g-needle {
+    position: absolute;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  }
+  .g-needle :global(img) { width: 100%; height: auto; display: block; }
+
+  .hero-dial :global(img.g-hub) {
+    position: absolute;
+    height: auto;
+  }
+
+  @media (max-width: 860px) {
+    /* Collapse the row back to a stack. Text is already centered at every
+       width, so only the column direction/width changes. */
+    .hero-grid { flex-direction: column; gap: 2rem; min-height: 0; }
+    /* Both the optical nudge and the halo exist only to seat the type against
+       the medallion, and there is no medallion at this width. */
+    .hero-head { max-width: 62ch; transform: none; text-shadow: none; }
+    /* No medallion on mobile — the stack keeps its own small in-flow gauge
+       under the headline, and a 400px backdrop behind narrow type would only
+       fight it. Both the scrim and the frame go with it. */
+    .hero-head::before { display: none; }
+    .hero-medallion { display: none; }
+    .hh-h1-line { white-space: normal; }
+
+    /* Tag + headline sized up 50%, then another 10% (×1.65 total); gauge
+       sized up 25%; mobile only. Headline also lifted 10px. */
+    .hh-tag { font-size: 1.4025rem; } /* 0.85rem × 1.5 × 1.1 */
+    .hh-h1 { font-size: 4.29rem; margin-top: -10px; } /* 2.6rem × 1.5 × 1.1; lifted 10px */
+    .hero-dial-mobile { width: min(200px, 50vw); margin-top: calc(0.5rem - 10px); } /* 160px / 40vw × 1.25; nudged up 10px */
+
+    /* Lede stays at its original size — the desktop-only +10% above (base
+       rules) would otherwise leak in here too. Colour is deliberately NOT
+       reset here: this text sits over the ambient engine glow, where plain
+       --fg-dim measures 3.62:1 (AA fail, 11% of glyph pixels under threshold
+       at 390×844) and degrades further as --heat rises on scroll. */
+    .hh-lede { font-size: 1.08rem; max-width: 58ch; }
+
+    /* Mobile keeps only its own small under-headline dial. */
+    .hero-dial-desktop { display: none; }
+    .hero-dial-mobile { display: block; }
+  }
+</style>
