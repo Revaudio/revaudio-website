@@ -18,8 +18,8 @@
  *     print under it carries formats, platforms and "no licence key";
  *   - the line under the button says the email step BEFORE the modal opens, so
  *     the gate is a known cost and not a surprise at click time;
- *   - one warm focal block: the brass CTA. The video play dot is brass too so
- *     it stops competing with the button.
+ *   - one hot focal block: the red CTA (the only red on the page besides the
+ *     knob). The video play dot is brass so it does not compete.
  * Nothing invented: no counts, stars, quotes or timers (PRODUCT.md).
  *
  * The CTA speaks TrialGateModal's documented trigger contract (see that
@@ -461,24 +461,59 @@ const highlights = plugin.features.slice(0, 3);
     font-weight: 600;
   }
 
+  /* The button: red, chunky, physical (Dan 2026-09-06: "make it red, bulky,
+     make me want to press it"). Redline gradient with a lit top edge, a dark
+     bevel below, a slow glow pulse; hover lifts it, :active pushes it down. */
   .gas-cta {
     grid-area: cta;
     margin-top: var(--space-2);
-    padding: 1.05rem 2.5rem;
-    background: var(--brass);
-    color: var(--bg-0);
-    border: 1px solid transparent;
+    padding: 1.3rem 3.2rem;
+    background: linear-gradient(180deg, #ff5a3c 0%, var(--redline) 45%, #9e2414 100%);
+    color: #fff;
+    border: 1px solid #5a1208;
+    border-radius: 10px;
     font-family: var(--font-display);
-    font-size: 1.25rem;
+    font-size: 1.6rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
     text-decoration: none;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
     cursor: pointer;
-    transition: background 0.2s var(--ease);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.35),
+      inset 0 -3px 0 rgba(0,0,0,.35),
+      0 6px 0 #5a1208,
+      0 10px 24px rgba(200,51,31,.45);
+    transform: translateY(0);
+    transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease), filter 0.2s var(--ease);
+    animation: gas-cta-pulse 2.4s ease-in-out infinite;
   }
-
-  .gas-cta:hover { background: var(--brass-bright); }
+  .gas-cta:hover {
+    filter: brightness(1.12);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.4),
+      inset 0 -3px 0 rgba(0,0,0,.35),
+      0 8px 0 #5a1208,
+      0 16px 34px rgba(255,84,54,.6);
+    animation: none;
+  }
+  .gas-cta:active {
+    transform: translateY(5px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.2),
+      inset 0 -2px 0 rgba(0,0,0,.35),
+      0 1px 0 #5a1208,
+      0 4px 12px rgba(200,51,31,.4);
+    animation: none;
+  }
+  .gas-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 4px; }
+  @keyframes gas-cta-pulse {
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 10px 24px rgba(200,51,31,.45); }
+    50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 14px 40px rgba(255,84,54,.75); }
+  }
+  @media (prefers-reduced-motion: reduce) { .gas-cta { animation: none; } }
 
   /* Sits directly under the button: the email step named before the click. */
   .gas-fine {
