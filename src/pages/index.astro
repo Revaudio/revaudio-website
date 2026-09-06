@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PluginShowcase from '../components/PluginShowcase.astro';
+import WordWall from '../components/WordWall.astro';
 import TestimonialBlock from '../components/TestimonialBlock.astro';
 import DAWStrip from '../components/DAWStrip.astro';
 import PressLogos from '../components/PressLogos.astro';
@@ -98,6 +99,9 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
   </section>
 
   <PluginShowcase />
+
+  {/* the stencil wall: what the sound does, beside the RevLimiter window */}
+  <WordWall />
 
   <DAWStrip />
   <TestimonialBlock

@@ -5,19 +5,25 @@ make the vibe like the garage" — reference https://kaelalden.com/products/vibe
 photographic plates, restraint).
 
 ## Step 1 — remove enginebg (explicit) → production
-- [ ] BaseLayout.astro: drop `.ebg` markup + `initEngineBg` import/call
-- [ ] global.css: delete `.ebg*` block, body opaque again, section panels opaque
-- [ ] `[slug].astro` comment no longer cites `.ebg`
-- [ ] delete `src/lib/enginebg.ts` + `public/bg/enginebg-*.webp`
-- [ ] `npm run build` clean, screenshot verify, commit → pull --rebase → push
+- [x] BaseLayout.astro: drop `.ebg` markup + `initEngineBg` import/call
+- [x] global.css: delete `.ebg*` block, body opaque again, section panels opaque
+- [x] `[slug].astro` comment no longer cites `.ebg`
+- [x] delete `src/lib/enginebg.ts` + `public/bg/enginebg-*.webp`
+- [x] `npm run build` clean, screenshot verify, commit → pull --rebase → push (`c3fc068`)
 
-## Step 2 — garage homepage (best shot) → `/garage` preview route first
-- [ ] website `DESIGN.md` (constitution gate)
-- [ ] 4 photographic plates via gpt-image-1 (hero wall, bench, dash, door) → `src/assets/garage/`
-- [ ] `src/pages/garage.astro` (index=false): hero on the garage wall, showcase, stencil word wall,
-      three photo story rows (data-reveal), DAW strip, signup, closing CTA
-- [ ] build + screenshots 1280×665 / 390 / 1600, commit, push, send screenshots
-- [ ] promote to `/` after Dan verifies (one swap of index.astro body)
+## Step 2 — garage homepage (best shot)
+- [x] website `DESIGN.md` (constitution gate)
+- [x] `/garage` preview: word wall + three photo story rows + door (`7e4b3b6`, pushed)
+- [x] Dan: "revert to the website we had before you pushed" → reverted on main (`3d2e17e`), work
+      kept on branch `garage-pass`. Rule from now: NEVER push until Dan says push clearly.
+- [x] Dan: keep ONLY the word wall (stencil words + RevLimiter window on the wood). Story rows,
+      plates, door, `/garage` route: gone. Word wall goes straight onto `/` (index.astro).
+- [ ] build + screenshots 1280 / 390, send to Dan, commit LOCAL only
+- [ ] Dan's word "push" → pull --rebase → push
 
 ## Review
-(filled at the end)
+- Local main = pre-garage site + word wall between the showcase and the DAW strip.
+- Files: `src/pages/index.astro` (import + one line), `src/components/GarageWall.astro`,
+  `src/components/WordWall.astro`, `DESIGN.md` (trimmed to what ships), `tasks/*`.
+- One race-red element on `/` (hero sweep); the filled stencil word is oxide, not red.
+- No new external hosts, CSP untouched.

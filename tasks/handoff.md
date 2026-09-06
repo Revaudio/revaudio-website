@@ -1,6 +1,29 @@
 # Website handoff
 
-Updated: 2026-07-30 (/gas is now a bespoke one-screen page; committed, NOT pushed)
+Updated: 2026-09-06 (garage pass reduced to the word wall on `/`; committed on local main, NOT pushed)
+
+## 2026-09-06 — garage homepage pass: word wall only, awaiting Dan's "push"
+Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).
+Dan's sequence today: "remove the background clock that gradients to red" (done, `c3fc068`, pushed);
+"give us your best shot, garage vibe" (built as `/garage` preview, `7e4b3b6`, pushed too early);
+"never push until i say to push clearly"; "revert to the website we had before you pushed"
+(`3d2e17e` on main); then, pointing at the stencil-words section: "this is the only keeper all
+others remove". So:
+- **`src/pages/index.astro`** — imports `WordWall` and places `<WordWall />` between
+  `<PluginShowcase />` and `<DAWStrip />`. That is the whole homepage change.
+- **`src/components/WordWall.astro`** — LOUD / WARM / PUNCHY / GLUED / DEEP stencil words (brass
+  outline, PUNCHY filled oxide) beside the RevLimiter window + one caption line, on the wood wall.
+- **`src/components/GarageWall.astro`** — the product-page `.garage-wall` (wood tile, brass rails,
+  top light, 38% scrim, `data-drift-y` parallax) as a reusable wrapper.
+- **`DESIGN.md`** — website design spec per the constitution, trimmed to what ships.
+- **Cut, not lost:** the three photo story rows (car plate, unit render, "30 days" door), the
+  `/garage` route and `src/assets/garage/*.jpg` live on branch `garage-pass` (= `7e4b3b6`).
+- **RULE (Dan, 2026-09-06): no `git push` on this repo until Dan writes "push".** Commit locally,
+  report "committed locally, not pushed", wait. `tasks/lessons.md` has the entry.
+- Checks: `npm run build` clean (19 pages, `/garage` gone), screenshots 1280 + 390 sent to Dan.
+- Next action: Dan reviews; on "push" → `git pull --rebase` → `git push`. Open question in
+  DESIGN.md §10: which stencil word should be the filled one (currently PUNCHY).
+
 
 ## 2026-07-30 (later) — /gas left the shared product layout for a one-screen page
 Dan, after seeing the walkthrough below: "ditch this revlimiter layout idea, make it a one pager
