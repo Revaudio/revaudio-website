@@ -1,3 +1,11 @@
+## 2026-09-06 (late) — /gas CTA iterations, committed locally, NOT pushed
+- d6d10a3 original plugins.ts copy restored (Dan: "copywrite is not good"), new layout kept.
+- f6a3612 red chunky CTA. 9e930b2 garage CSS pushbutton (brass bezel + screws + race-red body).
+- LATEST: true-alpha CTA — `btn-mail-gmail.png` house photo plate reused (blank red pill),
+  label = live text `.gas-cta-cap`, press-sink per tools/mailbtn-bench.html values. Gate contract
+  (`data-trial-gate-open` etc.) untouched. OpenAI image credits EMPTY (credit_balance_exhausted) —
+  no new AI assets generated. DESIGN.md §2 exception line updated. Do not push until Dan says push.
+
 # Website handoff
 
 Updated: 2026-09-06 (/gas conversion pass committed locally, NOT pushed; hero patina pass wired with stand-in plates, local only)
