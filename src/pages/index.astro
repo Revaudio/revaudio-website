@@ -470,6 +470,9 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
     --scrim-x: 120%; /* how far it spreads past the text sideways */
     --scrim-y: 43%;  /* ...and vertically (the lede needs the reach) */
     --scrim-fade: 61%; /* where it finishes fading to nothing */
+    --scrim-dx: 0px;   /* nudge the ellipse off the text centre (RevEdit) */
+    --scrim-dy: 0px;
+    --scrim-blur: 0px; /* extra softening of the whole ellipse */
   }
   .hero-head::before {
     content: '';
@@ -492,6 +495,8 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
       rgba(8, 7, 6, calc(0.34 * var(--scrim))) calc(var(--scrim-fade) * 0.814),
       rgba(8, 7, 6, 0) var(--scrim-fade)
     );
+    transform: translate(var(--scrim-dx), var(--scrim-dy));
+    filter: blur(var(--scrim-blur));
     z-index: -1;
     pointer-events: none;
   }
