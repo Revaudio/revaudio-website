@@ -196,9 +196,8 @@ const onProductPage = plugins.some((pl) => isActive(`/${pl.slug}`));
     .nav-burger { display: inline-flex; }
 
     /* Cart leaves the bar on mobile — CartFab (BaseLayout) takes over,
-       docked bottom-left next to the high-contrast toggle. The nav's
-       backdrop-filter would trap a fixed FAB here, hence the separate
-       component outside the nav. */
+       docked bottom-left. The nav's backdrop-filter would trap a fixed FAB
+       here, hence the separate component outside the nav. */
     .cart-toggle { display: none; }
 
     /* Links collapse into a slide-down panel under the bar. */

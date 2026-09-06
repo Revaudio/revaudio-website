@@ -1,4 +1,6 @@
 ---
+import A11yToggle from './A11yToggle.astro';
+
 const year = new Date().getFullYear();
 
 /* Site map, grouped. The footer is deliberately a superset of the header —
@@ -101,6 +103,9 @@ const socials = [
                   </li>
                 ))}
               </ul>
+              {/* The high-contrast switch lives under Legal, after the
+                  Accessibility link — the statement page points here. */}
+              {col.title === 'Legal' && <A11yToggle />}
             </div>
           ))}
         </div>

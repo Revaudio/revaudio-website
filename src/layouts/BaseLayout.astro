@@ -3,7 +3,6 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Cart from '../components/Cart.astro';
-import A11yToggle from '../components/A11yToggle.astro';
 import CartFab from '../components/CartFab.astro';
 import CookieBanner from '../components/CookieBanner.astro';
 import ExitIntentPopup from '../components/ExitIntentPopup.astro';
@@ -69,12 +68,16 @@ const fullTitle = title === 'RevAudio'
         document.documentElement.classList.add('motion-ok');
     </script>
 
-    {/* High-contrast pre-paint gate — applies html.hc before first paint so the
-        user's saved choice never flashes the normal theme. Toggle UI is in
-        A11yToggle.astro; styles in global.css. */}
+    {/* High-contrast pre-paint gate — applies html.hc before first paint so a
+        saved choice never flashes the normal theme. No saved choice → follow
+        the OS (prefers-contrast: more), so people who asked their system for
+        more contrast get it without ever finding the switch; an explicit "0"
+        from the switch still wins over the OS. Switch UI is A11yToggle.astro,
+        mounted in the footer's Legal column; styles in global.css. */}
     <script is:inline>
       try {
-        if (localStorage.getItem('ra-hc') === '1')
+        var raHc = localStorage.getItem('ra-hc');
+        if (raHc === '1' || (raHc === null && matchMedia('(prefers-contrast: more)').matches))
           document.documentElement.classList.add('hc');
       } catch (e) {}
     </script>
@@ -108,7 +111,6 @@ const fullTitle = title === 'RevAudio'
     </main>
     <Footer />
     <Cart />
-    <A11yToggle />
     <CartFab />
     <CookieBanner />
     <ExitIntentPopup />

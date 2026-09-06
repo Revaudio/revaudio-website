@@ -1,10 +1,10 @@
 ---
-/* Mobile-only cart button, docked bottom-left next to the high-contrast
-   toggle (A11yToggle: left 16px, 48px wide). Lives outside the nav because
-   the nav's backdrop-filter traps position:fixed descendants. Cart.astro
-   binds [data-cart-toggle] by delegation and syncs every [data-cart-badge],
-   so this needs no script of its own. Hidden >700px — the header cart
-   returns there. */
+/* Mobile-only cart button, docked alone at bottom-left. Lives outside the
+   nav because the nav's backdrop-filter traps position:fixed descendants.
+   Cart.astro binds [data-cart-toggle] by delegation and syncs every
+   [data-cart-badge], so this needs no script of its own. Hidden >700px — the
+   header cart returns there. (Shared the corner with the high-contrast FAB
+   until 2026-09-06; that switch now lives in the footer's Legal column.) */
 ---
 
 <button type="button" class="cart-fab" data-cart-toggle aria-label="Open cart">
@@ -24,7 +24,7 @@
   @media (max-width: 700px) {
     .cart-fab {
       position: fixed;
-      left: calc(max(16px, env(safe-area-inset-left)) + 48px + 12px);
+      left: max(16px, env(safe-area-inset-left));
       bottom: 16px;
       z-index: 60;
       width: 48px;

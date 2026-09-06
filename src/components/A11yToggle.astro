@@ -1,66 +1,79 @@
 ---
-/* Always-visible floating high-contrast toggle, bottom-left.
-   Flips html.hc (styles in global.css), persists to localStorage under
-   'ra-hc'. The pre-paint apply lives in BaseLayout head so there is no
-   flash of the normal theme before this mounts. */
+/* High-contrast switch — a static row under the Accessibility link in the
+   footer's Legal column (mounted from Footer.astro). Flips html.hc (skin in
+   global.css) and persists to localStorage 'ra-hc'. The pre-paint apply lives
+   in BaseLayout head, which also follows prefers-contrast: more when nothing
+   is saved — so most people who need the skin get it without finding this.
+   Was a fixed bottom-left FAB until 2026-09-06: it read as a sibling of the
+   cart FAB and pulled focus from it. Nothing in WCAG 2.2 or EN 301 549 asks
+   for a floating control; EN 301 549 12.1.2 gives a footer link as its own
+   example of where such a mechanism belongs. */
 ---
 
-<button
-  id="a11y-hc-toggle"
-  type="button"
-  class="a11y-fab"
-  aria-pressed="false"
-  title="Toggle high contrast"
->
+<button type="button" class="hc-switch" data-hc-toggle aria-pressed="false">
   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <!-- contrast glyph: outlined circle, half filled -->
     <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
     <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" />
   </svg>
-  <span class="sr-only">High contrast mode</span>
+  <span class="hc-label">High contrast</span>
+  <span class="hc-state" aria-hidden="true">Off</span>
 </button>
 
 <script is:inline>
   (function () {
-    var btn = document.getElementById('a11y-hc-toggle');
-    if (!btn) return;
+    /* One delegated listener for every [data-hc-toggle] on the page, guarded so
+       a second mount can never double-bind (two toggles = a no-op). */
+    if (window.__raHcBound) return;
+    window.__raHcBound = true;
     var html = document.documentElement;
     function sync() {
-      btn.setAttribute('aria-pressed', html.classList.contains('hc') ? 'true' : 'false');
+      var on = html.classList.contains('hc');
+      var btns = document.querySelectorAll('[data-hc-toggle]');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+        var st = btns[i].querySelector('.hc-state');
+        if (st) st.textContent = on ? 'On' : 'Off';
+      }
     }
     sync();
-    btn.addEventListener('click', function () {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('[data-hc-toggle]');
+      if (!btn) return;
       var on = html.classList.toggle('hc');
-      try { localStorage.setItem('ra-hc', on ? '1' : '0'); } catch (e) {}
+      try { localStorage.setItem('ra-hc', on ? '1' : '0'); } catch (err) {}
       sync();
     });
   })();
 </script>
 
 <style>
-  .a11y-fab {
-    position: fixed;
-    left: max(16px, env(safe-area-inset-left));
-    bottom: 16px;
-    z-index: 60;
-    width: 48px;
-    height: 48px;
-    display: grid;
-    place-items: center;
-    border-radius: 50%;
-    background: var(--bg-2);
-    color: var(--brass-bright);
-    border: 2px solid var(--brass);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  /* Dressed as one more Legal-column link, plus a glyph and an ON/OFF tag so
+     the state is visible as well as programmatic (aria-pressed). */
+  .hc-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: var(--space-2);
+    padding: 0.25rem 0;
+    background: none;
+    border: 0;
+    color: var(--fg-dim);
+    font: inherit;
+    font-size: var(--text-sm);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     cursor: pointer;
-    /* `bottom` glides when the mobile buy bar rises/falls (MobileBuyBar lift). */
-    transition: transform 0.15s var(--ease), background 0.15s var(--ease),
-                bottom 0.28s var(--ease-settle);
   }
-  @media (prefers-reduced-motion: reduce) { .a11y-fab { transition: none; } }
-  .a11y-fab:hover { transform: translateY(-2px); background: var(--bg-3); }
-  .a11y-fab:focus-visible { outline: 3px solid var(--brass-bright); outline-offset: 3px; }
-  /* pressed = high-contrast active: fill the chip so state is obvious */
-  .a11y-fab[aria-pressed='true'] { background: var(--brass); color: var(--bg-0); }
-  .a11y-fab svg { width: 26px; height: 26px; }
+  .hc-switch:hover { color: var(--brass-bright); }
+  .hc-switch:focus-visible { outline: 3px solid var(--brass-bright); outline-offset: 3px; }
+  .hc-switch svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .hc-state {
+    font-size: var(--text-xs);
+    color: var(--fg-faint);
+  }
+  .hc-switch[aria-pressed='true'],
+  .hc-switch[aria-pressed='true'] .hc-state { color: var(--brass-bright); }
+  /* Same tap target the footer links get on touch. */
+  @media (pointer: coarse) { .hc-switch { min-height: 44px; padding: 0.5rem 0; } }
 </style>

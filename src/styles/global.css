@@ -287,8 +287,10 @@ footer.site-footer { background: rgba(11, 10, 9, 0.55); }
 }
 
 /* ── User-driven high-contrast mode (html.hc) ──
-   Toggled by the always-visible A11yToggle FAB (bottom-left) and persisted to
-   localStorage 'ra-hc'; pre-applied in BaseLayout head so it never flashes.
+   Toggled by the A11yToggle switch in the footer's Legal column, or applied
+   on its own when the OS asks for more contrast (prefers-contrast: more);
+   persisted to localStorage 'ra-hc'; pre-applied in BaseLayout head so it
+   never flashes.
    Unlike forced-colors (OS-driven, above), this is an opt-in skin: pure-black
    base, white text, brighter brass, solid borders, no busy background art, and
    a strong always-on focus ring. Overriding the :root tokens cascades to the
@@ -721,10 +723,6 @@ footer .footer-bar {
   gap: var(--space-4);
   margin-top: var(--space-5);
   padding-top: var(--space-3);
-  /* Indent past the fixed a11y FAB (48px chip at left:16px). --maxw's 95vw
-     leaves only ~60px of gutter, so without this the chip sits on top of the
-     wordmark at every desktop width. */
-  padding-left: 64px;
   border-top: 1px solid var(--border);
   color: var(--fg-faint);
 }
@@ -755,10 +753,9 @@ footer .footer-social a {
 
 footer .footer-social svg { width: 20px; height: 20px; display: block; }
 
-/* Below the FAB's own breakpoint the bar stacks, so the indent goes away and
-   the whole footer gets bottom clearance instead. */
+/* The cart FAB docks bottom-left on small screens, so the whole footer gets
+   bottom clearance for it. */
 @media (max-width: 900px) {
-  footer .footer-bar { padding-left: 0; }
   footer.site-footer { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 

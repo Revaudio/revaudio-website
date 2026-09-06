@@ -799,7 +799,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
     /* ── floating A/B dock: the switch stays in the thumb zone while music
        plays (.arm-afloat = playing + in-glass switch off-screen, set in JS).
        Bottom-right above MobileBuyBar (--mbb-h, z40), clear of the
-       bottom-LEFT a11y fab (z60); dock sits between at z39. ── */
+       bottom-LEFT cart fab (z60); dock sits between at z39. ── */
     .arm-afloat .ab-dock {
       display: flex;
       flex-direction: column;
@@ -808,7 +808,7 @@ const cartPrice = plugin.regularPriceUsd ?? plugin.introPriceUsd;
       right: max(10px, env(safe-area-inset-right));
       bottom: calc(var(--mbb-h, 64px) + env(safe-area-inset-bottom, 0px) + 10px);
       z-index: 39;
-      width: min(250px, calc(100vw - 90px)); /* never reaches the a11y fab column */
+      width: min(250px, calc(100vw - 90px)); /* never reaches the cart fab column */
       padding: 10px 12px;
       border: 1px solid #0a0705;
       border-radius: 10px;
