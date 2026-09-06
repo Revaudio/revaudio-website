@@ -12,10 +12,10 @@
  *
  * Conversion pass (Dan, 2026-09-06: "make it sell more, work with psychology,
  * make it simple"). Every lever here is an honest one:
- *   - the hook states the OUTCOME, not the spec (the spec is in the video and
- *     the plate: the visitor can see one knob and three voice buttons);
- *   - the three lines beside the button answer "what's the catch?" (full
- *     version, free forever, no trial clock, no credit card, both platforms);
+ *   - copy is the original plugins.ts text (plainHook / tagline / first three
+ *     features), Dan 2026-09-06: "keep the old copy, this design is better";
+ *   - the three feature lines sit beside the button with brass ticks; the fine
+ *     print under it carries formats, platforms and "no licence key";
  *   - the line under the button says the email step BEFORE the modal opens, so
  *     the gate is a known cost and not a surprise at click time;
  *   - one warm focal block: the brass CTA. The video play dot is brass too so
@@ -48,6 +48,10 @@ const pageDescription =
 /* Driver's Manual runtime (YouTube reports 166 s). Stated so the visitor knows
    the cost of clicking before they click. Update if the video is replaced. */
 const videoLength = '2:46';
+
+/* The three lines beside the plate are the first three `features` in
+   plugins.ts (array order = editorial choice, no second copy to drift). */
+const highlights = plugin.features.slice(0, 3);
 ---
 
 <BaseLayout title={pageTitle} description={pageDescription} ogImage="/og/gas.png">
@@ -75,7 +79,7 @@ const videoLength = '2:46';
             {plugin.name}
             <span class="gas-free">Free</span>
           </h1>
-          <p class="gas-hook">One knob. Sounds expensive.</p>
+          {plugin.plainHook && <p class="gas-hook">{plugin.plainHook}</p>}
         </div>
 
         {plugin.tutorialVideo && (
@@ -98,18 +102,14 @@ const videoLength = '2:46';
               />
               <span class="gas-video-play" aria-hidden="true"></span>
             </span>
-            <span class="gas-video-caption">Watch it work &middot; {videoLength}</span>
+            <span class="gas-video-caption">{plugin.tutorialVideo.title} &middot; {videoLength}</span>
           </button>
         )}
 
-        {/* plugins.ts oneLiner: "One DRIVE knob, three voices: Tube, Tape, Fuzz.
-            Floor it for character, not just loudness." One source, no drift. */}
-        <p class="gas-what">{plugin.oneLiner}</p>
+        <p class="gas-what">{plugin.tagline}.</p>
 
         <ul class="gas-list">
-          <li>Full version. Free forever.</li>
-          <li>No trial clock. No credit card.</li>
-          <li>Windows &amp; macOS &middot; {plugin.systemReq.formats}</li>
+          {highlights.map((f) => <li>{f.name}</li>)}
         </ul>
 
         {plugin.trialGateActive ? (
@@ -122,16 +122,16 @@ const videoLength = '2:46';
             data-register-url={registerUrl}
             data-gate-free
           >
-            Get {plugin.name} free
+            Download free
           </button>
         ) : (
-          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Get {plugin.name} free</a>
+          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Download free</a>
         )}
 
         <p class="gas-fine">
           {plugin.trialGateActive
-            ? 'Type your email, the download link lands in your inbox. No licence key.'
-            : 'Direct download. No licence key.'}
+            ? `${plugin.systemReq.formats} · Windows & macOS · no licence key, we email you the link`
+            : `${plugin.systemReq.formats} · Windows & macOS · no licence key`}
         </p>
       </div>
     </div>
