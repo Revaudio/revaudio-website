@@ -1,7 +1,9 @@
 ## 2026-09-06 (late) — /gas CTA iterations, committed locally, NOT pushed
 - d6d10a3 original plugins.ts copy restored (Dan: "copywrite is not good"), new layout kept.
 - f6a3612 red chunky CTA. 9e930b2 garage CSS pushbutton (brass bezel + screws + race-red body).
-- LATEST: true-alpha CTA — `btn-mail-gmail.png` house photo plate reused (blank red pill),
+- d027c31 true-alpha CTA (house photo plate). Dan: "revert 2 times" -> gas.astro + DESIGN.md back
+  to f6a3612 (red chunky CSS CTA). Garage + true-alpha variants stay in git history.
+- (history) true-alpha CTA — `btn-mail-gmail.png` house photo plate reused (blank red pill),
   label = live text `.gas-cta-cap`, press-sink per tools/mailbtn-bench.html values. Gate contract
   (`data-trial-gate-open` etc.) untouched. OpenAI image credits EMPTY (credit_balance_exhausted) —
   no new AI assets generated. DESIGN.md §2 exception line updated. Do not push until Dan says push.

@@ -33,7 +33,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { plugins, dlGateId } from '../data/plugins';
 import { pluginImage } from '../lib/images';
 import { site } from '../data/site';
-import ctaPlate from '../assets/ui/btn-mail-gmail.png';
 
 const plugin = plugins.find((p) => p.slug === 'gas')!;
 const shot = pluginImage(plugin.heroImage)!;
@@ -122,16 +121,11 @@ const highlights = plugin.features.slice(0, 3);
             data-plugin-slug={dlGateId(plugin)}
             data-register-url={registerUrl}
             data-gate-free
-            aria-label="Download free"
           >
-            <Image class="gas-cta-plate" src={ctaPlate} alt="" width={592} height={440} format="webp" loading="eager" />
-            <span class="gas-cta-cap" aria-hidden="true">Download free</span>
+            Download free
           </button>
         ) : (
-          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'} aria-label="Download free">
-            <Image class="gas-cta-plate" src={ctaPlate} alt="" width={592} height={440} format="webp" loading="eager" />
-            <span class="gas-cta-cap" aria-hidden="true">Download free</span>
-          </a>
+          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Download free</a>
         )}
 
         <p class="gas-fine">
@@ -467,82 +461,59 @@ const highlights = plugin.features.slice(0, 3);
     font-weight: 600;
   }
 
-  /* The button, true-alpha edition (Dan 2026-09-06: "make it truealpha
-     button"). Not CSS paint any more: the house photoreal plate
-     (src/assets/ui/btn-mail-gmail.png, blank race-red pill in a chrome ring on
-     a screwed brass plate, true-alpha cut, same lineage as /thank-you and the
-     SUBMIT plate). The label is live text engraved cream into the enamel,
-     so copy stays editable. Press = the cap sinks 7px into the ring with a
-     recession shadow, spring-back on release (feel values locked in
-     tools/mailbtn-bench.html). Hover = bench lamp spill. No idle animation. */
+  /* The button: red, chunky, physical (Dan 2026-09-06: "make it red, bulky,
+     make me want to press it"). Redline gradient with a lit top edge, a dark
+     bevel below, a slow glow pulse; hover lifts it, :active pushes it down. */
   .gas-cta {
     grid-area: cta;
-    position: relative;
-    display: block;
-    width: 300px;
-    max-width: 100%;
     margin-top: var(--space-2);
-    padding: 0;
-    background: none;
-    border: 0;
-    line-height: 0;
-    cursor: pointer;
-    container-type: inline-size;
-    -webkit-tap-highlight-color: transparent;
-    --travel: 7px; --press-ms: 70; --return-ms: 220;
-  }
-  .gas-cta-plate {
-    width: 100%;
-    height: auto;
-    display: block;
-    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55));
-    transition: filter 0.2s var(--ease);
-  }
-  .gas-cta-cap {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* pill sits slightly above centre on the plate photo */
-    padding-bottom: 2cqw;
+    padding: 1.3rem 3.2rem;
+    background: linear-gradient(180deg, #ff5a3c 0%, var(--redline) 45%, #9e2414 100%);
+    color: #fff;
+    border: 1px solid #5a1208;
+    border-radius: 10px;
     font-family: var(--font-display);
-    font-size: 10.5cqw;
-    letter-spacing: 0.06em;
-    line-height: 1;
+    font-size: 1.6rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    white-space: nowrap;
-    color: #f3e6c8;
-    opacity: 0.92;
-    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 240, 200, 0.22);
-    transition: transform calc(var(--return-ms) * 1ms) cubic-bezier(0.34, 1.1, 0.64, 1);
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35);
+    cursor: pointer;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.35),
+      inset 0 -3px 0 rgba(0,0,0,.35),
+      0 6px 0 #5a1208,
+      0 10px 24px rgba(200,51,31,.45);
+    transform: translateY(0);
+    transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease), filter 0.2s var(--ease);
+    animation: gas-cta-pulse 2.4s ease-in-out infinite;
   }
-  .gas-cta-cap::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -52%);
-    width: 62%;
-    height: 44%;
-    border-radius: 999px;
-    pointer-events: none;
-    background: radial-gradient(ellipse at 50% 16%, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0) 62%);
-    opacity: 0;
-    transition: opacity calc(var(--return-ms) * 1ms) ease;
+  .gas-cta:hover {
+    filter: brightness(1.12);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.4),
+      inset 0 -3px 0 rgba(0,0,0,.35),
+      0 8px 0 #5a1208,
+      0 16px 34px rgba(255,84,54,.6);
+    animation: none;
   }
-  .gas-cta:hover .gas-cta-plate {
-    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 22px rgba(255, 170, 70, 0.28)) brightness(1.06);
+  .gas-cta:active {
+    transform: translateY(5px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.2),
+      inset 0 -2px 0 rgba(0,0,0,.35),
+      0 1px 0 #5a1208,
+      0 4px 12px rgba(200,51,31,.4);
+    animation: none;
   }
-  .gas-cta:active .gas-cta-cap {
-    transform: translateY(var(--travel));
-    transition: transform calc(var(--press-ms) * 1ms) cubic-bezier(0.3, 0.7, 0.4, 1);
+  .gas-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 4px; }
+  @keyframes gas-cta-pulse {
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 10px 24px rgba(200,51,31,.45); }
+    50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 14px 40px rgba(255,84,54,.75); }
   }
-  .gas-cta:active .gas-cta-cap::after {
-    opacity: 1;
-    transition: opacity calc(var(--press-ms) * 1ms) ease;
-  }
-  .gas-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 6px; border-radius: 14px; }
+  @media (prefers-reduced-motion: reduce) { .gas-cta { animation: none; } }
 
   /* Sits directly under the button: the email step named before the click. */
   .gas-fine {
@@ -596,7 +567,7 @@ const highlights = plugin.features.slice(0, 3);
     .gas-copy h1 { justify-content: center; }
     .gas-what { max-width: 40ch; font-size: 1.05rem; }
     .gas-list { text-align: left; }
-    .gas-cta { width: 100%; max-width: 300px; margin-left: auto; margin-right: auto; }
+    .gas-cta { width: 100%; max-width: 320px; }
     /* nowrap would overflow a phone — let it wrap here. */
     .gas-fine { white-space: normal; max-width: 34ch; }
     .gas-video-badge { margin-top: var(--space-2); }
