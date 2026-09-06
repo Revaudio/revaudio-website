@@ -49,6 +49,10 @@ on brand.
 - Files that WILL change on build: `src/pages/index.astro` (hero only), `src/assets/hero/hero-wall*.jpg`
   (new), `DESIGN.md` (§0 / §4 / §5 / §7 / §10). Nothing else.
 - Blocked on: Dan's go on the plan + the two plates from Higgsfield (A 16:9, B 9:16).
+- TRIED AND DROPPED, do not rebuild: a RevEdit tuning bench for the plate and the text scrim
+  (`hero.plate` manifest entry + `--plate-*` / `--lamp-*` / `--veil` / `--fade-*` / `--scrim-dx`
+  knobs, commits `481560c` + `8e675ca`). Dan: "delete this bench, stick with what we already
+  committed and live". Reverted by file in `8c6932a`; the hero is exactly `0be6bf5` again.
 - Rule still in force: no push without Dan's word "push".
 
 ## 2026-09-06 — garage homepage pass: word wall + smoke (pushed as `18afe01`)
