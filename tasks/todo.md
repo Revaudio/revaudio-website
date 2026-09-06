@@ -18,7 +18,10 @@ photographic plates, restraint).
       kept on branch `garage-pass`. Rule from now: NEVER push until Dan says push clearly.
 - [x] Dan: keep ONLY the word wall (stencil words + RevLimiter window on the wood). Story rows,
       plates, door, `/garage` route: gone. Word wall goes straight onto `/` (index.astro).
-- [ ] build + screenshots 1280 / 390, send to Dan, commit LOCAL only
+- [x] build + screenshots 1280 / 390, send to Dan, commit LOCAL only (`2f5ff2c`)
+- [x] Dan: "add the vibe of the smoke that we had before" → haze plates back (`src/lib/haze.ts`,
+      `.haze` in global.css, markup in BaseLayout, `public/bg/haze1.webp` + `haze2.webp`), no arc /
+      embers / heat. Built, screenshots sent, committed LOCAL only.
 - [ ] Dan's word "push" → pull --rebase → push
 
 ## Review
@@ -27,3 +30,5 @@ photographic plates, restraint).
   `src/components/WordWall.astro`, `DESIGN.md` (trimmed to what ships), `tasks/*`.
 - One race-red element on `/` (hero sweep); the filled stencil word is oxide, not red.
 - No new external hosts, CSP untouched.
+- Smoke: fixed `.haze` layer z:-1 paints `--bg-0` under a transparent body; footer translucent again
+  (rgba .55) so it reads through. hc hides the plates. Reduced motion = static plates.

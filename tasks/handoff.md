@@ -1,6 +1,6 @@
 # Website handoff
 
-Updated: 2026-09-06 (garage pass reduced to the word wall on `/`; committed on local main, NOT pushed)
+Updated: 2026-09-06 (word wall on `/` + the smoke layer back; committed on local main, NOT pushed)
 
 ## 2026-09-06 — garage homepage pass: word wall only, awaiting Dan's "push"
 Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).
@@ -20,7 +20,14 @@ others remove". So:
   `/garage` route and `src/assets/garage/*.jpg` live on branch `garage-pass` (= `7e4b3b6`).
 - **RULE (Dan, 2026-09-06): no `git push` on this repo until Dan writes "push".** Commit locally,
   report "committed locally, not pushed", wait. `tasks/lessons.md` has the entry.
-- Checks: `npm run build` clean (19 pages, `/garage` gone), screenshots 1280 + 390 sent to Dan.
+- **Smoke (Dan, same day: "add the vibe of the smoke that we had before"):** the two haze plates of
+  the old enginebg layer are back as their own thing. `src/lib/haze.ts` (drift + scroll-velocity
+  blip + desktop pointer lean, reduced motion = static), `.haze` block in `global.css` (fixed,
+  z:-1, paints `--bg-0`; body `background: none`; footer translucent again), markup + `initHaze()`
+  in `BaseLayout.astro`, plates `public/bg/haze1.webp` + `haze2.webp`. NOT back: the tach arc that
+  hue-shifted to red (the thing Dan asked to remove first), embers, waveform, heat curve.
+- Checks: `npm run build` clean (19 pages, `/garage` gone), screenshots 1280 + 390 sent to Dan
+  (word wall, then the smoke pass). Preview server left up on http://localhost:4321/.
 - Next action: Dan reviews; on "push" → `git pull --rebase` → `git push`. Open question in
   DESIGN.md §10: which stencil word should be the filled one (currently PUNCHY).
 

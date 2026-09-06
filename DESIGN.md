@@ -53,7 +53,8 @@ House tokens, reused verbatim from `src/styles/global.css` `:root`:
 Additive, page-local: none.
 
 Forbidden: pure `#000` / `#fff` outside `html.hc`; yellow speculars on red; race-red on buttons;
-neon or glow without a lamp; the retired scroll-driven ambient background (removed in `c3fc068`).
+neon or glow without a lamp; the retired tach arc that hue-shifted toward the redline with scroll depth
+(out in `c3fc068`, stays out). The smoke it sat on came back on its own (`src/lib/haze.ts`, §5).
 
 ## 3. Typography
 
@@ -84,13 +85,18 @@ over the first 32% of height, plus a 38% `--bg-0` scrim so parchment ink passes 
 Shadow stack (all raised parts): `0 1px 0 #000` contact + `0 8-24px 24-48px rgba(0,0,0,.5-.6)`.
 Hover: lift 1px + shadow grows; press: return, 2px max travel.
 
+The smoke: two screen-blended haze plates (`public/bg/haze1.webp`, `haze2.webp`) on a fixed layer
+behind the page at 16% / 10% under a 40% `--bg-0` veil (25% on phones), so the dust in the lamp light
+reads through the hero and the translucent footer; solid section panels cover it. Off in `html.hc`.
+
 ## 6. Motion
 
 Canon = the crane door (`BuyButtonCrane.astro`): physics, feedback only, in the page. Curves
 `--ease-settle cubic-bezier(.22,1,.36,1)` entries 600ms, `--ease-exit` 300ms, stagger 90ms; hover
 strikes ~120ms `cubic-bezier(.2,.9,.25,1.25)`. Scroll: needle revs; wood drifts 24px; reveals via
-`data-reveal` (top 80%) with a 2.5s force-reveal. Reduced motion: everything visible at rest, no
-parallax, no needle rev. Nothing loops idle.
+`data-reveal` (top 80%) with a 2.5s force-reveal. The smoke drifts on a slow sine (40/25px and
+55/30px orbits), kicks up to 3.5x on a fast scroll and settles, leans up to 14px with the pointer
+(desktop only). Reduced motion: everything visible at rest, no parallax, no needle rev, smoke static.
 
 ## 7. Hero + glanceability
 
@@ -133,4 +139,6 @@ words first, window under them.
 - 2026-09-06 garage pass: three photo story rows (car plate, hardware-unit concept render, the
   truck door painted "30 days") were built, reviewed and cut by Dan; only the word wall stays.
   The cut work lives on branch `garage-pass` (commit `7e4b3b6`) if any of it is wanted back.
+- 2026-09-06 Dan: "add the vibe of the smoke that we had before": the haze plates from the old
+  enginebg layer are back as `src/lib/haze.ts`; the red-shifting arc, embers and waveform are not.
 - Stencil words: LOUD / WARM / PUNCHY / GLUED / DEEP. Which one should be the filled (oxide) word?

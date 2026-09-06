@@ -95,6 +95,12 @@ const fullTitle = title === 'RevAudio'
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
+    {/* the smoke: two drifting haze plates + veil, fixed behind the page (src/lib/haze.ts) */}
+    <div class="haze" data-haze aria-hidden="true">
+      <div class="haze-plate h1" data-haze-1></div>
+      <div class="haze-plate h2" data-haze-2></div>
+      <div class="haze-veil"></div>
+    </div>
     <Header />
     <main id="main-content" tabindex="-1">
       <slot />
@@ -108,11 +114,13 @@ const fullTitle = title === 'RevAudio'
     <TrialGateModal />
     <script>
       import { initMotion } from '../lib/motion';
+      import { initHaze } from '../lib/haze';
       import { initReveals } from '../lib/reveal';
       import { initWalkthrough } from '../lib/walkthrough';
       import { initSplitHeadlines } from '../lib/splittext';
       import { initScrubs } from '../lib/scrub';
       initMotion();
+      initHaze();
       initReveals();
       initWalkthrough();
       initSplitHeadlines();

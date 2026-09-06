@@ -125,12 +125,43 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-body { min-height: 100vh; }
+/* body is transparent: the smoke layer (.haze, fixed, z:-1) paints --bg-0
+   under it; html keeps --bg-0 so overscroll and the gap before the layer
+   mounts are never white. */
+body { background: none; min-height: 100vh; }
 
-/* Section panels sit on the house darks. (They were translucent while the old
-   enginebg ambient layer lived under the page, so the art could read through;
-   that layer came out 2026-09-06 - the page is an opaque garage now.) */
-footer.site-footer { background: var(--bg-0); }
+/* The smoke. Two oversized screen-blended haze plates drift behind the page
+   (src/lib/haze.ts), a veil over them sets how much smoke is in the room.
+   This is the ambient half of the old enginebg layer (out in c3fc068) on
+   its own: no arc, no heat, no embers. Section panels with a solid house
+   dark cover it; the footer is translucent so it reads through there. */
+.haze {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-0);
+  overflow: hidden;
+  pointer-events: none;
+  --veil: 0.4;
+}
+.haze-plate {
+  position: absolute;
+  inset: -20%;
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+.haze-plate.h1 { background-image: url('/bg/haze1.webp'); opacity: 0.16; }
+.haze-plate.h2 { background-image: url('/bg/haze2.webp'); opacity: 0.1; }
+.haze-veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 10, 9, var(--veil));
+}
+@media (max-width: 900px) {
+  .haze { --veil: 0.25; }
+}
 
 /* ── Utility: visually hidden but announced by screen readers ── */
 .sr-only {
@@ -237,14 +268,10 @@ html.hc {
   --border: #ffffff;
   --border-bright: #ffffff;
 }
-/* Drop the ambient art so text sits on flat black, not a busy image. The
-   plates + arc + canvas go; .ebg itself stays because it is what paints
-   --bg-0 behind a transparent body. (This targeted .page-bg until 2026-09-06
-   — a class that no longer existed after the enginebg rename, so hc had been
-   silently leaving the art on.) */
-html.hc .ebg-haze,
-html.hc .ebg-arc,
-html.hc .ebg-canvas { display: none; }
+/* Drop the smoke so text sits on flat black, not a busy image. The plates
+   go; .haze itself stays because it is what paints --bg-0 behind a
+   transparent body. */
+html.hc .haze-plate { display: none; }
 /* garage wall art off in high-contrast; the borders on the pseudo carry the
    dividers, so keep the pseudo but strip its gradients — and hide the wood
    layer entirely (it holds the actual texture since the parallax split) */
@@ -571,7 +598,7 @@ nav ul a:hover { color: var(--brass-bright); }
 footer.site-footer {
   border-top: 1px solid var(--border);
   padding: var(--space-6) 0 var(--space-5);
-  background: var(--bg-0);
+  background: rgba(11, 10, 9, 0.55); /* translucent: the smoke reads through */
 }
 
 /* Site map in two labelled clusters (2026-09-04): Products+Support anchored
