@@ -53,7 +53,7 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
         behind everything in the hero, above the fixed smoke. The inner
         plate overscans and drifts (data-drift-y, scrub.ts); the ::after
         rake + scrim is the contrast dial. Off in html.hc. */}
-    <div class="hero-plate" aria-hidden="true">
+    <div class="hero-plate" aria-hidden="true" data-edit="hero.plate">
       <div class="hero-plate-img" data-drift-y="16"></div>
     </div>
     <div class="hero-grid">
@@ -342,12 +342,30 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
      as GarageWall). --plate-alpha < 1 lets the smoke read through the
      plate's dark areas. */
   .hero-plate {
-    --plate-alpha: 0.88;
+    /* Knobs. All of these are RevEdit props (tools/revedit/revedit.manifest.json,
+       "hero.plate"); defaults = what ships, so the page is byte-identical
+       until a slider moves. Centering is margin-based, not transform-based,
+       so RevEdit's move/scale (which writes transform) does not fight it. */
+    --plate-alpha: 0.88; /* whole plate, lets the smoke read through */
+    --plate-x: 50%;      /* photo framing: background-position */
+    --plate-y: 50%;
+    --plate-zoom: 1;     /* photo scale about its centre */
+    --plate-blur: 0px;   /* push the wall back */
+    --plate-bright: 1;
+    --plate-sat: 1;
+    --lamp-a: 0.16;      /* lamp spill: alpha, centre, ellipse radii */
+    --lamp-x: 8%;
+    --lamp-y: 0%;
+    --lamp-w: 60%;
+    --lamp-h: 50%;
+    --veil: 0.3;         /* flat --bg-0 scrim over the whole plate */
+    --fade-from: 72%;    /* where the bottom fade into the page starts */
+    --fade-a: 0.95;      /* how solid it is at the very bottom */
     position: absolute;
     inset-block: 0;
     left: 50%;
     width: 100vw;
-    transform: translateX(-50%);
+    margin-left: -50vw;
     z-index: -2;
     overflow: hidden;
     pointer-events: none;
@@ -356,9 +374,15 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
   .hero-plate-img {
     position: absolute;
     inset: -24px 0;
-    background: var(--plate-d) center / cover no-repeat;
+    background: var(--plate-d) var(--plate-x) var(--plate-y) / cover no-repeat;
+    transform: scale(var(--plate-zoom));
+    filter: blur(var(--plate-blur)) brightness(var(--plate-bright)) saturate(var(--plate-sat));
     will-change: transform;
   }
+  /* Dev only: RevEdit (npm run edit) has to reach the plate under the grid.
+     body.re-on never exists in a build. data-edit children (head, medallion)
+     get pointer-events back from RevEdit's own rule. */
+  :global(body.re-on) .hero-grid { pointer-events: none; }
   /* Lamp spill from the top-left corner (light leaks past the object), a
      --bg-0 scrim so the kicker/lede keep AA over the photo, and a fade
      into the page colour at the bottom so the wall meets the divider
@@ -368,8 +392,8 @@ const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quali
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 60% 50% at 8% 0%, rgba(255, 196, 120, 0.16), rgba(255, 196, 120, 0) 70%),
-      linear-gradient(180deg, rgba(11, 10, 9, 0.3) 0%, rgba(11, 10, 9, 0.3) 72%, rgba(11, 10, 9, 0.95) 100%);
+      radial-gradient(ellipse var(--lamp-w) var(--lamp-h) at var(--lamp-x) var(--lamp-y), rgba(255, 196, 120, var(--lamp-a)), rgba(255, 196, 120, 0) 70%),
+      linear-gradient(180deg, rgba(11, 10, 9, var(--veil)) 0%, rgba(11, 10, 9, var(--veil)) var(--fade-from), rgba(11, 10, 9, var(--fade-a)) 100%);
   }
   :global(html.hc) .hero-plate { display: none; }
 

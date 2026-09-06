@@ -1,4 +1,24 @@
 {
+  "hero.plate": {
+    "props": [
+      { "key": "alpha", "label": "Plate opacity", "min": 0, "max": 1, "step": 0.01, "def": 0.88, "css": "--plate-alpha" },
+      { "key": "px", "label": "Photo X", "min": 0, "max": 100, "step": 1, "def": 50, "unit": "%", "css": "--plate-x" },
+      { "key": "py", "label": "Photo Y", "min": 0, "max": 100, "step": 1, "def": 50, "unit": "%", "css": "--plate-y" },
+      { "key": "zoom", "label": "Photo zoom", "min": 1, "max": 1.6, "step": 0.01, "def": 1, "css": "--plate-zoom" },
+      { "key": "blur", "label": "Blur (push back)", "min": 0, "max": 12, "step": 0.5, "def": 0, "unit": "px", "css": "--plate-blur" },
+      { "key": "bright", "label": "Brightness", "min": 0.3, "max": 1.6, "step": 0.01, "def": 1, "css": "--plate-bright" },
+      { "key": "sat", "label": "Saturation", "min": 0, "max": 2, "step": 0.01, "def": 1, "css": "--plate-sat" },
+      { "key": "lampA", "label": "Lamp spill", "min": 0, "max": 0.6, "step": 0.01, "def": 0.16, "css": "--lamp-a" },
+      { "key": "lampX", "label": "Lamp X", "min": -20, "max": 100, "step": 1, "def": 8, "unit": "%", "css": "--lamp-x" },
+      { "key": "lampY", "label": "Lamp Y", "min": -30, "max": 100, "step": 1, "def": 0, "unit": "%", "css": "--lamp-y" },
+      { "key": "lampW", "label": "Lamp width", "min": 10, "max": 120, "step": 1, "def": 60, "unit": "%", "css": "--lamp-w" },
+      { "key": "lampH", "label": "Lamp height", "min": 10, "max": 120, "step": 1, "def": 50, "unit": "%", "css": "--lamp-h" },
+      { "key": "veil", "label": "Veil (scrim)", "min": 0, "max": 0.9, "step": 0.01, "def": 0.3, "css": "--veil" },
+      { "key": "fadeFrom", "label": "Bottom fade start", "min": 30, "max": 100, "step": 1, "def": 72, "unit": "%", "css": "--fade-from" },
+      { "key": "fadeA", "label": "Bottom fade depth", "min": 0, "max": 1, "step": 0.01, "def": 0.95, "css": "--fade-a" }
+    ]
+  },
+
   "hero.gauge": {
     "props": [
       { "key": "size", "label": "Medallion size", "min": 260, "max": 900, "step": 4, "def": 640, "unit": "px", "css": "--medallion" },
