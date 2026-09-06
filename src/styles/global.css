@@ -310,8 +310,14 @@ html.hc {
   --border: #ffffff;
   --border-bright: #ffffff;
 }
-/* drop the aurora/veil art so text sits on flat black, not a busy image */
-html.hc .page-bg { display: none; }
+/* Drop the ambient art so text sits on flat black, not a busy image. The
+   plates + arc + canvas go; .ebg itself stays because it is what paints
+   --bg-0 behind a transparent body. (This targeted .page-bg until 2026-09-06
+   — a class that no longer existed after the enginebg rename, so hc had been
+   silently leaving the art on.) */
+html.hc .ebg-haze,
+html.hc .ebg-arc,
+html.hc .ebg-canvas { display: none; }
 /* garage wall art off in high-contrast; the borders on the pseudo carry the
    dividers, so keep the pseudo but strip its gradients — and hide the wood
    layer entirely (it holds the actual texture since the parallax split) */
