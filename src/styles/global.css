@@ -125,87 +125,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* body background must stay transparent while the .ebg layer is in — an opaque
-   body paints over a negative-z fixed child. html keeps var(--bg-0) as the
-   canvas color. */
-body {
-  background: none;
-  min-height: 100vh;
-}
+body { min-height: 100vh; }
 
-/* ── enginebg — "Idle → Redline" ambient background (src/lib/enginebg.ts).
-   Higgsfield texture plates on pure black, screen-blended so the black
-   vanishes; JS drives --heat (scroll depth) and --blip (scroll velocity).
-   Sections with opaque panels still cover it by design. ── */
-.ebg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: var(--bg-0);
-  overflow: hidden;
-  pointer-events: none;
-  --heat: 0;
-  --blip: 0;
-  /* Legibility veil above the art, below content (0 = full art, 1 = hidden). */
-  --veil: 0.4;
-}
-
-/* Haze plates — oversized so drift/parallax never shows an edge. */
-.ebg-haze {
-  position: absolute;
-  inset: -20%;
-  background-size: cover;
-  background-position: center;
-  mix-blend-mode: screen;
-  will-change: transform;
-}
-.ebg-haze.h1 {
-  background-image: url('/bg/enginebg-haze1.webp');
-  opacity: 0.16;
-}
-.ebg-haze.h2 {
-  background-image: url('/bg/enginebg-haze2.webp');
-  opacity: 0.1;
-}
-
-/* Tach arc — brass arc still (ticks + glow). Heat hue-rotates brass (~38°)
-   toward the redline (~7°) and saturates; blip adds a flare of opacity. */
-.ebg-arc {
-  position: absolute;
-  top: 50%;
-  right: -60vmin;
-  width: 165vmin;
-  height: 165vmin;
-  transform: translateY(-50%);
-  background: url('/bg/enginebg-arc.webp') center / contain no-repeat;
-  mix-blend-mode: screen;
-  opacity: calc(0.2 + var(--heat) * 0.55 + var(--blip) * 0.15);
-  filter: hue-rotate(calc(var(--heat) * -31deg)) saturate(calc(1 + var(--heat) * 1.4));
-  will-change: opacity, filter;
-}
-
-.ebg-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.ebg-veil {
-  position: absolute;
-  inset: 0;
-  background: rgba(11, 10, 9, var(--veil));
-}
-
-/* Mobile: lighter veil (full-strength read as plain black on small screens);
-   enginebg.ts already drops canvas + pointer work under 900px. */
-@media (max-width: 900px) {
-  .ebg { --veil: 0.25; }
-}
-
-/* Translucent section panels so the ambient bg reads through the whole page. */
-.values .v { background: rgba(20, 17, 15, 0.72); }
-footer.site-footer { background: rgba(11, 10, 9, 0.55); }
+/* Section panels sit on the house darks. (They were translucent while the old
+   enginebg ambient layer lived under the page, so the art could read through;
+   that layer came out 2026-09-06 - the page is an opaque garage now.) */
+footer.site-footer { background: var(--bg-0); }
 
 /* ── Utility: visually hidden but announced by screen readers ── */
 .sr-only {

@@ -95,16 +95,6 @@ const fullTitle = title === 'RevAudio'
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    {/* enginebg — "Idle → Redline" ambient background, see src/lib/enginebg.ts.
-        Higgsfield plates screen-blended over the base; canvas draws embers +
-        waveform; .ebg-veil keeps text legibility. Tuned on /enginelab. */}
-    <div class="ebg" data-ebg aria-hidden="true">
-      <div class="ebg-haze h1" data-ebg-haze1></div>
-      <div class="ebg-haze h2" data-ebg-haze2></div>
-      <div class="ebg-arc"></div>
-      <canvas class="ebg-canvas" data-ebg-canvas></canvas>
-      <div class="ebg-veil"></div>
-    </div>
     <Header />
     <main id="main-content" tabindex="-1">
       <slot />
@@ -122,9 +112,7 @@ const fullTitle = title === 'RevAudio'
       import { initWalkthrough } from '../lib/walkthrough';
       import { initSplitHeadlines } from '../lib/splittext';
       import { initScrubs } from '../lib/scrub';
-      import { initEngineBg } from '../lib/enginebg';
       initMotion();
-      initEngineBg();
       initReveals();
       initWalkthrough();
       initSplitHeadlines();

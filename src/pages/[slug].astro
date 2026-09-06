@@ -723,8 +723,7 @@ const altShots = hasStage
 
   /* ── The garage wall (Dan, 2026-07-29: wood, full-bleed) ──
      isolation:isolate pins the z:-1 art layer inside this box: behind both
-     sections' content, above everything outside it (including the fixed
-     .ebg), with no stacking-context leaks. The pseudo is position:absolute on
+     sections' content, above everything outside it, with no stacking-context leaks. The pseudo is position:absolute on
      a non-transformed wrapper, so the walkthrough's sticky stage (outside the
      wrapper) is untouched and TrialPlates' container query still resolves.
      Full-bleed is safe because html+body carry overflow-x: clip. */
