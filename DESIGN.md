@@ -48,11 +48,15 @@ House tokens, reused verbatim from `src/styles/global.css` `:root`:
 - oxide: `--oxide #8b3a1f`, `--oxide-deep #5a2410`, `--oxide-text #d4622a` (AA text oxide)
 - race-red: `--redline #c8331f`. ONE hero element per page: the `.hh-redline` sweep on `/`, the
   RevLimiter wordmark on product pages. Never on a second element.
+  Exception, Dan 2026-09-06: on `/gas` the download button IS the hero and wears race-red as a
+  physical anodized pushbutton (RevLimiter anodize stops `#e83a3a / #9e1b1b / #3a0808`); nothing
+  else on that page is red outside the plate photo.
 - `--emerald #2f6b4a` for "armed / live" pilot lights only.
 
 Additive, page-local: none.
 
-Forbidden: pure `#000` / `#fff` outside `html.hc`; yellow speculars on red; race-red on buttons;
+Forbidden: pure `#000` / `#fff` outside `html.hc`; yellow speculars on red; race-red on buttons
+(except the `/gas` hero button above);
 neon or glow without a lamp; the retired tach arc that hue-shifted toward the redline with scroll depth
 (out in `c3fc068`, stays out). The smoke it sat on came back on its own (`src/lib/haze.ts`, §5).
 
@@ -76,6 +80,10 @@ neon or glow without a lamp; the retired tach arc that hue-shifted toward the re
   .5 / .72 / 1 / .72 / .5 outward from the filled word; hover fills any word in ~120ms house curve.
   The RevLimiter window hangs beside it with the shadow stack and one caption line.
 - Trial CTA / buy: flat brass-bright button at the page end on `/`; the crane door on product pages.
+- `/gas` download button: race-red anodized steel pushbutton in a brass bezel, four screws at
+  13 / -7 / 19 / -23 degrees, cream top specular, dark lower lip, cream stamped label. Hover = bench
+  lamp: amber spill past the bezel + inner red bloom. Press = body sinks 4px into the bezel. No idle
+  animation. Dan 2026-09-06: red + bulky + want-to-press, then "with the design of the garage".
 - Coverflow showcase, DAW strip, EmailCapture, SubscribeModal, TrialGateModal: unchanged house parts.
 
 ## 5. Depth & lighting

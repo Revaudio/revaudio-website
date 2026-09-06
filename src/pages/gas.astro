@@ -461,59 +461,122 @@ const highlights = plugin.features.slice(0, 3);
     font-weight: 600;
   }
 
-  /* The button: red, chunky, physical (Dan 2026-09-06: "make it red, bulky,
-     make me want to press it"). Redline gradient with a lit top edge, a dark
-     bevel below, a slow glow pulse; hover lifts it, :active pushes it down. */
+  /* The button, garage edition (Dan 2026-09-06: red, bulky, "make me want to
+     press it", then "with the design of the garage"). It is a physical part,
+     not a widget (Law 3): a race-red anodized steel pushbutton seated in a
+     brass bezel with four screws, each at its own angle (Law 2). Light comes
+     from upper-left (Law 4): cream specular on the top lip (never yellow on
+     red, §4), dark lip below, contact shadow into the page. Label = cream
+     paint stamped into the metal. Hover = the bench lamp swings onto it:
+     amber spill that leaks past the bezel + inner red bloom. Press = real
+     travel, the body sinks 4px into the bezel. No idle animation: motion is
+     feedback only (§3). Race-red on /gas is spent HERE, the one hero element
+     on the page (website DESIGN.md §2). */
   .gas-cta {
     grid-area: cta;
+    position: relative;
     margin-top: var(--space-2);
-    padding: 1.3rem 3.2rem;
-    background: linear-gradient(180deg, #ff5a3c 0%, var(--redline) 45%, #9e2414 100%);
-    color: #fff;
-    border: 1px solid #5a1208;
-    border-radius: 10px;
+    padding: 1.35rem 3.4rem;
+    /* brass bezel = the element itself; the red body is ::before */
+    background:
+      linear-gradient(180deg, var(--brass-bright) 0%, var(--brass) 40%, var(--brass-dark) 100%);
+    color: #f3e6c8;
+    border: 1px solid #3a2c12;
+    border-radius: 12px;
     font-family: var(--font-display);
     font-size: 1.6rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
     text-decoration: none;
-    text-shadow: 0 2px 0 rgba(0,0,0,.35);
     cursor: pointer;
+    isolation: isolate;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.35),
-      inset 0 -3px 0 rgba(0,0,0,.35),
-      0 6px 0 #5a1208,
-      0 10px 24px rgba(200,51,31,.45);
-    transform: translateY(0);
-    transition: transform 0.12s var(--ease), box-shadow 0.12s var(--ease), filter 0.2s var(--ease);
-    animation: gas-cta-pulse 2.4s ease-in-out infinite;
+      inset 0 1px 0 rgba(255,244,208,.45),   /* bezel lip catchlight */
+      inset 0 -1px 0 rgba(0,0,0,.6),
+      0 1px 0 #050403,                       /* contact */
+      0 14px 28px rgba(0,0,0,.55);           /* body shadow into the page */
+    transition: transform 0.12s cubic-bezier(.2,.9,.25,1.25), box-shadow 0.12s var(--ease);
   }
-  .gas-cta:hover {
-    filter: brightness(1.12);
+  /* the red body: anodized 3-stop + cream top specular + dark lower lip;
+     sits 6px inside the bezel; :active sinks it. Wear: faint diagonal
+     scratches so it is not one flat fill. */
+  .gas-cta::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    z-index: -1;
+    border-radius: 8px;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,244,208,0) 0 7px, rgba(255,244,208,.045) 7px 8px, rgba(0,0,0,0) 8px 13px, rgba(0,0,0,.08) 13px 14px),
+      radial-gradient(120% 140% at 35% 25%, #e83a3a 0%, #b52424 28%, #9e1b1b 62%, #3a0808 100%);
+    box-shadow:
+      inset 0 2px 0 rgba(255,244,208,.42),   /* cream specular, top lip */
+      inset 2px 0 0 rgba(255,244,208,.14),   /* light from the left */
+      inset 0 -5px 0 #3a0808,                /* lower lip */
+      inset 0 -1px 6px rgba(0,0,0,.5),
+      0 3px 0 #2a0606,                       /* seat shadow inside the bezel */
+      0 5px 8px rgba(0,0,0,.6);
     transform: translateY(-2px);
+    transition: transform 0.12s cubic-bezier(.2,.9,.25,1.25), box-shadow 0.12s var(--ease), filter 0.2s var(--ease);
+  }
+  /* four screws in the bezel corners, each turned a different few degrees
+     (13 / -7 / 19 / -23): perfectly aligned screws read CGI. Head = brass
+     radial with a dark slot. */
+  .gas-cta::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: inherit;
+    --screw: radial-gradient(circle at 40% 35%, #f0dca0 0%, #b08d48 45%, #5c4620 72%, rgba(0,0,0,0) 76%);
+    --slot: linear-gradient(#3a2c12, #3a2c12);
+    background:
+      var(--screw) 9px 9px / 9px 9px no-repeat,
+      var(--screw) calc(100% - 9px) 9px / 9px 9px no-repeat,
+      var(--screw) 9px calc(100% - 9px) / 9px 9px no-repeat,
+      var(--screw) calc(100% - 9px) calc(100% - 9px) / 9px 9px no-repeat;
+  }
+  /* label: cream paint stamped in, thin dark shadow below so it reads
+     pressed into the anodize, not printed on top. */
+  .gas-cta { text-shadow: 0 1px 0 rgba(0,0,0,.55), 0 -1px 0 rgba(255,244,208,.12); }
+  /* hover: the bench lamp swings onto it. Inner red bloom (RevLimiter redline
+     state) + amber spill that bleeds past the bezel onto the page. */
+  .gas-cta:hover {
+    transform: translateY(-1px);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.4),
-      inset 0 -3px 0 rgba(0,0,0,.35),
-      0 8px 0 #5a1208,
-      0 16px 34px rgba(255,84,54,.6);
-    animation: none;
+      inset 0 1px 0 rgba(255,244,208,.55),
+      inset 0 -1px 0 rgba(0,0,0,.6),
+      0 1px 0 #050403,
+      0 16px 32px rgba(0,0,0,.55),
+      0 0 0 1px rgba(255,190,100,.18),
+      0 0 26px 6px rgba(255,170,70,.22),
+      0 0 70px 18px rgba(255,140,50,.12);
   }
-  .gas-cta:active {
-    transform: translateY(5px);
+  .gas-cta:hover::before {
+    filter: brightness(1.12) saturate(1.08);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.2),
-      inset 0 -2px 0 rgba(0,0,0,.35),
-      0 1px 0 #5a1208,
-      0 4px 12px rgba(200,51,31,.4);
-    animation: none;
+      inset 0 2px 0 rgba(255,244,208,.55),
+      inset 2px 0 0 rgba(255,244,208,.18),
+      inset 0 -5px 0 #3a0808,
+      inset 0 0 8px rgba(232,58,58,.4),
+      0 3px 0 #2a0606,
+      0 5px 8px rgba(0,0,0,.6);
   }
-  .gas-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 4px; }
-  @keyframes gas-cta-pulse {
-    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 10px 24px rgba(200,51,31,.45); }
-    50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(0,0,0,.35), 0 6px 0 #5a1208, 0 14px 40px rgba(255,84,54,.75); }
+  /* press: the red body sinks 4px into the bezel, seat shadow collapses,
+     the bezel itself returns to rest. */
+  .gas-cta:active { transform: translateY(0); }
+  .gas-cta:active::before {
+    transform: translateY(2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,244,208,.25),
+      inset 0 -2px 0 #3a0808,
+      inset 0 2px 6px rgba(0,0,0,.45),
+      0 0 0 #2a0606,
+      0 1px 2px rgba(0,0,0,.6);
   }
-  @media (prefers-reduced-motion: reduce) { .gas-cta { animation: none; } }
+  .gas-cta:focus-visible { outline: 2px solid var(--brass-bright); outline-offset: 5px; }
 
   /* Sits directly under the button: the email step named before the click. */
   .gas-fine {
