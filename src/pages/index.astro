@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PluginShowcase from '../components/PluginShowcase.astro';
 import WordWall from '../components/WordWall.astro';
@@ -11,6 +11,8 @@ import SubscribeModal from '../components/SubscribeModal.astro';
 import faceImg from '../assets/hero/rev-gauge-face.png';
 import needleImg from '../assets/hero/needle-v2.png';
 import hubImg from '../assets/hero/hub-v2.png';
+import wallImg from '../assets/hero/hero-wall.jpg';
+import wallMImg from '../assets/hero/hero-wall-m.jpg';
 import { plugins, dlGateId } from '../data/plugins';
 import { site } from '../data/site';
 
@@ -28,6 +30,13 @@ const trialRegisterUrl = site.downloadGate.workerUrl + '/download/register';
    scales as one regardless of the dial's own width. */
 const N = { left: '30.049%', top: '16.672%', w: '40%', ox: '49.877%', oy: '83.32%' };
 const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
+
+/* The back wall behind the hero (hero patina pass, tasks/todo.md Step 3).
+   Two photo plates, landscape for desktop and portrait for phones, applied
+   as CSS backgrounds (not <img>) so only the one the viewport uses is ever
+   fetched. getImage() runs them through the same pipeline as <Image>. */
+const wallD = await getImage({ src: wallImg, width: 2560, format: 'webp', quality: 80 });
+const wallM = await getImage({ src: wallMImg, width: 1080, format: 'webp', quality: 80 });
 ---
 
 <BaseLayout title="RevAudio">
@@ -38,7 +47,15 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
       the headline. Entrance: text cascade → dial settle → needle rev-blip →
       idle. Scroll revs toward the redline; pointer micro-deflects (lerp).
       Reduced motion: static needle at idle. */}
-  <section class="hero hero-feat" data-hero>
+  <section class="hero hero-feat" data-hero style={`--plate-d:url(${wallD.src});--plate-m:url(${wallM.src});`}>
+    {/* The wall the gauge hangs on: patina steel, one trouble light top-left
+        (the hero's light source), studio gear on the shelf. Full-bleed
+        behind everything in the hero, above the fixed smoke. The inner
+        plate overscans and drifts (data-drift-y, scrub.ts); the ::after
+        rake + scrim is the contrast dial. Off in html.hc. */}
+    <div class="hero-plate" aria-hidden="true">
+      <div class="hero-plate-img" data-drift-y="16"></div>
+    </div>
     <div class="hero-grid">
       <div class="hero-head" data-edit="hero.text">
         {/* Plain-English line before the metaphor (stop B): what we sell, in
@@ -318,7 +335,43 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
   /* One source of truth for the medallion's size — the gauge's width and the
      row's min-height both derive from it, so the backdrop can never outgrow
      the box that has to contain it. */
-  .hero-feat { --medallion: clamp(400px, 46vw, 640px); position: relative; padding: var(--space-6) 0; overflow-x: clip; border-bottom: none; }
+  .hero-feat { --medallion: clamp(400px, 46vw, 640px); position: relative; isolation: isolate; padding: var(--space-6) 0; overflow-x: clip; border-bottom: none; }
+
+  /* The back wall. isolation: isolate on .hero-feat keeps these negative
+     z-indexes inside the hero, above the fixed .haze layer (same pattern
+     as GarageWall). --plate-alpha < 1 lets the smoke read through the
+     plate's dark areas. */
+  .hero-plate {
+    --plate-alpha: 0.88;
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--plate-alpha);
+  }
+  .hero-plate-img {
+    position: absolute;
+    inset: -24px 0;
+    background: var(--plate-d) center / cover no-repeat;
+    will-change: transform;
+  }
+  /* Lamp spill from the top-left corner (light leaks past the object), a
+     --bg-0 scrim so the kicker/lede keep AA over the photo, and a fade
+     into the page colour at the bottom so the wall meets the divider
+     without a hard edge. */
+  .hero-plate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 8% 0%, rgba(255, 196, 120, 0.16), rgba(255, 196, 120, 0) 70%),
+      linear-gradient(180deg, rgba(11, 10, 9, 0.3) 0%, rgba(11, 10, 9, 0.3) 72%, rgba(11, 10, 9, 0.95) 100%);
+  }
+  :global(html.hc) .hero-plate { display: none; }
 
   /* Reintroduces a seam here (same style as every other section boundary,
      e.g. DAWStrip's border-top) — full width, sitting right under the
@@ -597,6 +650,8 @@ const H = { left: '44.468%', top: '44.601%', w: '11.207%' };
        fight it. Both the scrim and the frame go with it. */
     .hero-head::before { display: none; }
     .hero-medallion { display: none; }
+    .hero-plate { --plate-alpha: 0.8; }
+    .hero-plate-img { background-image: var(--plate-m); }
     .hh-h1-line { white-space: normal; }
 
     /* Tag + headline sized up 50%, then another 10% (×1.65 total); gauge

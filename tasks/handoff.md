@@ -1,9 +1,24 @@
 # Website handoff
 
-Updated: 2026-09-06 (word wall + smoke pushed and live as `18afe01`; hero patina pass PLANNED, not built)
+Updated: 2026-09-06 (word wall + smoke live as `18afe01`; hero patina pass WIRED with stand-in plates, local only)
 
-## 2026-09-06 (later) — hero patina pass "the bench at night": PLAN only, awaiting Dan's go
-Owner: Claude Code (planning; nothing in `src/` touched yet). Repo `revaudio-website`, branch `main`.
+## 2026-09-06 (later) — hero patina pass "the bench at night": WIRED, stand-in plates, NOT pushed
+Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).
+Dan: "lets see it !" so the wiring is built now with procedural stand-in plates (PIL: gunmetal
+panels, seams, rivets, oxide patches, amber lamp top-left, dark centre). They are placeholders only;
+Dan's Higgsfield plates replace the two jpgs 1:1 (same paths, same names), no code change needed.
+- Built: `src/pages/index.astro` hero: `getImage()` both plates to webp, `--plate-d` / `--plate-m` on
+  `.hero-feat`; `.hero-plate` > `.hero-plate-img[data-drift-y=16]` first child; CSS: `isolation:
+  isolate` on `.hero-feat`, plate z:-2 full-bleed, `--plate-alpha` .88 (.8 on phones), `::after` =
+  lamp spill + 30% `--bg-0` scrim + bottom fade; `html.hc` hides it; ≤860px swaps to the 9:16 plate.
+- Checked: `npm run build` green; headless Edge 1280x800 + 390x844 shots: plate full-bleed behind
+  gauge, headline contrast holds, phone swap works. Not yet re-measured: scrim knobs vs a REAL plate.
+- Dan sent a 1600x2400 portrait image in chat (not on disk anywhere). Asked him to save it as
+  `src/assets/hero/hero-wall-m.jpg`; a 16:9 desktop plate is still needed (prompt A).
+- Still owed once real plates land: contrast re-measure (4.5:1 on kicker/lede), plate opacity vs smoke,
+  `DESIGN.md` §0 / §4 / §5 / §7 / §10, plate size ≤250 KB check.
+- Note: `tasks/todo.md` was rewritten in the working tree by Codex (/gas plan, uncommitted); Step 3
+  hero plan text lives in commit `4c65acc`. Not staged by Claude.
 Dan, with a screenshot of the live hero: patina / garage vibe on the first screen, keep the gauge and
 its readings where they are, show "we are a music plugin company", assets from Higgsfield, creative,
 on brand.
