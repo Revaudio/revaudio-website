@@ -1,8 +1,23 @@
 # Website handoff
 
-Updated: 2026-09-06 (word wall on `/` + the smoke layer back; committed on local main, NOT pushed)
+Updated: 2026-09-06 (word wall + smoke pushed and live as `18afe01`; hero patina pass PLANNED, not built)
 
-## 2026-09-06 — garage homepage pass: word wall only, awaiting Dan's "push"
+## 2026-09-06 (later) — hero patina pass "the bench at night": PLAN only, awaiting Dan's go
+Owner: Claude Code (planning; nothing in `src/` touched yet). Repo `revaudio-website`, branch `main`.
+Dan, with a screenshot of the live hero: patina / garage vibe on the first screen, keep the gauge and
+its readings where they are, show "we are a music plugin company", assets from Higgsfield, creative,
+on brand.
+- Plan: `tasks/todo.md` Step 3. Prompts for Dan to run: `tasks/hero-higgsfield-prompts.md`.
+- Shape: a Higgsfield photo plate behind the hero (patina steel wall, one caged trouble light top-left
+  as the light source, headphones on a hook, a shelf with a reel-to-reel + a VU rack unit), full-bleed
+  inside `.hero-feat` (isolation: isolate, z:-2, opacity ~.85 so the smoke still reads), a warm rake +
+  `--bg-0` scrim over it, `data-drift-y` 16. Gauge / kicker / headline / sweep / lede: not moved.
+- Files that WILL change on build: `src/pages/index.astro` (hero only), `src/assets/hero/hero-wall*.jpg`
+  (new), `DESIGN.md` (§0 / §4 / §5 / §7 / §10). Nothing else.
+- Blocked on: Dan's go on the plan + the two plates from Higgsfield (A 16:9, B 9:16).
+- Rule still in force: no push without Dan's word "push".
+
+## 2026-09-06 — garage homepage pass: word wall + smoke (pushed as `18afe01`)
 Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).
 Dan's sequence today: "remove the background clock that gradients to red" (done, `c3fc068`, pushed);
 "give us your best shot, garage vibe" (built as `/garage` preview, `7e4b3b6`, pushed too early);
@@ -28,8 +43,8 @@ others remove". So:
   hue-shifted to red (the thing Dan asked to remove first), embers, waveform, heat curve.
 - Checks: `npm run build` clean (19 pages, `/garage` gone), screenshots 1280 + 390 sent to Dan
   (word wall, then the smoke pass). Preview server left up on http://localhost:4321/.
-- Next action: Dan reviews; on "push" → `git pull --rebase` → `git push`. Open question in
-  DESIGN.md §10: which stencil word should be the filled one (currently PUNCHY).
+- Pushed on Dan's word as `18afe01` (deploy green, live). Open question in DESIGN.md §10: which
+  stencil word should be the filled one (currently PUNCHY).
 
 
 ## 2026-07-30 (later) — /gas left the shared product layout for a one-screen page
