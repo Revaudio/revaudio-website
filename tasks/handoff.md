@@ -1,6 +1,25 @@
 # Website handoff
 
-Updated: 2026-09-06 (word wall + smoke live as `18afe01`; hero patina pass WIRED with stand-in plates, local only)
+Updated: 2026-09-06 (/gas conversion pass committed locally, NOT pushed; hero patina pass wired with stand-in plates, local only)
+
+## 2026-09-06 (latest) - /gas sells more: DONE, committed locally, NOT pushed
+Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).
+Dan: "lets work on the gas page, lets make it sell more" + "work with psychologic and make it simple".
+GAS is free, so "sell" = more email-gated downloads. One screen on desktop kept (Dan 2026-07-30).
+- `src/pages/gas.astro`: hook "One knob. Sounds expensive."; three-line "what is the catch"
+  list (full version / free forever / no trial clock / no credit card / Win + Mac + formats);
+  CTA "Get GAS free" (still the TrialGateModal gate, never a plain link); fine print under the
+  button says the email step BEFORE the modal opens; video badge labelled with its true length
+  2:46, play dot brass so the CTA is the only warm block; named grid areas re-order for phones
+  (CTA + fine print above the fold at 390x844, badge last). `<title>` "GAS: free one-knob
+  saturator", description with formats. Copy pulls `plugin.oneLiner` from plugins.ts, unchanged.
+- `src/layouts/BaseLayout.astro`: `og:image` is now an absolute URL (site-wide, one line).
+- `public/og/gas.png` (new, 1200x630) + `public/og-default.png` (new; the live site 404ed it).
+- Checks: `npm run build` green (19 pages). Headless shots 1280x665 DPR2 + 390x844 with the cookie
+  banner declined + modal + video lightbox: all OK, sent to Dan. Nothing invented: no counts,
+  stars, quotes, timers.
+- Plan + review: `tasks/todo.md`. Not done on purpose: no audio A/B rack, no RevLimiter cross-sell.
+- Next: Dan reviews the shots and says "push". Until then: local only.
 
 ## 2026-09-06 (later) — hero patina pass "the bench at night": WIRED, stand-in plates, NOT pushed
 Owner: Claude Code. Repo `revaudio-website`, branch `main` (local, ahead of `origin/main`).

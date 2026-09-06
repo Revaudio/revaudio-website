@@ -10,6 +10,18 @@
  *
  * `getStaticPaths` in [slug].astro skips 'gas' so this file owns the route.
  *
+ * Conversion pass (Dan, 2026-09-06: "make it sell more, work with psychology,
+ * make it simple"). Every lever here is an honest one:
+ *   - the hook states the OUTCOME, not the spec (the spec is in the video and
+ *     the plate: the visitor can see one knob and three voice buttons);
+ *   - the three lines beside the button answer "what's the catch?" (full
+ *     version, free forever, no trial clock, no credit card, both platforms);
+ *   - the line under the button says the email step BEFORE the modal opens, so
+ *     the gate is a known cost and not a surprise at click time;
+ *   - one warm focal block: the brass CTA. The video play dot is brass too so
+ *     it stops competing with the button.
+ * Nothing invented: no counts, stars, quotes or timers (PRODUCT.md).
+ *
  * The CTA speaks TrialGateModal's documented trigger contract (see that
  * component's header) instead of reusing BuyButton: BuyButton's bordered card
  * with a price block and a four-line `includes` list is taller on its own than
@@ -26,13 +38,19 @@ const plugin = plugins.find((p) => p.slug === 'gas')!;
 const shot = pluginImage(plugin.heroImage)!;
 const registerUrl = site.downloadGate.workerUrl + '/download/register';
 
-/* The three lines beside the plate are the first three `features` in
-   plugins.ts — the array order carries the editorial choice, so this page holds
-   no second copy of that text to drift out of sync. */
-const highlights = plugin.features.slice(0, 3);
+/* Search snippet: the plugin name alone ("GAS · RevAudio") tells a searcher
+   nothing. Say what it is and that it is free; the description carries the
+   formats and the no-catch facts a snippet reader scans for. */
+const pageTitle = `${plugin.name}: free one-knob saturator`;
+const pageDescription =
+  'Free saturator plugin for Windows and macOS (VST3, AU, AAX). One DRIVE knob, three voices: Tube, Tape, Fuzz. Full version, no trial clock, no credit card.';
+
+/* Driver's Manual runtime (YouTube reports 166 s). Stated so the visitor knows
+   the cost of clicking before they click. Update if the video is replaced. */
+const videoLength = '2:46';
 ---
 
-<BaseLayout title={plugin.name} description={plugin.plainWhat}>
+<BaseLayout title={pageTitle} description={pageDescription} ogImage="/og/gas.png">
   <section class="gas">
     <div class="gas-grid">
       {/* eager + high priority: on a one-screen page the plate IS the LCP. */}
@@ -48,43 +66,50 @@ const highlights = plugin.features.slice(0, 3);
         />
       </div>
 
+      {/* .gas-copy is a named-area grid: on desktop the video badge sits to the
+          right of the title block; on phones the areas re-order so the button
+          and its fine print land above the fold and the badge comes last. */}
       <div class="gas-copy">
-        <div class="gas-titlerow">
-          <div class="gas-titles">
-            <h1>
-              {plugin.name}
-              <span class="gas-free">Free</span>
-            </h1>
-            {plugin.plainHook && <p class="gas-hook">{plugin.plainHook}</p>}
-          </div>
-          {plugin.tutorialVideo && (
-            <button
-              type="button"
-              class="gas-video-badge"
-              data-gas-video-open
-              data-yt-id={plugin.tutorialVideo.youtubeId}
-              data-yt-title={`${plugin.name}: ${plugin.tutorialVideo.title}`}
-              aria-label={`Play video: ${plugin.name}, ${plugin.tutorialVideo.title}`}
-            >
-              <span class="gas-video-thumb">
-                <img
-                  src={`https://i.ytimg.com/vi/${plugin.tutorialVideo.youtubeId}/hqdefault.jpg`}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  width="120"
-                  height="90"
-                />
-                <span class="gas-video-play" aria-hidden="true"></span>
-              </span>
-              <span class="gas-video-caption">{plugin.tutorialVideo.title}</span>
-            </button>
-          )}
+        <div class="gas-titles">
+          <h1>
+            {plugin.name}
+            <span class="gas-free">Free</span>
+          </h1>
+          <p class="gas-hook">One knob. Sounds expensive.</p>
         </div>
-        <p class="gas-what">{plugin.tagline}.</p>
+
+        {plugin.tutorialVideo && (
+          <button
+            type="button"
+            class="gas-video-badge"
+            data-gas-video-open
+            data-yt-id={plugin.tutorialVideo.youtubeId}
+            data-yt-title={`${plugin.name}: ${plugin.tutorialVideo.title}`}
+            aria-label={`Play video: ${plugin.name}, ${plugin.tutorialVideo.title}, ${videoLength}`}
+          >
+            <span class="gas-video-thumb">
+              <img
+                src={`https://i.ytimg.com/vi/${plugin.tutorialVideo.youtubeId}/hqdefault.jpg`}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                width="120"
+                height="90"
+              />
+              <span class="gas-video-play" aria-hidden="true"></span>
+            </span>
+            <span class="gas-video-caption">Watch it work &middot; {videoLength}</span>
+          </button>
+        )}
+
+        {/* plugins.ts oneLiner: "One DRIVE knob, three voices: Tube, Tape, Fuzz.
+            Floor it for character, not just loudness." One source, no drift. */}
+        <p class="gas-what">{plugin.oneLiner}</p>
 
         <ul class="gas-list">
-          {highlights.map((f) => <li>{f.name}</li>)}
+          <li>Full version. Free forever.</li>
+          <li>No trial clock. No credit card.</li>
+          <li>Windows &amp; macOS &middot; {plugin.systemReq.formats}</li>
         </ul>
 
         {plugin.trialGateActive ? (
@@ -97,14 +122,16 @@ const highlights = plugin.features.slice(0, 3);
             data-register-url={registerUrl}
             data-gate-free
           >
-            Download free
+            Get {plugin.name} free
           </button>
         ) : (
-          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Download free</a>
+          <a class="gas-cta" href={plugin.downloadUrl ?? '/store'}>Get {plugin.name} free</a>
         )}
 
         <p class="gas-fine">
-          {plugin.systemReq.formats} &middot; Windows &amp; macOS &middot; no licence key, we email you the link
+          {plugin.trialGateActive
+            ? 'Type your email, the download link lands in your inbox. No licence key.'
+            : 'Direct download. No licence key.'}
         </p>
       </div>
     </div>
@@ -171,7 +198,7 @@ const highlights = plugin.features.slice(0, 3);
   }
 
   /* Both columns hug their content and the PAIR is centred. A `1fr` copy column
-     looked left-heavy: the copy caps at ~40ch, so the rest of the column was
+     looked left-heavy: the copy caps at ~48ch, so the rest of the column was
      dead space pinned to the right edge. */
   .gas-grid {
     width: 100%;
@@ -195,22 +222,27 @@ const highlights = plugin.features.slice(0, 3);
     filter: drop-shadow(0 24px 60px rgba(0, 0, 0, 0.6));
   }
 
+  /* Named areas so the phone breakpoint can re-order without touching markup:
+     the title block and the video badge share a row here; everything else
+     spans the full width underneath. */
   .gas-copy {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-
-  /* Title + free hook stay one visual unit; the video badge floats to its
-     right, at the row's own height — nothing else in .gas-copy moves. */
-  .gas-titlerow {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      'titles video'
+      'what   what'
+      'list   list'
+      'cta    cta'
+      'fine   fine';
+    justify-content: start;
+    justify-items: start;
     align-items: center;
-    gap: var(--space-4, 1.25rem);
+    column-gap: var(--space-5);
+    row-gap: var(--space-4);
   }
 
   .gas-titles {
+    grid-area: titles;
     display: flex;
     flex-direction: column;
     gap: var(--space-2, 0.5rem);
@@ -220,7 +252,7 @@ const highlights = plugin.features.slice(0, 3);
      hqdefault crop. Opens the lightbox below; no player JS/request until
      clicked, same click-to-load principle as [slug].astro's full section. ── */
   .gas-video-badge {
-    flex: none;
+    grid-area: video;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -258,6 +290,8 @@ const highlights = plugin.features.slice(0, 3);
     transform: scale(1.05);
   }
 
+  /* Brass, not YouTube red: the CTA is the one warm block on the page and the
+     play dot must not out-shout it. Still a circle with a triangle: reads as play. */
   .gas-video-play {
     position: absolute;
     left: 50%;
@@ -266,7 +300,7 @@ const highlights = plugin.features.slice(0, 3);
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #e83a3a;
+    background: var(--brass);
     border: 2px solid #120804;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
     transition: transform 0.15s var(--ease), background 0.2s var(--ease);
@@ -286,7 +320,7 @@ const highlights = plugin.features.slice(0, 3);
   .gas-video-badge:hover .gas-video-play,
   .gas-video-badge:focus-visible .gas-video-play {
     transform: translate(-50%, -50%) scale(1.1);
-    background: #ff4a4a;
+    background: var(--brass-bright);
   }
 
   .gas-video-badge:focus-visible {
@@ -389,9 +423,10 @@ const highlights = plugin.features.slice(0, 3);
     color: var(--brass-bright);
   }
 
-  /* Wide enough for the tagline to land on ONE line at desktop — at 34ch it
-     broke after "gas" and left "pedal." orphaned on its own line. */
+  /* Wide enough for the one-liner to land on TWO lines at desktop, breaking
+     at its own full stop. */
   .gas-what {
+    grid-area: what;
     margin: 0;
     max-width: 48ch;
     text-wrap: balance;
@@ -400,9 +435,12 @@ const highlights = plugin.features.slice(0, 3);
     color: var(--fg-dim);
   }
 
+  /* The "what's the catch?" answers. Ticks, not plus signs: these are
+     reassurances, not features. */
   .gas-list {
+    grid-area: list;
     list-style: none;
-    margin: var(--space-1) 0 0;
+    margin: 0;
     padding: 0;
     display: grid;
     gap: 0.4rem;
@@ -411,12 +449,12 @@ const highlights = plugin.features.slice(0, 3);
   }
 
   .gas-list li {
-    padding-left: 1.1rem;
+    padding-left: 1.35rem;
     position: relative;
   }
 
   .gas-list li::before {
-    content: '+';
+    content: '\2713';
     position: absolute;
     left: 0;
     color: var(--brass);
@@ -424,25 +462,27 @@ const highlights = plugin.features.slice(0, 3);
   }
 
   .gas-cta {
+    grid-area: cta;
     margin-top: var(--space-2);
-    padding: 1rem 2.25rem;
+    padding: 1.05rem 2.5rem;
     background: var(--brass);
     color: var(--bg-0);
     border: 1px solid transparent;
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
+    text-decoration: none;
     cursor: pointer;
     transition: background 0.2s var(--ease);
   }
 
   .gas-cta:hover { background: var(--brass-bright); }
 
-  /* One line on desktop — it broke mid-phrase ("no licence key, we email / you
-     the link") when it inherited the copy column's 34ch cap. */
+  /* Sits directly under the button: the email step named before the click. */
   .gas-fine {
+    grid-area: fine;
     margin: 0;
     max-width: none;
     white-space: nowrap;
@@ -454,7 +494,9 @@ const highlights = plugin.features.slice(0, 3);
   }
 
   /* Phones: stack, plate first but smaller. One screen is a desktop promise —
-     here the promise is just "no scrolling past the CTA". */
+     here the promise is "the button and its fine print sit above the fold".
+     The areas re-order: the video badge drops to the end so it never pushes
+     the button down. */
   @media (max-width: 900px) {
     .gas {
       min-height: 0;
@@ -468,27 +510,31 @@ const highlights = plugin.features.slice(0, 3);
       text-align: center;
     }
 
-    /* 32svh, not "as big as fits": at 44svh the CTA landed under the fixed
-       a11y/cart FABs (they sit ~64px off the bottom) and the fine print fell
-       below the fold. Sized so the last line clears the FAB band on a 390x844
-       phone, which is the smallest screen we care about here. */
-    .gas-plate img { max-height: 32svh; }
+    /* 26svh: sized so the button AND the fine print clear the fixed a11y/cart
+       FAB band (~64px off the bottom) on a 390x844 phone, the smallest screen
+       we care about here. */
+    .gas-plate img { max-height: 26svh; }
 
     .gas-copy {
-      align-items: center;
-      gap: var(--space-3);
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'titles'
+        'what'
+        'list'
+        'cta'
+        'fine'
+        'video';
+      justify-content: center;
+      justify-items: center;
+      row-gap: var(--space-3);
     }
 
     .gas-copy h1 { justify-content: center; }
-    .gas-what { max-width: 40ch; }
+    .gas-what { max-width: 40ch; font-size: 1.05rem; }
     .gas-list { text-align: left; }
     .gas-cta { width: 100%; max-width: 320px; }
     /* nowrap would overflow a phone — let it wrap here. */
-    .gas-fine { white-space: normal; }
-
-    /* The badge sitting beside the title needs its own row's width to sit
-       "beside" anything — on a centred single column, stack it under
-       instead of squeezing both into a cramped row. */
-    .gas-titlerow { flex-direction: column; gap: var(--space-3); }
+    .gas-fine { white-space: normal; max-width: 34ch; }
+    .gas-video-badge { margin-top: var(--space-2); }
   }
 </style>
